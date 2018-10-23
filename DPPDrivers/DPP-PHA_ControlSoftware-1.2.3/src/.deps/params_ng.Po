@@ -1,0 +1,5 @@
+params_ng.o: params_ng.c /usr/include/stdc-predef.h ../inc/dppswitch.h
+
+/usr/include/stdc-predef.h:
+
+../inc/dppswitch.h:

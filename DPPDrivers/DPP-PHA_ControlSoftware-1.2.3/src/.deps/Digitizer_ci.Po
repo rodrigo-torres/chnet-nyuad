@@ -1,0 +1,6 @@
+Digitizer_ci.o: Digitizer_ci.c /usr/include/stdc-predef.h \
+ ../inc/dppswitch.h
+
+/usr/include/stdc-predef.h:
+
+../inc/dppswitch.h:

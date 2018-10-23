@@ -1,0 +1,23 @@
+
+[INFO]: DPPCore.c
+	[0.000]: System Started
+	[0.000]: System connection ready to receive commands
+	[0.001]: Affinity of Main Thread set to CPU 3
+	[0.002]: Waiting for commands...
+	[0.220]: Command 41 received
+	
+[ERROR]: DPPCore.c
+	[0.220]: Can't find board corresponding to channel 0
+	
+[INFO]: DPPCore.c
+	[0.220]: Waiting for commands...
+	[0.220]: Command 41 received
+	
+[ERROR]: DPPCore.c
+	[0.220]: Can't find board corresponding to channel 1
+	
+[INFO]: DPPCore.c
+	[0.220]: Waiting for commands...
+	[13.130]: Command 1 received
+	[13.130]: System Quitting
+	

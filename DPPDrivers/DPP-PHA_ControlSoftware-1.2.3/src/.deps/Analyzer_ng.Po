@@ -1,0 +1,6 @@
+Analyzer_ng.o: Analyzer_ng.c /usr/include/stdc-predef.h \
+ ../inc/dppswitch.h
+
+/usr/include/stdc-predef.h:
+
+../inc/dppswitch.h:

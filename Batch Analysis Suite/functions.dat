@@ -1,0 +1,45 @@
+#!/usr/bin/gnuplot -persist
+
+CaA(x)=CaAa*exp(-((x-CaAb)/(sqrt(2)*CaAc))**2)
+CoA(x)=CoAa*exp(-((x-CoAb)/(sqrt(2)*CoAc))**2)
+FeA(x)=FeAa*exp(-((x-FeAb)/(sqrt(2)*FeAc))**2)
+KA(x)=KAa*exp(-((x-KAb)/(sqrt(2)*KAc))**2)
+MnA(x)=MnAa*exp(-((x-MnAb)/(sqrt(2)*MnAc))**2)
+NiA(x)=NiAa*exp(-((x-NiAb)/(sqrt(2)*NiAc))**2)
+SiA(x)=SiAa*exp(-((x-SiAb)/(sqrt(2)*SiAc))**2)
+TiA(x)=TiAa*exp(-((x-TiAb)/(sqrt(2)*TiAc))**2)
+SA(x)=SAa*exp(-((x-SAb)/(sqrt(2)*SAc))**2)
+CrA(x)=CrAa*exp(-((x-CrAb)/(sqrt(2)*CrAc))**2)
+CuA(x)=CuAa*exp(-((x-CuAb)/(sqrt(2)*CuAc))**2)
+
+CaB(x)=CaBa*exp(-((x-CaBb)/(sqrt(2)*CaBc))**2)
+CoB(x)=CoBa*exp(-((x-CoBb)/(sqrt(2)*CoBc))**2)
+FeB(x)=FeBa*exp(-((x-FeBb)/(sqrt(2)*FeBc))**2)
+KB(x)=KBa*exp(-((x-KBb)/(sqrt(2)*KBc))**2)
+MnB(x)=MnBa*exp(-((x-MnBb)/(sqrt(2)*MnBc))**2)
+NiB(x)=NiBa*exp(-((x-NiBb)/(sqrt(2)*NiBc))**2)
+SiB(x)=SiBa*exp(-((x-SiBb)/(sqrt(2)*SiBc))**2)
+TiB(x)=TiBa*exp(-((x-TiBb)/(sqrt(2)*TiBc))**2)
+SB(x)=SBa*exp(-((x-SBb)/(sqrt(2)*SBc))**2)
+CrB(x)=CrBa*exp(-((x-CrBb)/(sqrt(2)*CrBc))**2)
+CuB(x)=CuBa*exp(-((x-CuBb)/(sqrt(2)*CuBc))**2)
+
+OsMA(x)=OsMAa*exp(-((x-OsMAb)/(sqrt(2)*OsMAc))**2)
+
+# The following functions are used for multidector alignment
+
+Cal1(x)=Cal1a*exp(-((x-Cal1b)/(sqrt(2)*Cal1c))**2)
+Cal2(x)=Cal2a*exp(-((x-Cal2b)/(sqrt(2)*Cal2c))**2)
+Cal3(x)=Cal3a*exp(-((x-Cal3b)/(sqrt(2)*Cal3c))**2)
+Cal4(x)=Cal4a*exp(-((x-Cal4b)/(sqrt(2)*Cal4c))**2)
+Cal5(x)=Cal5a*exp(-((x-Cal5b)/(sqrt(2)*Cal5c))**2)
+Cal6(x)=Cal6a*exp(-((x-Cal6b)/(sqrt(2)*Cal6c))**2)
+
+# The following functions are used for energy calibration
+
+En1(x)=En1a*exp(-((x-En1b)/(sqrt(2)*En1c))**2)
+En2(x)=En2a*exp(-((x-En2b)/(sqrt(2)*En2c))**2)
+En3(x)=En3a*exp(-((x-En3b)/(sqrt(2)*En3c))**2)
+En4(x)=En4a*exp(-((x-En4b)/(sqrt(2)*En4c))**2)
+
+

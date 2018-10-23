@@ -1,0 +1,34 @@
+
+[INFO]: DPPCore.c
+	[0.000]: System Started
+	[0.000]: System connection ready to receive commands
+	[0.000]: Affinity of Main Thread set to CPU 7
+	[0.000]: Waiting for commands...
+	[0.209]: Command 2 received
+	
+[INFO]: CAEN_MCA.c
+	[0.209]: Adding Board with OPTLYNK 0 0 0
+	[0.410]: Connected to DT5780SDM s.n. 1125 Firmware Release: ROC 04.05 - Build F112, AMC 128.30 - Build E905
+	
+[INFO]: DPPAcqLoopThread.c
+	[2.012]: Creating new Acquisition Thread for board DT5780SDM_1125 with connParams: Type=OPTLINK, L=0, N=0, BA=0x00000000
+	[2.012]: Found 8 CPUs
+	
+[INFO]: DPPCore.c
+	[2.012]: ACQLoop 0 Started
+	
+[INFO]: DPPAcqLoopThread.c
+	[2.012]: Affinity of ACQLoop 0 set to CPU 0
+	[2.014]: Board 0 added to Thread ACQLoop 0
+	
+[INFO]: DPPCore.c
+	[2.014]: Waiting for commands...
+	[2.025]: Command 41 received
+	[2.075]: Waiting for commands...
+	[2.076]: Command 41 received
+	[2.126]: Waiting for commands...
+	[78.174]: Command 1 received
+	[78.174]: ACQLoop 0 has finished his job.
+	[78.174]: Thread 0 ended
+	[78.175]: System Quitting
+	
