@@ -142,6 +142,47 @@ In \textit{mainwindow\_loadSHM.cpp} source file,
 \section{XRFMultidet\_v10.5}
 \textit{Changelog with respect to version 10.4}
 
+% int setresolution() has been deprecated
+% Protocols for low and high resolutions deleted from the GUI_CREATOR.cpp source file
+% The Laser button, and the Helium button have been remove together with their associated widgets, mainly the divisory lines
+%  and their respective text fields.
+% XRFMultidet_v10.5
+% In the mainwindow_loadSHM.cpp, definitions have been added to avoid artificies in the data, in particular;
+%      The ranqd1() has been modified...
+% XRFMultidet_v10.6
+% The acquisition protocol in ADCXRF.c has been modified as follows:
+%      The ranqd1() function has been modified to take two float parameters as the low and high limits
+%      The ranqd1() functions has now been implemented with rounding protocols to avoid data truncation
+%      Data type conversions have been explictly added to avoid erroneous truncation
+%      The loops to call the parameters from the DPPinterface have been enabled
+%      The switch for writing the positions has been moved immediately after the check for writeposition, avoiding delays
+%      A continue rule has been added in the energy write loop for when the buffer is empty, avoiding non-sense data
+%      Several, but minor, style changes favoring the use of operators, rather than lengthy expressions
+%      the calibration gradient and offset are first calculated using the correct data type conversions
+% XRFMultidet_v10.7;
+%  The DPPGui project, add as a class to the source files, and now accesible as a pointer. No more external programs
+%  and the shared memory definitions are now up to date to allow the parameters to be taken from there
+% XRFMultidet_v10.8
+%  In the Spectrum file:
+%  The dock has been moved to the right
+%  If the channels and energy have been specified before in a session in the calibration window, the program stores
+%  them in memory and displays them the next time the calibraion window is open
+%  The calibration gradient values and offset are automatically loaded at start
+%  In the spectrum project, four different functions specified for each of the calibration parameters have been replaced
+%  by one single slot function which uses a signalmapper to identify the signal sender by an ID number and react differently
+%  according to this ID
+%  An autoscale issue has been 'fixed' by ignoring the firts channel in the array when calculating the maximum y range
+%  XRFMultidet_v10.9
+%  An array has been introduced in SHM_CREATOR.cpp to store the shmIDs for shared emory segments
+%  A template function has been introduced to reduce written code, now shm segments are attacged by simply calling
+%  this function with the respective specific key
+%  A different protocol for deleting the shared memory segments has been added, the protocl has been moved from the destructor
+%  to the closeeventsignal(), which accepts the closure signal, only after the processes have been killed, and the memory segments
+%  both called for erasure and dettached.
+%  And other Gui modifications
+%  XRFMultidet_v11.0
+
+
 \end{document}
 
 
