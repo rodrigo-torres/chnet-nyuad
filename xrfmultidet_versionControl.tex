@@ -67,7 +67,7 @@
 \end{enumerate}
 
 \section{XRFMultidet\_v10.1}
-\textit{Changelog with respecto to version 10.0}
+\textit{Changelog with respect to version 10.0}
 
 \begin{enumerate}
 	\item Source code changes to ADCXRF.c in the Digitizer\_USB project
@@ -141,7 +141,6 @@ In \textit{mainwindow\_loadSHM.cpp} source file,
 
 \section{XRFMultidet\_v10.5}
 \textit{Changelog with respect to version 10.4}
-
 % int setresolution() has been deprecated
 % Protocols for low and high resolutions deleted from the GUI_CREATOR.cpp source file
 % The Laser button, and the Helium button have been remove together with their associated widgets, mainly the divisory lines
@@ -149,39 +148,77 @@ In \textit{mainwindow\_loadSHM.cpp} source file,
 % XRFMultidet_v10.5
 % In the mainwindow_loadSHM.cpp, definitions have been added to avoid artificies in the data, in particular;
 %      The ranqd1() has been modified...
-% XRFMultidet_v10.6
-% The acquisition protocol in ADCXRF.c has been modified as follows:
-%      The ranqd1() function has been modified to take two float parameters as the low and high limits
-%      The ranqd1() functions has now been implemented with rounding protocols to avoid data truncation
-%      Data type conversions have been explictly added to avoid erroneous truncation
-%      The loops to call the parameters from the DPPinterface have been enabled
-%      The switch for writing the positions has been moved immediately after the check for writeposition, avoiding delays
-%      A continue rule has been added in the energy write loop for when the buffer is empty, avoiding non-sense data
-%      Several, but minor, style changes favoring the use of operators, rather than lengthy expressions
-%      the calibration gradient and offset are first calculated using the correct data type conversions
-% XRFMultidet_v10.7;
-%  The DPPGui project, add as a class to the source files, and now accesible as a pointer. No more external programs
-%  and the shared memory definitions are now up to date to allow the parameters to be taken from there
-% XRFMultidet_v10.8
-%  In the Spectrum file:
-%  The dock has been moved to the right
-%  If the channels and energy have been specified before in a session in the calibration window, the program stores
-%  them in memory and displays them the next time the calibraion window is open
-%  The calibration gradient values and offset are automatically loaded at start
-%  In the spectrum project, four different functions specified for each of the calibration parameters have been replaced
-%  by one single slot function which uses a signalmapper to identify the signal sender by an ID number and react differently
-%  according to this ID
-%  An autoscale issue has been 'fixed' by ignoring the firts channel in the array when calculating the maximum y range
-%  XRFMultidet_v10.9
-%  An array has been introduced in SHM_CREATOR.cpp to store the shmIDs for shared emory segments
-%  A template function has been introduced to reduce written code, now shm segments are attacged by simply calling
-%  this function with the respective specific key
-%  A different protocol for deleting the shared memory segments has been added, the protocl has been moved from the destructor
-%  to the closeeventsignal(), which accepts the closure signal, only after the processes have been killed, and the memory segments
-%  both called for erasure and dettached.
-%  And other Gui modifications
-%  XRFMultidet_v11.0
 
+
+
+\section{XRFMultidet\_v10.6}
+\textit{Changelog with respect to version 10.5}
+
+The acquisition protocol defined in \textit{ADCXRF.c} has been modified as follows,
+\begin{itemize}
+	\item The ranqd1() function has been modified to take two float parameters as the low and high limits for random number distribution
+	\item A protocol for rounding floats has been added to the ranqd1() function to avoid data truncation
+	\item Where appropriate data type conversions have been made explicit
+	\item The loops that allow to call the parameters from the custom DPP-GUI have been enabled and modified as appropriate
+	\item The switch statement to select the protocol to write the motor's position has been moved immediately after the check for \textit{writeposition}, avoiding delays
+	\item A \textit{continue} statement has been added in the energy write loop in case the buffer is empty, avoiding non-sense data being passed to shared memory segments
+	\item Several, but minor, style changes favoring the use of operators for data manipulation, rather than lengthy or explicit expressions
+	\item The multidetector calibration gradient and offset are calculated first, and only once, using the correct data type conversions.
+\end{itemize}
+
+\section{XRFMultidet\_v10.7}
+\textit{Changelog with respect to version 10.6}
+
+The custom graphical user interface for configuring DPP acquisition parameters is now implemented as a separate class in the \textit{XRF\_Scanner\_Dev\_3} project. The class is accessed as a pointer, and the shared memory definitions are now up to date, effectively eliminating the need for an external program to call upon this DPP GUI.
+
+\section{XRFMultidet\_v10.8}
+\textit{Changelog with respect to version 10.7}
+
+In the \textit{Spectrum} visualization project, the following changes have been made,
+\begin{itemize}
+	\item The \textit{Calibration and DAQ} dock has been moved to the right, and the widget layout rules have been updated.
+	\item If the channels and corresponding energies have been specified before in the calibration dialogue, in any given session, the program stores these values in a global variable and displays them as the default value in the dialogue spinboxes the next time the calibration window is opened.
+	\item The calibration gradient and offset values are automatically loaded at the start
+	\item The four different functions used to pass the current values in the spinboxes of the calibration dialogue to a global variable have been replaced by a single slot function which uses the \textit{QSignalMapper} class to identify the signal sender with an ID integer and customize the function's action to this ID value.
+	\item The autoscale bug ---wherein the 'Events Count' scale would fluctuate apparently stochastically when the \textit{Autoscale} checkbox was active--- has been 'fixed' by ignoring the first entry of the \textit{channels} array used in the plotting of the histogram.
+\end{itemize}
+
+\section{XRFMultidet\_v10.8}
+\textit{Changelog with respect to version 10.7}
+
+In the \textit{Spectrum} visualization project, the following changes have been made,
+\begin{itemize}
+	\item The \textit{Calibration and DAQ} dock has been moved to the right, and the widget layout rules have been updated.
+	\item If the channels and corresponding energies have been specified before in the calibration dialogue, in any given session, the program stores these values in a global variable and displays them as the default value in the dialogue spinboxes the next time the calibration window is opened.
+	\item The calibration gradient and offset values are automatically loaded at the start
+	\item The four different functions used to pass the current values in the spinboxes of the calibration dialogue to a global variable have been replaced by a single slot function which uses the \textit{QSignalMapper} class to identify the signal sender with an ID integer and customize the function's action to this ID value.
+	\item The autoscale bug ---wherein the 'Events Count' scale would fluctuate apparently stochastically when the \textit{Autoscale} checkbox was active--- has been 'fixed' by ignoring the first entry of the \textit{channels} array used in the plotting of the histogram.
+\end{itemize}
+
+\section{XRFMultidet\_v10.9}
+\textit{Changelog with respect to version 10.8}
+
+\begin{itemize}
+	\item An array has been introduced in SHM\_CREATOR.cpp to store the shmIDs for shared memory segments
+	\item A template function has been introduced to optimize the source code, now shared memory segments are attached by simply calling this function with the desired \textbf{key\_t} \textit{key} and specifying the desired data type for this SHM segment.
+	\item The program exit protocol has been moved from the class destructor to a virtual slot function which responds to program closure signals; the \textit{closeeventsignal()} function only accepts the role of the closure signal once all relevant processes have been killed and the shared memory segments been both called for erasure and dettached.
+	\item Other minor GUI modifications
+\end{itemize}
+
+\section{XRFMultidet\_v11.0}
+\textit{Changelog with respect to version 10.9}
+
+The protocol for random addition of spectra has been added to the function which renders the composed element (RGB) map. The modifications are analogue to those made to the function which renders a map for a single specified energy (or channel) interval, and list the in the changelog for XRFMultider\_v10.5
+
+%
+% XRFMultidet_v11.1
+% PixelCrct() function has been removed as it was not called
+% SelectionElement() functions have been removed and replaced by the single function writeCompMapLimits() which uses the signalmapper to identify the sender of the signal, and assigns the corresponding value to the global variables
+% The LoadElementsmapSum() function has been modified so as to produce a dialog with spinboxes as opposed to comboboxes, now the limits for the composed map are inputted manually as oppised to being loaded from an outdated txt file
+% Other aesthetic modifiations for this dialog box such as a clearer indication intro and a different layout
+% MapCorrection() and CutPixels()
+% Also added the correction rules for the displaySumMap to pass the limits correctly for the composed map
+% change the type from int to double for composed map element limits
 
 \end{document}
 
