@@ -208,17 +208,20 @@ In the \textit{Spectrum} visualization project, the following changes have been 
 \section{XRFMultidet\_v11.0}
 \textit{Changelog with respect to version 10.9}
 
-The protocol for random addition of spectra has been added to the function which renders the composed element (RGB) map. The modifications are analogue to those made to the function which renders a map for a single specified energy (or channel) interval, and list the in the changelog for XRFMultider\_v10.5
+The protocol for random addition of spectra has been added to the function which renders the composed element (RGB) map. The modifications are analogue to those made to the function which renders a map for a single specified energy (or channel) interval, and listed in the changelog for XRFMultidet\_v10.5
 
-%
-% XRFMultidet_v11.1
-% PixelCrct() function has been removed as it was not called
-% SelectionElement() functions have been removed and replaced by the single function writeCompMapLimits() which uses the signalmapper to identify the sender of the signal, and assigns the corresponding value to the global variables
-% The LoadElementsmapSum() function has been modified so as to produce a dialog with spinboxes as opposed to comboboxes, now the limits for the composed map are inputted manually as oppised to being loaded from an outdated txt file
-% Other aesthetic modifiations for this dialog box such as a clearer indication intro and a different layout
-% MapCorrection() and CutPixels()
-% Also added the correction rules for the displaySumMap to pass the limits correctly for the composed map
-% change the type from int to double for composed map element limits
+\section{XRFMultidet\_v11.1}
+\textit{Changelog with respect to version 11.0}
+
+\begin{itemize}
+	\item PixelCrct() function has been deprecated
+	\item SelectionElement() functions have been removed and replaced by the single function writeCompMapLimits() which uses the QSignalMapper class to identify the sender of a signal, and assigns their value to the respective global variables
+	\item The LoadElementsmapSum() function has been modified so as to produce a dialog with QSpinBoxes as opposed to QComboBoxes, now the limits for the composed map are inputted manually as opposed to being loaded from an outdated .txt file
+	\item Other aesthetic modifications for this dialog box such as a clearer instruction message and a different layout
+	\item MapCorrection() and CutPixels() functions have been deprecated
+	\item Data type changed from int to double for composed map element limits
+\end{itemize}
+
 
 \end{document}
 
