@@ -1,0 +1,3 @@
+QString qstr = QString::fromStdString(cm);
+
+QString valueAsString = QString::number(valueAsDouble);
