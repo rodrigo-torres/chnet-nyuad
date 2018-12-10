@@ -1,0 +1,100 @@
+
+#Operation parameters, to send to the motor write on the communication port: CHAN SPA HEX_ADDRESS VALUE
+#The following parameters are valid: 
+0x1=	0	1	INT	motorcontroller	P term 
+0x2=	0	1	INT	motorcontroller	I term 
+0x3=	0	1	INT	motorcontroller	D term 
+0x4=	0	1	INT	motorcontroller	I limit 
+0x5=	0	1	INT	motorcontroller	Kvff 
+0x8=	0	1	FLOAT	motorcontroller	Maximum Position Error (Phys. Unit) 
+0x9=	0	1	INT	motorcontroller	Maximum Motor Output	0 to 32767 
+0xA=	0	1	FLOAT	motorcontroller	Maximum Closed-Loop Velocity (Phys. Unit/s) 
+0xB=	0	1	FLOAT	motorcontroller	Closed-Loop Acceleration (Phys. Unit/s2) 
+0xC=	0	1	FLOAT	motorcontroller	Closed-Loop Deceleration (Phys. Unit/s2) 
+0xE=	0	1	INT	motorcontroller	Numerator Of The Counts-Per-Physical-Unit Factor 
+0xF=	0	1	INT	motorcontroller	Denominator Of The Counts-Per-Physical-Unit Factor 
+0x13=	0	1	INT	motorcontroller	Is Rotary Stage?	0 = no rotary stage, 1 = is rotary stage 
+0x14=	0	1	INT	motorcontroller	Has Reference?	0 = has no reference switch, 1 = has reference switch 
+0x15=	0	1	FLOAT	motorcontroller	Maximum Travel In Positive Direction (Phys. Unit) 
+0x16=	0	1	FLOAT	motorcontroller	Value At Reference Position (Phys. Unit) 
+0x17=	0	1	FLOAT	motorcontroller	Distance From Negative Limit To Reference Position (Phys. Unit) 
+0x18=	0	1	INT	motorcontroller	Limit Mode	0 = positive limit switch active high (pos-HI), negative limit switch active high (neg-HI), 1 = positive limit switch active low (pos-LO), neg-HI, 2 = pos-HI, neg-LO, 3 = pos-LO, neg-LO 
+0x1A=	0	1	INT	motorcontroller	Has Brake?	0 = has no brake, 1 = has brake 
+0x2F=	0	1	FLOAT	motorcontroller	Distance From Reference Position To Positive Limit (Phys. Unit) 
+0x30=	0	1	FLOAT	motorcontroller	Maximum Travel In Negative Direction (Phys. Unit) 
+0x31=	0	1	INT	motorcontroller	Invert Reference?	0 = reference signal not inverted, 1 = reference signal inverted 
+0x32=	0	1	INT	motorcontroller	Has No Limit Switches?	0 = has limit switches, 1 = has no limit switches 
+0x33=	0	1	INT	motorcontroller	Motor Offset Positive	0 to 32766 
+0x34=	0	1	INT	motorcontroller	Motor Offset Negative	0 to 32766 
+0x36=	0	1	INT	motorcontroller	Settling Window (encoder counts) 
+0x3C=	0	1	CHAR	motorcontroller	Stage Name	max. 20 characters 
+0x3F=	0	1	FLOAT	motorcontroller	Settling Time (s) 
+0x47=	0	1	INT	motorcontroller	Reference Travel Direction	0 = detect automatically, 1 = start in negative direction, 2 = start in positive direction 
+0x48=	0	1	INT	motorcontroller	Motor Drive Offset	0 to 32766 
+0x49=	0	1	FLOAT	motorcontroller	Closed-Loop Velocity (Phys. Unit/s) 
+0x4A=	0	1	FLOAT	motorcontroller	Maximum Closed-Loop Acceleration (Phys. Unit/s2) 
+0x4B=	0	1	FLOAT	motorcontroller	Maximum Closed-Loop Deceleration (Phys. Unit/s2) 
+0x4D=	0	1	INT	motorcontroller	Servo Window Mode	distance to: 0 = target; 1 = commanded position 
+0x50=	0	1	FLOAT	motorcontroller	Velocity For Reference Moves (Phys. Unit/s) 
+0x5A=	0	1	INT	motorcontroller	Numerator Of The Servo-Loop Input Factor 
+0x5B=	0	1	INT	motorcontroller	Denominator Of The Servo-Loop Input Factor 
+0x5C=	0	1	INT	motorcontroller	Source Of Reference Signal	0 = reference switch, 1 = dig. input 1, 2 = dig. input 2, 3 = dig. input 3, 4 = dig. input 4 
+0x5D=	0	1	INT	motorcontroller	Source Of Negative Limit Signal	bit-mapped: 0 = negative limit switch, 1 = dig. input 1, 2 = dig. input 2, 4 = dig. Input 3, 8 = dig. Input 4 
+0x5E=	0	1	INT	motorcontroller	Source Of Positive Limit Signal	bit-mapped: 0 = positive limit switch, 1 = dig. input 1, 2 = dig. input 2, 4 = dig. Input 3, 8 = dig. Input 4 
+0x5F=	0	1	INT	motorcontroller	Invert Digital Input Used For Negative Limit	bit-mapped: 0 = no input inverted, 1 = dig. input 1 inverted, 2 = dig. input 2 inverted, 4 = dig. input 3 inverted, 8 = dig. input 4 inverted 
+0x60=	0	1	INT	motorcontroller	Invert Digital Input Used For Positive Limit	bit-mapped:  0 = no input inverted, 1 = dig. input 1 inverted, 2 = dig. input 2 inverted, 4 = dig. input 3 inverted, 8 = dig. input 4 inverted 
+0x61=	0	1	INT	motorcontroller	Invert Direction Of Motion For Joystick-Controlled Axis?	0 = direction of motion not inverted, 1 = direction of motion inverted 
+0x63=	0	1	FLOAT	motorcontroller	Distance Between Limit And Hard Stop (Phys. Unit) 
+0x70=	0	1	INT	motorcontroller	Reference Signal Type	0 = direction sensing reference point switch, 1 = pulse signal (0x47 is important too) 
+0x71=	0	1	INT	motorcontroller	D-Term Delay (No. Of Servo Cycles) 
+0x72=	0	1	INT	motorcontroller	Ignore Macro Error?	0 = stop macro when error occurs, 1 = ignore error 
+0x77=	0	1	INT	motorcontroller	Use Limit Switches Only For Referencing	0 = use as limits, 1 = use only for reference moves 
+0x78=	0	1	FLOAT	motorcontroller	Distance From Limit To Start Of Ref Search (Phys. Unit) 
+0x79=	0	1	FLOAT	motorcontroller	Distance For Reference Search (Phys. Unit) 
+0x94=	0	1	FLOAT	motorcontroller	Notch Filter Frequency 1 (Hz) 
+0x95=	0	1	FLOAT	motorcontroller	Notch Filter Edge 1	0.1 to 10 
+0x400=	0	1	INT	motorcontroller	Number of Servo Parameter Sets 
+0x401=	0	1	INT	motorcontroller	P-Term 0 
+0x402=	0	1	INT	motorcontroller	I-Term 0 
+0x403=	0	1	INT	motorcontroller	D-Term 0 
+0x404=	0	1	INT	motorcontroller	I-Limit 0 
+0x405=	0	1	INT	motorcontroller	Kvff 0 
+0x406=	0	1	INT	motorcontroller	Window Enter 0 (encoder counts) 
+0x407=	0	1	INT	motorcontroller	Window Exit 0 (encoder counts) 
+0x411=	0	1	INT	motorcontroller	P-Term 1 
+0x412=	0	1	INT	motorcontroller	I-Term 1 
+0x413=	0	1	INT	motorcontroller	D-Term 1 
+0x414=	0	1	INT	motorcontroller	I-Limit 1 
+0x415=	0	1	INT	motorcontroller	Kvff 1 
+0x416=	0	1	INT	motorcontroller	Window Enter 1 (encoder counts) 
+0x417=	0	1	INT	motorcontroller	Window Exit 1 (encoder counts) 
+0x421=	0	1	INT	motorcontroller	P-Term 2 
+0x422=	0	1	INT	motorcontroller	I-Term 2 
+0x423=	0	1	INT	motorcontroller	D-Term 2 
+0x424=	0	1	INT	motorcontroller	I-Limit 2 
+0x425=	0	1	INT	motorcontroller	Kvff 2 
+0x426=	0	1	INT	motorcontroller	Window Enter 2 (encoder counts) 
+0x427=	0	1	INT	motorcontroller	Window Exit 2 (encoder counts) 
+0x431=	0	1	INT	motorcontroller	P-Term 3 
+0x432=	0	1	INT	motorcontroller	I-Term 3 
+0x433=	0	1	INT	motorcontroller	D-Term 3 
+0x434=	0	1	INT	motorcontroller	I-Limit 3 
+0x435=	0	1	INT	motorcontroller	Kvff 3 
+0x436=	0	1	INT	motorcontroller	Window Enter 3 (encoder counts) 
+0x437=	0	1	INT	motorcontroller	Window Exit 3 (encoder counts) 
+0x441=	0	1	INT	motorcontroller	P-Term 4 
+0x442=	0	1	INT	motorcontroller	I-Term 4 
+0x443=	0	1	INT	motorcontroller	D-Term 4 
+0x444=	0	1	INT	motorcontroller	I-Limit 4 
+0x445=	0	1	INT	motorcontroller	Kvff 4 
+0x446=	0	1	INT	motorcontroller	Window Enter 4 (encoder counts) 
+0x447=	0	1	INT	motorcontroller	Window Exit 4 (encoder counts) 
+0x7000000=	0	1	FLOAT	motorcontroller	Range Limit Min 
+0x7000001=	0	1	FLOAT	motorcontroller	Range Limit Max 
+0x7000601=	0	1	CHAR	motorcontroller	Axis Unit 
+0x16000001=	0	1	INT	motorcontroller	Recorded Points Per Trigger 
+0x16000002=	0	1	INT	motorcontroller	Clearing Of RecTable On Trigger 
+0x16000003=	0	1	INT	motorcontroller	Data Recorder Buffer Mode 
+0x16000004=	0	1	INT	motorcontroller	Data Recorder Buffer Overflow 
+end of help
+
