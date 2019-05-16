@@ -43,34 +43,40 @@ void MainWindow::Autofocus2() {
     }
 }
 
-string read_ACMport() {
-    int n=0;
-    char ans_Keyence[10] = {};
-    char buf_Keyence[11] = {};
-    string restK;
+string read_ACMport() { // The serial print of the Arduino is set to return 6 characters ( ±xx.xx )
+    //int n=0;
+    //char ans_Keyence[6] = {};
+    char buf_Keyence[8] = {};
+    //string restK;
 
-    n = read(serialK, &buf_Keyence, 11);
-    if ( n != 11 || buf_Keyence[10] != '\n' ) {
-            tcflush( serialK, TCIFLUSH );
-            condition2=true;
-            return "0";
+    long n;
+    n = read(serialK, &buf_Keyence, 8); //The serial returns a \r\n at the end of each line
+
+    if (buf_Keyence[6] != '\r' || buf_Keyence[7] != '\n') {
+        throw std::invalid_argument("The data received is not in the format expected");
+    }
+//    if ( n != 11 || buf_Keyence[10] != '\n' ) {
+//            tcflush( serialK, TCIFLUSH );
+//            condition2=true;
+//            return "0";
+//    }
+    string restK(buf_Keyence, 0, 6);
+    return restK;
     }
 
-    else {
-        for (int i=0; i<9; i++) {
-            ans_Keyence[i] = buf_Keyence[i];
-        }
-        string restK(ans_Keyence);
-        //tcflush( serialK, TCIFLUSH );
-        condition2=false;
-        return restK;
-    }
-}
 
 void MainWindow::readKeyence() {
 
-    checkK = read_ACMport();
-    if (condition2) {return;}
+    try {
+        checkK = read_ACMport();
+    } catch (const std::invalid_argument& e) {
+        cerr<<e.what();
+        tcflush(serialK, TCIFLUSH);
+        qDebug()<<"[!] Flushed the Keyence serial";
+        return;
+    }
+    //checkK = read_ACMport();
+    //if (condition2) {return;}
 
     KeyenceValue="";
     KeyenceValue.append(checkK.data());
