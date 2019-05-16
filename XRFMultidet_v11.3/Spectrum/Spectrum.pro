@@ -7,11 +7,14 @@ TARGET = Spectrum
 INCLUDEPATH += /usr/local/qwt-6.1.3/
 INCLUDEPATH+= /usr/local/qwt-6.1.3/include/
 
-LIBS += -L/usr/local/qwt-6.1.3/lib -lqwt
+include(/usr/local/qwt-6.1.3/features/qwt.prf)
+
+LIBS += -L/usr/local/qwt-6.1.3/lib/ -lqwt
 
 QT += widgets
 QT += printsupport
 CONFIG += qwt
+CONFIG += c++11
 
 
 # Input

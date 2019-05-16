@@ -68,11 +68,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     PixelY=595;
 
     SHM_CREATOR();                 /// CREATING SHARED MEMORY SEGMENT
+    qDebug()<<"1";
     createActions();
     builder_Menu();            	    /// CREATING MENU from Menu.cpp
     GUI_CREATOR();
     CONNECTIONS_CREATOR();
-
+printf("2");
     imageLabel = new ImgLabel;
 
     QImage image1("IMG/TT_CHNet_res1.png");

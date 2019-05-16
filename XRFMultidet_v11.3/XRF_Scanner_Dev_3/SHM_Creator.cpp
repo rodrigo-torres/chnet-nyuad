@@ -130,16 +130,16 @@ void MainWindow::SHM_CREATOR() {
 
 
 
-                    *(shared_memory2+1)=0;    // Posiz X
-                    *(shared_memory2+2)=0;    // Posiz Y
-                    *(shared_memory2+3)=0;    // ontarget if 1
-                   *(shared_memory2+4)=0;    // NEvents totali ADC per mappa online
+//                    *(shared_memory2+1)=0;    // Posiz X
+//                    *(shared_memory2+2)=0;    // Posiz Y
+//                    *(shared_memory2+3)=0;    // ontarget if 1
+//                   *(shared_memory2+4)=0;    // NEvents totali ADC per mappa online
 
 
-                    *(shared_memory2+8)=0; //usato per indicare timer stop prime di cambiare righa
-                    *(shared_memory2+9)=0; //usato quando l'acquisizione viene chiamata senza scanzione
-	            *(shared_memory2+10)=0;	//From this position onwards, starts the map data array from
-////////////////////////////////////////////// DIGITISER PARAMETERS
+//                    *(shared_memory2+8)=0; //usato per indicare timer stop prime di cambiare righa
+//                    *(shared_memory2+9)=0; //usato quando l'acquisizione viene chiamata senza scanzione
+//	            *(shared_memory2+10)=0;	//From this position onwards, starts the map data array from
+//////////////////////////////////////////////// DIGITISER PARAMETERS
 
 
                      *(shared_memory4)=40;        // Trigger Threshold                                   
