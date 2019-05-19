@@ -210,7 +210,7 @@ QString MainWindow::SetSerialYName(int number)
         struct termios my_termios;
         struct termios new_termios;
 
-        tcgetattr( serialY, &my_termios );
+        tcgetattr(serialY, &my_termios );
         cfsetospeed(&my_termios,B9600);
         //int h=cfsetospeed(&my_termios,B9600);
         //int h1=cfgetospeed(&my_termios);
@@ -397,9 +397,9 @@ void MainWindow::Init_KeyenceLaser() {
         struct termios my_termios;
         //struct termios new_termios;
 
-        tcgetattr( serialY, &my_termios ); // build upon previous configuration
+        tcgetattr(serialK, &my_termios ); // build upon previous configuration
         cfsetospeed(&my_termios,B9600);
-        my_termios.c_oflag &= ~(ONLCR | OPOST);
+        my_termios.c_oflag = 0;
         my_termios.c_cflag &= ~(PARENB | CSTOPB | CSIZE);
         my_termios.c_cflag |= CS8;
         my_termios.c_cflag &= ~CRTSCTS;
