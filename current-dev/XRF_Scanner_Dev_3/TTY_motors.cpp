@@ -360,73 +360,76 @@ void MainWindow::NameACM(int numberacm)     //////// CALLED FROM --> spinBox_ass
 
 /////////////// PUSHBUTTONS
 
-void MainWindow::AssignACM()               //////// CALLED FROM --> pushButton_assignACM_port (in mainwindow.cpp)
-{
-    if(noKeyence_init)
-        Init_KeyenceLaser();
-    else
-        qDebug()<<"Connection ACM already established!!!";
+void MainWindow::AssignACM() {
+    Init_KeyenceLaser();
+    noKeyence_init = false;
+    qDebug()<<"... Keyence inited succesfully";
+
 }
 
+
+void termiosConf(int serial, bool canon = true) {
+    struct termios my_termios;
+
+    cfsetispeed(&my_termios, B9600);
+    // No output processing, no lowercase mapping, no CR or NL mapping
+    // Output CR, no fill characters, no delay masks.
+    my_termios.c_oflag = 0000000;
+    // Ignore local modem lines, no rts/cts flow control, no hang-up, no parity check
+    // Character size 8 bits, baud-rate 9600, enable receiver
+    my_termios.c_cflag = 0004275;
+    // No input processing, no signals, cbreak mode (non-canonical), no miscellaneous
+    my_termios.c_lflag = 0000000;
+    // CR to NL mapping, XON flow control, UTF8 encoding, rest is disabled
+    my_termios.c_iflag = 0042400;
+
+    if (!canon){
+        my_termios.c_cc[VMIN] = 8;
+        my_termios.c_cc[VTIME]= 0;
+    }
+    tcsetattr(serial, TCSANOW, &my_termios);
+}
 
 void MainWindow::Init_KeyenceLaser() {
 
-    QString commentoACM="Arduino:";
-    QString NameNumber;
+    QString monitorACM="Arduino:";
 
     const char *MYTTY_ACM;
-    TTY_ACM="/dev/";
+    //portACM=Sacm;
 
-    portACM=Sacm;
-
-    NameNumber.setNum(Sacm);
-    TTY_ACM.append(NameNumber);
-
-    if (portACM==0)       {MYTTY_ACM="/dev/ttyACM0"; commentoACM.append(" /dev/ttyACM0");}
-    else if (portACM==1)  {MYTTY_ACM="/dev/ttyACM1"; commentoACM.append(" /dev/ttyACM1");}
-    else if (portACM==2)  {MYTTY_ACM="/dev/ttyACM2"; commentoACM.append(" /dev/ttyACM2");}
-    else if (portACM==3)  {MYTTY_ACM="/dev/ttyACM3"; commentoACM.append(" /dev/ttyACM3");}
-    errno=0;
-
-    //qDebug()<<"The communication bus is: "<<MYTTY_ACM<<'\n';
-
-
-    if (noKeyence_init) {
-        errno=0;
-
-        struct termios my_termios;
-        //struct termios new_termios;
-
-        tcgetattr(serialK, &my_termios ); // build upon previous configuration
-        cfsetospeed(&my_termios,B9600);
-        my_termios.c_oflag = 0;
-        my_termios.c_cflag &= ~(PARENB | CSTOPB | CSIZE);
-        my_termios.c_cflag |= CS8;
-        my_termios.c_cflag &= ~CRTSCTS;
-        my_termios.c_cflag |= CREAD | CLOCAL;
-        my_termios.c_lflag &= ~(ICANON | ECHO | ISIG);
-        my_termios.c_cc[VMIN] = 6; // Depending on the length of the expected data
-        my_termios.c_cc[VTIME]= 0.1;
-
-        serialK = open(MYTTY_ACM,O_RDWR);
-        tcsetattr( serialK, TCSANOW, &my_termios );
-        tcflush( serialK, TCIFLUSH );
-
-        if (serialK < 0) {
-            qDebug()<<"ERROR opening ACM port"<< MYTTY_ACM<< strerror(errno);
-        }
-        else {
-
-            noKeyence_init=false;
-            CurrentActionACM->setText(commentoACM);
-            CurrentActionACM->setStyleSheet(stylesheet2);
-            AUTOFOCUS_ON_pushButton->setEnabled(true);
-        }
+    switch (Sacm){
+    case 0:
+        MYTTY_ACM="/dev/ttyACM0"; monitorACM.append(" /dev/ttyACM0");
+        break;
+    case 1:
+        MYTTY_ACM="/dev/ttyACM1"; monitorACM.append(" /dev/ttyACM1");
+        break;
+    case 2:
+        MYTTY_ACM="/dev/ttyACM2"; monitorACM.append(" /dev/ttyACM2");
+        break;
+    case 3:
+        MYTTY_ACM="/dev/ttyACM3"; monitorACM.append(" /dev/ttyACM3");
+        break;
+    default:
+        qDebug()<<"[!] Unknown port";
+        return;
     }
-    qDebug()<<"... Keyence inited succesfully";
+
+    serialK = open(MYTTY_ACM, O_RDWR);
+    if (serialK < 0) {
+        qDebug()<<"[!] Error opening "<<MYTTY_ACM<<"\n"<<strerror(errno);
+        return;
+    }
+
+    termiosConf(serialK, false);
+    tcflush( serialK, TCIFLUSH );
+
+    AssignACM_pushButton->setEnabled(false);
+    AUTOFOCUS_ON_pushButton->setEnabled(true);
+
+    CurrentActionACM->setText(monitorACM);
+    CurrentActionACM->setStyleSheet(stylesheet2);
 }
-
-
 
 
 

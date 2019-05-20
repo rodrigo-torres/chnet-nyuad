@@ -8,7 +8,8 @@ extern int serialK,serialZ;
 extern int send_command(int chan,const char *comando, const char *parametri, int port);
 extern string read_answer(int port);
 
-extern bool noKeyence_init;       extern bool AutofocusOn, ZOnTarget;
+//extern bool noKeyence_init;
+extern bool AutofocusOn, ZOnTarget;
  string checkK;
 
 double AutofocusBuffer[5] = {0,0,0};
@@ -74,6 +75,8 @@ string read_ACMport() { // The serial print of the Arduino is set to return 6 ch
     //string restK;
 
     long n;
+    char enableBit[2] = "1";
+    write(serialK, enableBit, static_cast<size_t>(1));
     n = read(serialK, &buf_Keyence, 8); //The serial returns a \r\n at the end of each line
 
     if (buf_Keyence[6] != '\n' || buf_Keyence[7] != '\n') {
@@ -186,20 +189,20 @@ void MainWindow::TrackingON() {
 
 
 void MainWindow::Focustimer() {
-    if (noKeyence_init) Init_KeyenceLaser();
-    if (AutofocusOn) {
-        send_command(1,"POS?",NULL,serialZ);
-        QString store = QString::fromStdString(read_answer(serialZ));
-        store.remove(0,2);
-        ZPosition = store.toDouble();
+    //if (noKeyence_init) Init_KeyenceLaser();
+//    if (AutofocusOn) {
+//        send_command(1,"POS?",NULL,serialZ);
+//        QString store = QString::fromStdString(read_answer(serialZ));
+//        store.remove(0,2);
+//        ZPosition = store.toDouble();
 
 
-        QString posLabelZ = "Stage Z: ";
-        posLabelZ.append(store);
-        posLabelZ.append(" mm");
-        CurrentActionZ->setText(posLabelZ);
-        CurrentActionZ->setStyleSheet(stylesheet3);
-    }
+//        QString posLabelZ = "Stage Z: ";
+//        posLabelZ.append(store);
+//        posLabelZ.append(" mm");
+//        CurrentActionZ->setText(posLabelZ);
+//        CurrentActionZ->setStyleSheet(stylesheet3);
+//    }
 
     readKeyence();
 }

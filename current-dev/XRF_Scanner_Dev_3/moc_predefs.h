@@ -54,7 +54,6 @@
 #define __linux 1
 #define __DEC32_EPSILON__ 1E-6DF
 #define __FLT_EVAL_METHOD_TS_18661_3__ 0
-#define __OPTIMIZE__ 1
 #define __unix 1
 #define __UINT32_MAX__ 0xffffffffU
 #define __GXX_EXPERIMENTAL_CXX0X__ 1
@@ -138,6 +137,7 @@
 #define __ATOMIC_HLE_RELEASE 131072
 #define __PTRDIFF_MAX__ 0x7fffffffffffffffL
 #define __amd64 1
+#define __STDC_NO_THREADS__ 1
 #define __ATOMIC_HLE_ACQUIRE 65536
 #define __FLT32_HAS_QUIET_NAN__ 1
 #define __GNUG__ 8
@@ -171,9 +171,10 @@
 #define __DBL_HAS_DENORM__ 1
 #define __FLT32_MIN__ 1.17549435082228750796873653722224568e-38F32
 #define __UINT8_TYPE__ unsigned char
+#define __NO_INLINE__ 1
 #define __FLT_MANT_DIG__ 24
 #define __LDBL_DECIMAL_DIG__ 21
-#define __VERSION__ "8.2.1 20181105 (Red Hat 8.2.1-5)"
+#define __VERSION__ "8.3.1 20190223 (Red Hat 8.3.1-2)"
 #define __UINT64_C(c) c ## UL
 #define __cpp_unicode_characters 200704
 #define _STDC_PREDEF_H 1
@@ -206,7 +207,7 @@
 #define __INT_LEAST16_TYPE__ short int
 #define __LDBL_EPSILON__ 1.08420217248550443400745280086994171e-19L
 #define __UINTMAX_C(c) c ## UL
-#define __GNUC_RH_RELEASE__ 5
+#define __GNUC_RH_RELEASE__ 2
 #define __GLIBCXX_BITSIZE_INT_N_0 128
 #define __k8 1
 #define __SIG_ATOMIC_MAX__ 0x7fffffff
@@ -340,7 +341,7 @@
 #define __DEC128_MAX_EXP__ 6145
 #define __FLT32X_HAS_QUIET_NAN__ 1
 #define __ATOMIC_CONSUME 1
-#define __GNUC_MINOR__ 2
+#define __GNUC_MINOR__ 3
 #define __GLIBCXX_TYPE_INT_N_0 __int128
 #define __INT_FAST16_WIDTH__ 64
 #define __UINTMAX_MAX__ 0xffffffffffffffffUL
