@@ -1,0 +1,83 @@
+
+
+createStatusBar()
+SetCurrentAction(QString)
+hideImage()
+timerEvent()
+invia_comando_X(int,const char, const char);
+invia_comando_Y(int,const char, const char)
+invia_comando_Z(int,const char, const char);
+char *read_Xanswer()
+char *read_Yanswer()
+char *read_Zanswer()
+string read_Xanswer2()
+string read_Yanswer2()
+string read_Zanswer2()
+CheckXOnTarget()
+CheckYOnTarget() 
+CheckZOnTarget()
+Enable_TabWidget_3_4_XY()
+Velocity(double)
+VelocityZ(double)
+PassoX_Func(double)
+PassoY_Func(double)
+PassoZ_Func(double)
+Xminimo(double)
+Yminimo(double)
+Zminimo(double) 
+Xmassimo(double)
+Ymassimo(double)
+Zmassimo(double) 
+X_to(double)
+Y_to(double)
+Z_to(double)
+StartX()
+StartY()
+StartZ()
+Stop()
+StopZ()
+StartXYScan()
+StartXYScan()
+USB_DAQ();
+OPTICAL_DAQ()
+SelMeasTime()
+CheckSegFault()
+open_MAP()
+SelectChannels()
+CutB() 
+MapCorrection() 
+Pixels()
+PixelCrct()
+Treshold()
+LoadNewFile_SHM();
+LoadTxt()
+SaveTxt()
+MergeTxt()
+Abort()
+AbortZ()
+Exit()
+~MainWindow()
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
