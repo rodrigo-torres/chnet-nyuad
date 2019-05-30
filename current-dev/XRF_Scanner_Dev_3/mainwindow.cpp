@@ -179,7 +179,7 @@ int send_command(int channel,const char *command, const char *parameter, int por
     char chan=channel+'0';
     string cm = command;
 
-    if (parameter == NULL) cm = cm + '\n';
+    if (parameter == nullptr) cm = cm + '\n';
     else cm = cm + ' ' + chan + ' ' + parameter + '\n';
     if ( write(port, cm.data(), cm.size()) ) return 0;
     else {
@@ -187,6 +187,27 @@ int send_command(int channel,const char *command, const char *parameter, int por
                   "[!] Check connection and writing priviledges";
         qDebug()<<strerror(errno);
         return 1;
+    }
+}
+
+void tty_read(int port, char *ans) {
+    char s_buff;
+    char buff[100] = { '\0' };
+
+    //int j = 0;
+    unsigned long bytes;
+    ioctl(port, FIONREAD, &bytes);
+    long n = read(port, &buff, bytes);
+    if (n < 0) throw std::runtime_error(strerror(errno));
+
+//    while ((n = read(port, &s_buff, 1)) > 0) {
+//        if (n < 0) throw std::runtime_error(strerror(errno));
+//        if (j > 99) throw std::runtime_error("[!] The incoming string is too large for the buffer");
+//        buff[j++] = s_buff;
+//    }
+    for (long i = 0; i < n; i++) {
+        if (ans[i] == '\n') break;
+        else ans[i] = buff[i];
     }
 }
 

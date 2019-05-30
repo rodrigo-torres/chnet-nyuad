@@ -21,8 +21,8 @@ QT_BEGIN_MOC_NAMESPACE
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_MainWindow_t {
-    QByteArrayData data[98];
-    char stringdata0[1085];
+    QByteArrayData data[96];
+    char stringdata0[1068];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -98,37 +98,35 @@ QT_MOC_LITERAL(63, 720, 14), // "CheckYOnTarget"
 QT_MOC_LITERAL(64, 735, 10), // "timerEvent"
 QT_MOC_LITERAL(65, 746, 13), // "CheckSegFault"
 QT_MOC_LITERAL(66, 760, 7), // "SaveTxt"
-QT_MOC_LITERAL(67, 768, 14), // "SetSerialXName"
-QT_MOC_LITERAL(68, 783, 6), // "number"
-QT_MOC_LITERAL(69, 790, 14), // "SetSerialYName"
-QT_MOC_LITERAL(70, 805, 7), // "AssignY"
-QT_MOC_LITERAL(71, 813, 7), // "AssignX"
-QT_MOC_LITERAL(72, 821, 9), // "XrayTable"
-QT_MOC_LITERAL(73, 831, 12), // "assign_ports"
-QT_MOC_LITERAL(74, 844, 2), // "id"
-QT_MOC_LITERAL(75, 847, 12), // "slotMoveFine"
-QT_MOC_LITERAL(76, 860, 13), // "slotMoveStage"
-QT_MOC_LITERAL(77, 874, 9), // "moveStage"
-QT_MOC_LITERAL(78, 884, 3), // "pos"
-QT_MOC_LITERAL(79, 888, 8), // "moveStep"
-QT_MOC_LITERAL(80, 897, 4), // "step"
-QT_MOC_LITERAL(81, 902, 5), // "bool*"
-QT_MOC_LITERAL(82, 908, 9), // "condition"
-QT_MOC_LITERAL(83, 918, 3), // "dir"
-QT_MOC_LITERAL(84, 922, 14), // "LoadSHM_SumMap"
-QT_MOC_LITERAL(85, 937, 7), // "Zminimo"
-QT_MOC_LITERAL(86, 945, 8), // "Zmassimo"
-QT_MOC_LITERAL(87, 954, 4), // "Z_to"
-QT_MOC_LITERAL(88, 959, 11), // "Init_Zmotor"
-QT_MOC_LITERAL(89, 971, 6), // "StartZ"
-QT_MOC_LITERAL(90, 978, 17), // "Init_KeyenceLaser"
-QT_MOC_LITERAL(91, 996, 14), // "CheckZOnTarget"
-QT_MOC_LITERAL(92, 1011, 10), // "Focustimer"
-QT_MOC_LITERAL(93, 1022, 11), // "readKeyence"
-QT_MOC_LITERAL(94, 1034, 10), // "TrackingON"
-QT_MOC_LITERAL(95, 1045, 16), // "AutoFocusRunning"
-QT_MOC_LITERAL(96, 1062, 14), // "SetSerialZName"
-QT_MOC_LITERAL(97, 1077, 7) // "AssignZ"
+QT_MOC_LITERAL(67, 768, 18), // "tty_interface_conf"
+QT_MOC_LITERAL(68, 787, 11), // "df_minor_no"
+QT_MOC_LITERAL(69, 799, 11), // "device_type"
+QT_MOC_LITERAL(70, 811, 13), // "device_number"
+QT_MOC_LITERAL(71, 825, 8), // "tty_init"
+QT_MOC_LITERAL(72, 834, 10), // "identifier"
+QT_MOC_LITERAL(73, 845, 9), // "XrayTable"
+QT_MOC_LITERAL(74, 855, 12), // "tty_set_path"
+QT_MOC_LITERAL(75, 868, 2), // "id"
+QT_MOC_LITERAL(76, 871, 12), // "slotMoveFine"
+QT_MOC_LITERAL(77, 884, 13), // "slotMoveStage"
+QT_MOC_LITERAL(78, 898, 9), // "moveStage"
+QT_MOC_LITERAL(79, 908, 3), // "pos"
+QT_MOC_LITERAL(80, 912, 8), // "moveStep"
+QT_MOC_LITERAL(81, 921, 4), // "step"
+QT_MOC_LITERAL(82, 926, 5), // "bool*"
+QT_MOC_LITERAL(83, 932, 9), // "condition"
+QT_MOC_LITERAL(84, 942, 3), // "dir"
+QT_MOC_LITERAL(85, 946, 14), // "LoadSHM_SumMap"
+QT_MOC_LITERAL(86, 961, 7), // "Zminimo"
+QT_MOC_LITERAL(87, 969, 8), // "Zmassimo"
+QT_MOC_LITERAL(88, 978, 4), // "Z_to"
+QT_MOC_LITERAL(89, 983, 11), // "Init_Zmotor"
+QT_MOC_LITERAL(90, 995, 6), // "StartZ"
+QT_MOC_LITERAL(91, 1002, 14), // "CheckZOnTarget"
+QT_MOC_LITERAL(92, 1017, 10), // "Focustimer"
+QT_MOC_LITERAL(93, 1028, 11), // "readKeyence"
+QT_MOC_LITERAL(94, 1040, 10), // "TrackingON"
+QT_MOC_LITERAL(95, 1051, 16) // "AutoFocusRunning"
 
     },
     "MainWindow\0Info1_1\0\0Info1_2\0Info2_1\0"
@@ -151,15 +149,15 @@ QT_MOC_LITERAL(97, 1077, 7) // "AssignZ"
     "StartY\0StartXYScan\0ScanXY\0MoveDoubleClick\0"
     "Abort\0stop_motorXY\0CheckXOnTarget\0"
     "CheckYOnTarget\0timerEvent\0CheckSegFault\0"
-    "SaveTxt\0SetSerialXName\0number\0"
-    "SetSerialYName\0AssignY\0AssignX\0XrayTable\0"
-    "assign_ports\0id\0slotMoveFine\0slotMoveStage\0"
-    "moveStage\0pos\0moveStep\0step\0bool*\0"
-    "condition\0dir\0LoadSHM_SumMap\0Zminimo\0"
-    "Zmassimo\0Z_to\0Init_Zmotor\0StartZ\0"
-    "Init_KeyenceLaser\0CheckZOnTarget\0"
+    "SaveTxt\0tty_interface_conf\0df_minor_no\0"
+    "device_type\0device_number\0tty_init\0"
+    "identifier\0XrayTable\0tty_set_path\0id\0"
+    "slotMoveFine\0slotMoveStage\0moveStage\0"
+    "pos\0moveStep\0step\0bool*\0condition\0dir\0"
+    "LoadSHM_SumMap\0Zminimo\0Zmassimo\0Z_to\0"
+    "Init_Zmotor\0StartZ\0CheckZOnTarget\0"
     "Focustimer\0readKeyence\0TrackingON\0"
-    "AutoFocusRunning\0SetSerialZName\0AssignZ"
+    "AutoFocusRunning"
 };
 #undef QT_MOC_LITERAL
 
@@ -169,7 +167,7 @@ static const uint qt_meta_data_MainWindow[] = {
        7,       // revision
        0,       // classname
        0,    0, // classinfo
-      87,   14, // methods
+      82,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -177,93 +175,88 @@ static const uint qt_meta_data_MainWindow[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags
-       1,    0,  449,    2, 0x08 /* Private */,
-       3,    0,  450,    2, 0x08 /* Private */,
-       4,    0,  451,    2, 0x08 /* Private */,
-       5,    0,  452,    2, 0x08 /* Private */,
-       6,    0,  453,    2, 0x08 /* Private */,
-       7,    0,  454,    2, 0x08 /* Private */,
-       8,    0,  455,    2, 0x08 /* Private */,
-       9,    0,  456,    2, 0x08 /* Private */,
-      10,    0,  457,    2, 0x08 /* Private */,
-      11,    0,  458,    2, 0x08 /* Private */,
-      12,    0,  459,    2, 0x08 /* Private */,
-      13,    1,  460,    2, 0x08 /* Private */,
-      14,    0,  463,    2, 0x08 /* Private */,
-      15,    0,  464,    2, 0x08 /* Private */,
-      16,    0,  465,    2, 0x08 /* Private */,
-      17,    0,  466,    2, 0x08 /* Private */,
-      18,    0,  467,    2, 0x08 /* Private */,
-      19,    0,  468,    2, 0x08 /* Private */,
-      20,    0,  469,    2, 0x08 /* Private */,
-      21,    0,  470,    2, 0x08 /* Private */,
-      22,    0,  471,    2, 0x08 /* Private */,
-      23,    0,  472,    2, 0x08 /* Private */,
-      24,    0,  473,    2, 0x08 /* Private */,
-      25,    0,  474,    2, 0x08 /* Private */,
-      26,    0,  475,    2, 0x08 /* Private */,
-      27,    0,  476,    2, 0x08 /* Private */,
-      28,    0,  477,    2, 0x08 /* Private */,
-      29,    0,  478,    2, 0x08 /* Private */,
-      30,    0,  479,    2, 0x08 /* Private */,
-      31,    0,  480,    2, 0x08 /* Private */,
-      32,    0,  481,    2, 0x08 /* Private */,
-      33,    0,  482,    2, 0x08 /* Private */,
-      34,    0,  483,    2, 0x08 /* Private */,
-      35,    0,  484,    2, 0x08 /* Private */,
-      36,    0,  485,    2, 0x08 /* Private */,
-      37,    0,  486,    2, 0x08 /* Private */,
-      38,    0,  487,    2, 0x08 /* Private */,
-      39,    0,  488,    2, 0x08 /* Private */,
-      40,    0,  489,    2, 0x08 /* Private */,
-      41,    1,  490,    2, 0x08 /* Private */,
-      42,    1,  493,    2, 0x08 /* Private */,
-      43,    1,  496,    2, 0x08 /* Private */,
-      44,    1,  499,    2, 0x08 /* Private */,
-      45,    1,  502,    2, 0x08 /* Private */,
-      46,    1,  505,    2, 0x08 /* Private */,
-      47,    1,  508,    2, 0x08 /* Private */,
-      48,    1,  511,    2, 0x08 /* Private */,
-      49,    1,  514,    2, 0x08 /* Private */,
-      50,    2,  517,    2, 0x08 /* Private */,
-      53,    0,  522,    2, 0x08 /* Private */,
-      54,    0,  523,    2, 0x08 /* Private */,
-      55,    0,  524,    2, 0x08 /* Private */,
-      56,    0,  525,    2, 0x08 /* Private */,
-      57,    0,  526,    2, 0x08 /* Private */,
-      58,    0,  527,    2, 0x08 /* Private */,
-      59,    0,  528,    2, 0x08 /* Private */,
-      60,    0,  529,    2, 0x08 /* Private */,
-      61,    0,  530,    2, 0x08 /* Private */,
-      62,    0,  531,    2, 0x08 /* Private */,
-      63,    0,  532,    2, 0x08 /* Private */,
-      64,    0,  533,    2, 0x08 /* Private */,
-      65,    0,  534,    2, 0x08 /* Private */,
-      66,    0,  535,    2, 0x08 /* Private */,
-      67,    1,  536,    2, 0x08 /* Private */,
-      69,    1,  539,    2, 0x08 /* Private */,
-      70,    0,  542,    2, 0x08 /* Private */,
-      71,    0,  543,    2, 0x08 /* Private */,
-      72,    0,  544,    2, 0x08 /* Private */,
-      73,    1,  545,    2, 0x08 /* Private */,
-      75,    1,  548,    2, 0x08 /* Private */,
-      76,    1,  551,    2, 0x08 /* Private */,
-      77,    2,  554,    2, 0x08 /* Private */,
-      79,    4,  559,    2, 0x08 /* Private */,
-      84,    0,  568,    2, 0x0a /* Public */,
-      85,    1,  569,    2, 0x0a /* Public */,
-      86,    1,  572,    2, 0x0a /* Public */,
-      87,    1,  575,    2, 0x0a /* Public */,
-      88,    0,  578,    2, 0x0a /* Public */,
-      89,    0,  579,    2, 0x0a /* Public */,
-      90,    0,  580,    2, 0x0a /* Public */,
-      91,    0,  581,    2, 0x0a /* Public */,
-      92,    0,  582,    2, 0x0a /* Public */,
-      93,    0,  583,    2, 0x0a /* Public */,
-      94,    0,  584,    2, 0x0a /* Public */,
-      95,    0,  585,    2, 0x0a /* Public */,
-      96,    1,  586,    2, 0x0a /* Public */,
-      97,    0,  589,    2, 0x0a /* Public */,
+       1,    0,  424,    2, 0x08 /* Private */,
+       3,    0,  425,    2, 0x08 /* Private */,
+       4,    0,  426,    2, 0x08 /* Private */,
+       5,    0,  427,    2, 0x08 /* Private */,
+       6,    0,  428,    2, 0x08 /* Private */,
+       7,    0,  429,    2, 0x08 /* Private */,
+       8,    0,  430,    2, 0x08 /* Private */,
+       9,    0,  431,    2, 0x08 /* Private */,
+      10,    0,  432,    2, 0x08 /* Private */,
+      11,    0,  433,    2, 0x08 /* Private */,
+      12,    0,  434,    2, 0x08 /* Private */,
+      13,    1,  435,    2, 0x08 /* Private */,
+      14,    0,  438,    2, 0x08 /* Private */,
+      15,    0,  439,    2, 0x08 /* Private */,
+      16,    0,  440,    2, 0x08 /* Private */,
+      17,    0,  441,    2, 0x08 /* Private */,
+      18,    0,  442,    2, 0x08 /* Private */,
+      19,    0,  443,    2, 0x08 /* Private */,
+      20,    0,  444,    2, 0x08 /* Private */,
+      21,    0,  445,    2, 0x08 /* Private */,
+      22,    0,  446,    2, 0x08 /* Private */,
+      23,    0,  447,    2, 0x08 /* Private */,
+      24,    0,  448,    2, 0x08 /* Private */,
+      25,    0,  449,    2, 0x08 /* Private */,
+      26,    0,  450,    2, 0x08 /* Private */,
+      27,    0,  451,    2, 0x08 /* Private */,
+      28,    0,  452,    2, 0x08 /* Private */,
+      29,    0,  453,    2, 0x08 /* Private */,
+      30,    0,  454,    2, 0x08 /* Private */,
+      31,    0,  455,    2, 0x08 /* Private */,
+      32,    0,  456,    2, 0x08 /* Private */,
+      33,    0,  457,    2, 0x08 /* Private */,
+      34,    0,  458,    2, 0x08 /* Private */,
+      35,    0,  459,    2, 0x08 /* Private */,
+      36,    0,  460,    2, 0x08 /* Private */,
+      37,    0,  461,    2, 0x08 /* Private */,
+      38,    0,  462,    2, 0x08 /* Private */,
+      39,    0,  463,    2, 0x08 /* Private */,
+      40,    0,  464,    2, 0x08 /* Private */,
+      41,    1,  465,    2, 0x08 /* Private */,
+      42,    1,  468,    2, 0x08 /* Private */,
+      43,    1,  471,    2, 0x08 /* Private */,
+      44,    1,  474,    2, 0x08 /* Private */,
+      45,    1,  477,    2, 0x08 /* Private */,
+      46,    1,  480,    2, 0x08 /* Private */,
+      47,    1,  483,    2, 0x08 /* Private */,
+      48,    1,  486,    2, 0x08 /* Private */,
+      49,    1,  489,    2, 0x08 /* Private */,
+      50,    2,  492,    2, 0x08 /* Private */,
+      53,    0,  497,    2, 0x08 /* Private */,
+      54,    0,  498,    2, 0x08 /* Private */,
+      55,    0,  499,    2, 0x08 /* Private */,
+      56,    0,  500,    2, 0x08 /* Private */,
+      57,    0,  501,    2, 0x08 /* Private */,
+      58,    0,  502,    2, 0x08 /* Private */,
+      59,    0,  503,    2, 0x08 /* Private */,
+      60,    0,  504,    2, 0x08 /* Private */,
+      61,    0,  505,    2, 0x08 /* Private */,
+      62,    0,  506,    2, 0x08 /* Private */,
+      63,    0,  507,    2, 0x08 /* Private */,
+      64,    0,  508,    2, 0x08 /* Private */,
+      65,    0,  509,    2, 0x08 /* Private */,
+      66,    0,  510,    2, 0x08 /* Private */,
+      67,    3,  511,    2, 0x08 /* Private */,
+      71,    1,  518,    2, 0x08 /* Private */,
+      73,    0,  521,    2, 0x08 /* Private */,
+      74,    1,  522,    2, 0x08 /* Private */,
+      76,    1,  525,    2, 0x08 /* Private */,
+      77,    1,  528,    2, 0x08 /* Private */,
+      78,    2,  531,    2, 0x08 /* Private */,
+      80,    4,  536,    2, 0x08 /* Private */,
+      85,    0,  545,    2, 0x0a /* Public */,
+      86,    1,  546,    2, 0x0a /* Public */,
+      87,    1,  549,    2, 0x0a /* Public */,
+      88,    1,  552,    2, 0x0a /* Public */,
+      89,    0,  555,    2, 0x0a /* Public */,
+      90,    0,  556,    2, 0x0a /* Public */,
+      91,    0,  557,    2, 0x0a /* Public */,
+      92,    0,  558,    2, 0x0a /* Public */,
+      93,    0,  559,    2, 0x0a /* Public */,
+      94,    0,  560,    2, 0x0a /* Public */,
+      95,    0,  561,    2, 0x0a /* Public */,
 
  // slots: parameters
     QMetaType::Void,
@@ -329,16 +322,14 @@ static const uint qt_meta_data_MainWindow[] = {
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
-    QMetaType::Void, QMetaType::Int,   68,
-    QMetaType::Void, QMetaType::Int,   68,
+    QMetaType::Int, QMetaType::Int, QMetaType::Int, QMetaType::Int,   68,   69,   70,
+    QMetaType::Void, QMetaType::Int,   72,
     QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void, QMetaType::Int,   74,
-    QMetaType::Void, QMetaType::Int,   74,
-    QMetaType::Void, QMetaType::Int,   74,
-    QMetaType::Void, QMetaType::Double, QMetaType::Int,   78,   52,
-    QMetaType::Double, QMetaType::Double, QMetaType::Int, 0x80000000 | 81, QMetaType::Bool,   80,   52,   82,   83,
+    QMetaType::Void, QMetaType::Int,   75,
+    QMetaType::Void, QMetaType::Int,   75,
+    QMetaType::Void, QMetaType::Int,   75,
+    QMetaType::Void, QMetaType::Double, QMetaType::Int,   79,   52,
+    QMetaType::Double, QMetaType::Double, QMetaType::Int, 0x80000000 | 82, QMetaType::Bool,   81,   52,   83,   84,
     QMetaType::Void,
     QMetaType::Void, QMetaType::Double,    2,
     QMetaType::Void, QMetaType::Double,    2,
@@ -349,9 +340,6 @@ static const uint qt_meta_data_MainWindow[] = {
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void, QMetaType::Int,   68,
     QMetaType::Void,
 
        0        // eod
@@ -427,31 +415,27 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 60: _t->timerEvent(); break;
         case 61: _t->CheckSegFault(); break;
         case 62: _t->SaveTxt(); break;
-        case 63: _t->SetSerialXName((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 64: _t->SetSerialYName((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 65: _t->AssignY(); break;
-        case 66: _t->AssignX(); break;
-        case 67: _t->XrayTable(); break;
-        case 68: _t->assign_ports((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 69: _t->slotMoveFine((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 70: _t->slotMoveStage((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 71: _t->moveStage((*reinterpret_cast< double(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
-        case 72: { double _r = _t->moveStep((*reinterpret_cast< double(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2])),(*reinterpret_cast< bool*(*)>(_a[3])),(*reinterpret_cast< bool(*)>(_a[4])));
+        case 63: { int _r = _t->tty_interface_conf((*reinterpret_cast< int(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2])),(*reinterpret_cast< int(*)>(_a[3])));
+            if (_a[0]) *reinterpret_cast< int*>(_a[0]) = std::move(_r); }  break;
+        case 64: _t->tty_init((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 65: _t->XrayTable(); break;
+        case 66: _t->tty_set_path((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 67: _t->slotMoveFine((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 68: _t->slotMoveStage((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 69: _t->moveStage((*reinterpret_cast< double(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
+        case 70: { double _r = _t->moveStep((*reinterpret_cast< double(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2])),(*reinterpret_cast< bool*(*)>(_a[3])),(*reinterpret_cast< bool(*)>(_a[4])));
             if (_a[0]) *reinterpret_cast< double*>(_a[0]) = std::move(_r); }  break;
-        case 73: _t->LoadSHM_SumMap(); break;
-        case 74: _t->Zminimo((*reinterpret_cast< double(*)>(_a[1]))); break;
-        case 75: _t->Zmassimo((*reinterpret_cast< double(*)>(_a[1]))); break;
-        case 76: _t->Z_to((*reinterpret_cast< double(*)>(_a[1]))); break;
-        case 77: _t->Init_Zmotor(); break;
-        case 78: _t->StartZ(); break;
-        case 79: _t->Init_KeyenceLaser(); break;
-        case 80: _t->CheckZOnTarget(); break;
-        case 81: _t->Focustimer(); break;
-        case 82: _t->readKeyence(); break;
-        case 83: _t->TrackingON(); break;
-        case 84: _t->AutoFocusRunning(); break;
-        case 85: _t->SetSerialZName((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 86: _t->AssignZ(); break;
+        case 71: _t->LoadSHM_SumMap(); break;
+        case 72: _t->Zminimo((*reinterpret_cast< double(*)>(_a[1]))); break;
+        case 73: _t->Zmassimo((*reinterpret_cast< double(*)>(_a[1]))); break;
+        case 74: _t->Z_to((*reinterpret_cast< double(*)>(_a[1]))); break;
+        case 75: _t->Init_Zmotor(); break;
+        case 76: _t->StartZ(); break;
+        case 77: _t->CheckZOnTarget(); break;
+        case 78: _t->Focustimer(); break;
+        case 79: _t->readKeyence(); break;
+        case 80: _t->TrackingON(); break;
+        case 81: _t->AutoFocusRunning(); break;
         default: ;
         }
     }
@@ -482,13 +466,13 @@ int MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 87)
+        if (_id < 82)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 87;
+        _id -= 82;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 87)
+        if (_id < 82)
             *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 87;
+        _id -= 82;
     }
     return _id;
 }

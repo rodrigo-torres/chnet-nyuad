@@ -213,16 +213,18 @@ private slots:
 
     void CheckSegFault();
     void SaveTxt();
-    void SetSerialXName(int number);
-    void SetSerialYName(int number);
-    void AssignY();
-    void AssignX();
+    //void SetSerialXName(int number);
+    //void SetSerialYName(int number);
+    //void AssignY();
+    //void AssignX();
+    int tty_interface_conf(int df_minor_no, int device_type, int device_number);
+    void tty_init(int identifier);
 
     void XrayTable();
 
     // Mapped functions
 
-    void assign_ports(int id);
+    void tty_set_path(int id);
     void slotMoveFine(int id);
     void slotMoveStage(int id);
 
@@ -490,7 +492,7 @@ public slots:
     void Init_Zmotor();
     void StartZ();
 
-    void Init_KeyenceLaser();
+    //void Init_KeyenceLaser();
 
     //void MoveZ(double);
     //void MoveZ_To();
@@ -513,8 +515,8 @@ public slots:
 
     //////////////////////////////
 
-    void SetSerialZName(int number);
-    void AssignZ();
+    //void SetSerialZName(int number);
+    //void AssignZ();
 
     //void AssignACM();
     //void NameACM(int numberacm);
