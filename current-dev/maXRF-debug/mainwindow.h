@@ -210,6 +210,8 @@ private slots:
     void CheckYOnTarget();
     void timerEvent();
 
+    void stage_check_on_target(int serial, int id);
+
 
     void CheckSegFault();
     void SaveTxt();
@@ -492,34 +494,11 @@ public slots:
     void Init_Zmotor();
     void StartZ();
 
-    //void Init_KeyenceLaser();
-
-    //void MoveZ(double);
-    //void MoveZ_To();
-    //void Move_forward();
-    //void Move_backward();
-    //void AbortZ();
-    //void StopZ();
     void CheckZOnTarget();
     void Focustimer();
     void readKeyence();
     void TrackingON();
     void AutoFocusRunning();
-    //       void Camera();
-
-    ///////////////////////// LASER
-    //       void Laser();
-//    void Laser_switching();
-//    void LaserOn();
-//    void LaserOff();
-
-    //////////////////////////////
-
-    //void SetSerialZName(int number);
-    //void AssignZ();
-
-    //void AssignACM();
-    //void NameACM(int numberacm);
 
 
 

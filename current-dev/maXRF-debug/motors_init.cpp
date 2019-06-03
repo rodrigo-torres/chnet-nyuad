@@ -10,8 +10,10 @@ extern bool TimerActive;
 // These are global variables that act as indicators of the state of the motors.
 extern bool okX,okY,okZ;
 extern bool InitX,InitY,InitZ;
+extern bool IniXready, IniYready, IniZready;
 extern bool InitPhaseX,InitPhaseY,InitPhaseZ;
 extern bool XConnected,Xmoving,YConnected,Ymoving,ZConnected, ZOnTarget;
+extern bool XOnTarget, YOnTarget, ZOnTarget;
 
 // These are global variables that specify the file descriptors for the USB ports and the type of motors used.
 extern int serialX,serialY,serialZ;
@@ -91,7 +93,7 @@ void MainWindow::moveToRef(float refpos, int serial) {
     if (serial == serialX) do {
         CheckXOnTarget();
         Sleeper::msleep(100);
-    } while (Xmoving);
+    } while (!XOnTarget);
     else if (serial == serialY) do {
         CheckYOnTarget();
         Sleeper::msleep(100);
@@ -145,7 +147,7 @@ void MainWindow::Init_Xmotor()
         CheckXOnTarget();
         Sleeper::msleep(50);
 
-        while(Xmoving)
+        while(!XOnTarget)
         {
             CheckXOnTarget();
             Sleeper::msleep(100);
@@ -182,6 +184,7 @@ void MainWindow::Init_Xmotor()
     }
     okX=false;
     InitX=true;
+    IniXready = true;
     send_command(1,"ERR?",NULL,serialX);
     read_answer(serialX);
     }

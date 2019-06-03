@@ -190,19 +190,27 @@ int send_command(int channel,const char *command, const char *parameter, int por
     }
 }
 
-void tty_read(int port, char *ans) {
+void tty_read(int port, char *ans, unsigned long wait = 0) {
     unsigned long bytes;
     char buff[100] = { '\0' };
 
+    /* Wait for all the bytes to arrive into the readout buffer */
+    Sleeper::msleep(wait);
+
+
+    /* Query the no. of bytes available for read*/
     int err = ioctl(port, FIONREAD, &bytes);
     if (err < 0) throw std::runtime_error(strerror(errno));
 
     long n = read(port, &buff, bytes);
     if (n < 0) throw std::runtime_error(strerror(errno));
 
-    for (long i = 0; i < n; i++) {
-        buff[i] != '\n' ? ans[i] = buff[i] : ans[i] = '\0';
-    }
+    strncpy(ans, buff, n);
+    if (ans[n-1] == '\n') ans[n-1] = '\0';
+
+//    for (long i = 0; i < n; i++) {
+//        buff[i] != '\n' ? ans[i] = buff[i] : ans[i] = '\0';
+//    }
 }
 
 string read_answer(int port)                                                       // Z MOTOR: READ ANSWER CHAR
@@ -230,6 +238,35 @@ string read_answer(int port)                                                    
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+void MainWindow::stage_check_on_target(int serial, int id) {
+    const char prefix[] = "Stage ";
+    const char *axes[]  = { "X: ", "Y: ", "Z: "};
+    QLineEdit *monitors[] = { CurrentActionX, CurrentActionY, CurrentActionZ };
+    bool *on_target[] = { &XOnTarget, &YOnTarget, &ZOnTarget };
+
+    char ans[15] = { '\0' };
+    send_command(1, "ONT?", nullptr, serial); // Expected a response with format 1=%d with %d = 1,0
+    tty_read(serial, ans, 15);
+
+    if (ans[3]) {
+        *on_target[id] = true;
+
+    }
+    else *on_target[id] = false;
+
+    char ans2[15] = { '\0' };
+    send_command(1,"POS?", nullptr, serial); // Expected a response with format 1={x->xxx}.xxxx
+    tty_read(serial, ans2, 15);
+
+    char message[25] = { '\0' };
+    strncpy(message, prefix, sizeof(prefix));
+    strncat(message, axes[id], 4);
+    strncat(message, &ans2[2], 10);
+    strncat(message, " mm", sizeof(" mm"));
+    monitors[id]->setText(message);
+    monitors[id]->setStyleSheet(stylesheet3);
+}
+
 void MainWindow::CheckXOnTarget() {
     QString posLabelX = "Stage X: ";
     send_command(1,"ONT?",NULL,serialX);
@@ -240,12 +277,12 @@ void MainWindow::CheckXOnTarget() {
 
         XOnTarget=true;
         Xmoving=false;
-        if ( InitPhaseX && nxInit == 0 ) {
-            nxInit=1;
-            qDebug()<<"... X motor initialized\n";
-            IniX=0;
-            IniXready=1;
-        }
+//        if ( InitPhaseX && nxInit == 0 ) { // InitPhaseX always same value as InitX
+//            nxInit=1; // close to useless, doesn't actually prevent restarting the motors
+//            qDebug()<<"... X motor initialized\n";
+//            IniX=0; // useless
+//            IniXready=1; // always same valye as InitPhaseX or InitX but also used elsewhere
+//        }
     }
     else {
         XOnTarget=false;

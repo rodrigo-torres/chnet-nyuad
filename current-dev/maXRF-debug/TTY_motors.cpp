@@ -10,7 +10,7 @@ extern bool XConnected, YConnected, ZConnected;
 
 extern int send_command(int chan,const char *comando, const char *parametri, int port);
 extern string read_answer(int port);
-extern void tty_read(int port, char *ans);
+extern void tty_read(int port, char *ans, unsigned long wait = 0);
 
 QString stylesheet2 = "QLineEdit {background-color: #E7B416; font-weight: bold; color: white;}";
 
