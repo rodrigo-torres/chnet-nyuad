@@ -1,0 +1,93 @@
+SHARED MEMORY STRUCTURE:
+
+The main program "XRF_Scanner" generates six shared memory segments used to communicate 
+with the other 8 programs. The dimensions of the segments are univocally defined in 
+the file ../Shm.h for all programs to avioid conflicts.
+
+
+SHARED MEMORY SEGMENTS:
+
+SHARED_MEMORY_CMD:    -> used to send commands and storage application and data status
+KEY_CMD = 6900           present in all programs
+DIMENSION: 2048
+
+SHARED_MEMORY:        -> 
+KEY = 7000           
+DIMENSION: 204800
+
+SHARED_MEMORY2:       -> used for storing maps by XRF_SCANNER (file: ScanYX_XY.cpp, 
+KEY_2 = 7200             mainwindow_loadSHM.cpp) by ADCXRF 
+DIMENSION: 122880000
+
+SHARED_MEMORY3:       -> used to show maps present in mainwindow_loadSHM.cpp
+KEY_3 = 7300             mainwindow_mouse.cpp 
+DIMENSION: 122880000
+
+SHARED_MEMORY4:       -> used by digitiser interface to send commands to the CAEN 5780 
+KEY_4 = 7400             digitiser. Parameters are used by  ADCXRF_Optical_Link and
+DIMENSION: 2048          ADXRF_USB programs.
+
+SHARED_MEMORY_RATE:   -> used by digitiser send commands DAQ rate to ratemeter  
+KEY_4 = 7500             used by  ADCXRF_Optical_Link, ADXRF_USB and rate programs.
+DIMENSION: 128           
+
+
+SHARED_MEMORY_CMD STRUCTURE (from XRF_Scanner/SHM_Creator.cpp):
+
+shared_memory_cmd                -> XY motor              -> STATUS
+shared_memory_cmd+1              -> Z motor               -> STATUS
+(shared_memory_cmd+2)            -> serials (not used)    -> STATUS
+
+shared_memory_cmd+10             -> X Port                -> ASSIGNMENT
+shared_memory_cmd+11             -> Y Port                -> ASSIGNMENT
+shared_memory_cmd+12             -> Z Port                -> ASSIGNMENT
+
+shared_memory_cmd+20             -> X motor (not used)    -> STATUS
+shared_memory_cmd+21             -> Y motor (not used)    -> STATUS
+shared_memory_cmd+22             -> Z motor (not used)    -> STATUS
+
+shared_memory_cmd+30             -> X motor inited        -> STATUS
+shared_memory_cmd+31             -> Y motor inited        -> STATUS
+shared_memory_cmd+32             -> Z motor inited        -> STATUS
+
+shared_memory_cmd+40             -> X[point] scan         -> POSITION
+shared_memory_cmd+41             -> Y[point] scan         -> POSITION
+shared_memory_cmd+42             -> Z                     -> POSITION
+shared_memory_cmd+43             -> Integral[point] DAQ   -> INTEGRAL 
+
+shared_memory_cmd+50             -> Xmin                  -> POSITION 
+shared_memory_cmd+51             -> Xmax                  -> POSITION 
+shared_memory_cmd+52             -> Ymin                  -> POSITION 
+shared_memory_cmd+53             -> Ymax                  -> POSITION 
+shared_memory_cmd+54             -> Zmin                  -> POSITION 
+shared_memory_cmd+55             -> Zmax                  -> POSITION 
+
+shared_memory_cmd+60             -> X step                -> PARAMETER 
+shared_memory_cmd+61             -> Y step                -> PARAMETER 
+shared_memory_cmd+62             -> Z step                -> PARAMETER 
+shared_memory_cmd+64             -> X movement            -> POSITION 
+shared_memory_cmd+65             -> Y movement            -> POSITION
+shared_memory_cmd+66             -> Z movement            -> POSITION
+
+shared_memory_cmd+70             -> VME/ADCXRF            -> PROGRAM STATUS
+shared_memory_cmd+71             -> XRF SPECTRUM          -> PROGRAM STATUS
+shared_memory_cmd+72             -> Digitiser_interface   -> PROGRAM STATUS 
+shared_memory_cmd+73             -> Rate meter            -> PROGRAM STATUS 
+shared_memory_cmd+74             -> Xray Table            -> PROGRAM STATUS 
+shared_memory_cmd+75             -> OnLineMap             -> PROGRAM STATUS 
+shared_memory_cmd+76             -> Motor test tool       -> PROGRAM STATUS
+shared_memory_cmd+77             -> PI parameter table    -> PROGRAM STATUS 
+
+shared_memory_cmd+80             -> ADCXRF                -> PROGRAM PID 
+shared_memory_cmd+81             -> XRF SPECTRUM          -> PROGRAM PID
+shared_memory_cmd+82             -> Digitiser_interface   -> PROGRAM PID
+shared_memory_cmd+83             -> Rate Meter            -> PROGRAM PID
+shared_memory_cmd+84             -> Xray Table            -> PROGRAM PID
+shared_memory_cmd+85             -> OnLineMap             -> PROGRAM PID
+shared_memory_cmd+86             -> Motor test tool       -> PROGRAM PID 
+shared_memory_cmd+87             -> PI parameter table    -> PROGRAM PID 
+
+
+
+
+ 

@@ -1,0 +1,12 @@
+[Desktop Entry]
+X-SuSE-translate=true
+Type=Application
+Exec=TeighaFileConverter
+#MimeType=application/TeighaFileConverter;
+Icon=TeighaFileConverter
+#X-DocPath=kdevelop/index.html
+Terminal=false
+Name=TeighaFileConverter
+GenericName=TeighaFileConverter v4.02.0.0 - Open Design Alliance Inc.
+Categories=Graphics;3DGraphics;VectorGraphics;RasterGraphics;Viewer;
+Comment=Teigha for .dwg files 4.02.0.0, Open Design Alliance Inc.

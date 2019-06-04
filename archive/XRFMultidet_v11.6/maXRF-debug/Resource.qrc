@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="Image">
+    <file>IMG/TT_CHNet_res0.png</file><file>IMG/TT_CHNet_res1.png</file><file>IMG/TT_CHNet_res2.png</file>
+  </qresource>
+</RCC>
