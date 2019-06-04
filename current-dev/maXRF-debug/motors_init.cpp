@@ -9,9 +9,9 @@ extern bool TimerActive;
 
 // These are global variables that act as indicators of the state of the motors.
 extern bool okX,okY,okZ;
-extern bool InitX,InitY,InitZ;
+extern bool InitY,InitZ;
 extern bool IniXready, IniYready, IniZready;
-extern bool InitPhaseX,InitPhaseY,InitPhaseZ;
+extern bool InitPhaseY,InitPhaseZ;
 extern bool XConnected,Xmoving,YConnected,Ymoving,ZConnected, ZOnTarget;
 extern bool XOnTarget, YOnTarget, ZOnTarget;
 
@@ -20,11 +20,11 @@ extern int serialX,serialY,serialZ;
 extern int selected_Xmotor,selected_Ymotor,selected_Zmotor;
 
 // These are global functions used to commmunicate to the motors through the file descriptors.
-extern int send_command(int channel, const char *command, const char *parameter, int port);
-extern string read_answer(int port);
+extern int tty_send(int channel, const char *command, const char *parameter, int port);
+//extern string read_answer(int port);
 
 void modSendCmd(int ch, const char* cmd, const char* val, int port) {
-    send_command(ch, cmd, val, port);
+    tty_send(ch, cmd, val, port);
     Sleeper::msleep(100);
 }
 
@@ -86,119 +86,103 @@ int loadparam_M404_8pd(int port) {
 
 
 void MainWindow::moveToRef(float refpos, int serial) {
+    int fds[] = { serialX, serialY, serialZ };
+    int id = -1;
+    for (int i = 0; i < static_cast<int>(sizeof(fds)); i++) {
+        if (fds[i] == serial) id = i;
+    }
+
+
     char stemp[100];
     sprintf(stemp, "%f", refpos);
-    send_command(1, "MOV", stemp, serial);
+    tty_send(1, "MOV", stemp, serial);
 
-    if (serial == serialX) do {
-        CheckXOnTarget();
-        Sleeper::msleep(100);
-    } while (!XOnTarget);
-    else if (serial == serialY) do {
-        CheckYOnTarget();
-        Sleeper::msleep(100);
-    } while (Ymoving);
-    else if (serial == serialZ) do {
-        CheckZOnTarget();
-        Sleeper::msleep(100);
-    } while (!ZOnTarget);
-    else printf("[!] Unknown device handler\n");
+    stage_check_on_target(serial, id);
 }
 
 
+void MainWindow::stage_init(int serial) {
+    /* Identifying linear stage */
+    int fds[] = { serialX, serialY, serialZ };
+    int id = -1;
+    for (int i = 0; i < static_cast<int>(sizeof(fds)); i++) {
+        if (fds[i] == serial) id = i;
+    }
 
-void MainWindow::Init_Xmotor()
-{
-    // Disabling Y and Z motor initialization push buttons to avoid conflicts.
+    bool *on_target[] = { &XOnTarget, &YOnTarget, &ZOnTarget};
+
+    /* Disabling all stage initialization pushbuttons to prevent conflicts */
+    pushButton_tab_2_2X->setEnabled(false);
     pushButton_tab_2_2Y->setEnabled(false);
     INIT_Z_pushButton->setEnabled(false);
 
-    bool valid_Xmotor=false;
-    switch (selected_Xmotor) {
-    case 3:
-        //CurrentAction->setText("Initializing: M-404.8PD - 200mm");
-        status->showMessage("Initializing: M-404.8PD - 200mm", 60);
-        valid_Xmotor = loadparam_M404_8pd(serialX);
-        break;
-    default:
-        //CurrentAction->setText("Initializing: M-404.8PD - 200mm");
-        status->showMessage("Initializing: M-404.8PD - 200mm", 60);
-        valid_Xmotor = loadparam_M404_8pd(serialX);
-        break;
-    }
 
-    qDebug()<<"... Initialization parameters succesfully loaded";
-    Sleeper::msleep(500);
+    char message[25];
+    const char *model[] = { "M404.2PD", "M404.8PD" };
+    strncpy(message, "Initializing: ", sizeof(message));
+    if (id == 2) strcat(message, model[0]);
+    else strcat(message, model[1]);
 
-    // Moves the motor to the negative limit, then to its reference position.
-    if(valid_Xmotor)
-    {
-        qDebug()<<"... Changing X velocity";
-        send_command(1,"VEL 1 15",NULL,serialX);
-        Sleeper::msleep(300);
+    status->showMessage(message, 60);
+
+    bool ret;
+    id == 2 ? ret = loadparam_M404_2pd(serial) : ret = loadparam_M404_8pd(serial);
+
+    if (ret) {
+        qDebug()<<"... Changing selected stage velocity";
+        tty_send(1, "VEL 1 15", nullptr, serial);
 
         qDebug()<<"... Enabling position servo";
-        send_command(1,"SVO 1 1",NULL,serialX);
-        Sleeper::msleep(300);
+        tty_send(1, "SVO 1 1", nullptr, serial);
 
-        qDebug()<<"... Moving to X negative limit";
-        send_command(1,"FNL 1",NULL,serialX);
+        qDebug()<<"... Moving selected stage to its negative limit";
+        tty_send(1, "FNL 1", nullptr, serial);
 
-        CheckXOnTarget();
-        Sleeper::msleep(50);
-
-        while(!XOnTarget)
-        {
-            CheckXOnTarget();
+        do {
             Sleeper::msleep(100);
-        }
+            stage_check_on_target(serial, id);
+        } while (!(*on_target[id]));
 
         qDebug()<<"... Defining reference position";
-        send_command(1,"DEF 1",NULL,serialX);
-        Sleeper::msleep(300);
+        tty_send(1, "DEF 1", nullptr, serial);
 
-        qDebug()<<"... Going to reference position";
-        qDebug()<<"... Please wait";
+        qDebug()<<"... Going to reference position"
+                  "\n... Please wait";
 
-    switch (selected_Xmotor) {
-    case 1:
-        moveToRef(25.0000, serialX);
-        break;
-    case 3:
-        moveToRef(100.0000, serialX);
-        break;
-    default:
-        moveToRef(100.0000, serialX);
-        break;
+        double ref_pos[] = { 100., 100., 25. };
+
+        char stemp[100];
+        sprintf(stemp, "%f", ref_pos[id]);
+        tty_send(1, "MOV", stemp, serial);
+
+        do {
+            Sleeper::msleep(100);
+            stage_check_on_target(serial, 0);
+        } while (!(*on_target[id]));
+
+        id == 2 ? tab_3->setEnabled(true) : Enable_TabWidget_3_4_XY();
+
+        if (TimerActive == false) {
+            timer->start(interval);
+            TimerActive=true;
+        }
+
+        bool *inited[] = { &IniXready, &IniYready, &IniZready};
+        *inited[id] = true;
     }
 
-
-    Enable_TabWidget_3_4_XY();
-
-    InitPhaseX=true;
-
-    if(TimerActive==false)
-    {
-        timer->start(interval);
-        TimerActive=true;
+    else {
+        qDebug()<<"Invalid motor selection";
     }
-    okX=false;
-    InitX=true;
-    IniXready = true;
-    send_command(1,"ERR?",NULL,serialX);
-    read_answer(serialX);
-    }
-
-    else
-    {
-        qDebug()<<"... Motor selection not valid or driver missing";
-        valid_Xmotor=false;
-        okX=false;
-    }
-
+    /* Renabling all stage initialization pushbuttons */
+    pushButton_tab_2_2X->setEnabled(true);
     pushButton_tab_2_2Y->setEnabled(true);
     INIT_Z_pushButton->setEnabled(true);
 
+}
+
+void MainWindow::Init_Xmotor() {
+    stage_init(serialX);
 }
 
 void MainWindow::Init_Ymotor()
@@ -224,47 +208,30 @@ void MainWindow::Init_Ymotor()
     if (valid_Ymotor)
     {
         qDebug()<<"... Changing Y velocity";
-        send_command(1,"VEL 1 10",NULL,serialY);
+        tty_send(1,"VEL 1 10",NULL,serialY);
         Sleeper::msleep(300);
 
         qDebug()<<"... Enabling position servo";
-        send_command(1,"SVO 1 1",NULL,serialY);
+        tty_send(1,"SVO 1 1",NULL,serialY);
         Sleeper::msleep(300);
 
         qDebug()<<"... Moving to Y negative limit";
-        send_command(1,"FNL 1",NULL,serialY);
+        tty_send(1,"FNL 1",NULL,serialY);
 
-        CheckYOnTarget();
-        Sleeper::msleep(50);
-
-        while(Ymoving)
-        {
-            CheckYOnTarget();
+        do {
             Sleeper::msleep(100);
-        }
+            stage_check_on_target(serialY, 1);
+        } while (!YOnTarget);
 
         qDebug()<<"... Defining reference position";
-        send_command(1,"DEF 1",NULL,serialY);
+        tty_send(1,"DEF 1",NULL,serialY);
         Sleeper::msleep(300);
 
         qDebug()<<"... Going to reference position";
         qDebug()<<"... Please wait";
 
-        switch (selected_Ymotor) {
-        case 1:
-            moveToRef(25.0000, serialY);
-            break;
-        case 2:
-            moveToRef(50.0000, serialY);
-            break;
-        case 3:
-            moveToRef(100.0000, serialY);
-            break;
-        default:
-            moveToRef(100.0000, serialY);
-            break;
-        }
 
+        moveToRef(100.0000, serialY);
 
 
         Enable_TabWidget_3_4_XY();
@@ -278,8 +245,8 @@ void MainWindow::Init_Ymotor()
         }
         okY=false;
         InitY=true;
-        send_command(1,"ERR?",NULL,serialY);
-        read_answer(serialY);
+        //tty_send(1,"ERR?",NULL,serialY);
+        //read_answer(serialY);
     }
     else
     {
@@ -306,7 +273,7 @@ void MainWindow::Init_Zmotor()
         valid_Zmotor = loadparam_M404_2pd(serialZ);
         break;
     default:
-       //CurrentAction->setText("Initializing: M-404.2PD - 200mm");
+        //CurrentAction->setText("Initializing: M-404.2PD - 200mm");
         status->showMessage("Initializing: M-404.2PD - 200mm", 60);
         valid_Zmotor = loadparam_M404_2pd(serialZ);
         break;
@@ -315,31 +282,31 @@ void MainWindow::Init_Zmotor()
     if (valid_Zmotor)
     {
         qDebug()<<"... Changing Z velocity";
-        send_command(1,"VEL 1 5",NULL,serialZ);
+        tty_send(1,"VEL 1 5",NULL,serialZ);
         Sleeper::msleep(300);
 
         qDebug()<<"... Enabling position servo";
-        send_command(1,"SVO 1 1",NULL,serialZ);
+        tty_send(1,"SVO 1 1",NULL,serialZ);
         Sleeper::msleep(300);
 
         qDebug()<<"... Moving to Z negative limit";
-        send_command(1,"FNL 1",NULL,serialZ);
+        tty_send(1,"FNL 1",NULL,serialZ);
 
-        CheckZOnTarget();
-        Sleeper::msleep(50);
 
-        while(!ZOnTarget) {
-            CheckZOnTarget();
-            Sleeper::msleep(100);
-        }
+        do {
+            Sleeper::msleep(500);
+            stage_check_on_target(serialZ, 2);
+        } while (!ZOnTarget);
+
 
         qDebug()<<"... Defining reference position";
-        send_command(1,"DEF 1",NULL,serialZ);
+        tty_send(1,"DEF 1",nullptr,serialZ);
         Sleeper::msleep(300);
 
         qDebug()<<"... Going to reference position";
         qDebug()<<"... Please wait";
 
+        moveToRef(25.00, serialZ);
 
         tab_3->setEnabled(true);
         InitZ=true;

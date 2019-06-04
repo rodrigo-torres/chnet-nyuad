@@ -8,8 +8,7 @@ extern int IniXready, IniYready, IniZready;
 extern int serialX, serialY, serialZ, serialK;
 extern bool XConnected, YConnected, ZConnected;
 
-extern int send_command(int chan,const char *comando, const char *parametri, int port);
-extern string read_answer(int port);
+extern int tty_send(int chan,const char *comando, const char *parametri, int port);
 extern void tty_read(int port, char *ans, unsigned long wait = 0);
 
 QString stylesheet2 = "QLineEdit {background-color: #E7B416; font-weight: bold; color: white;}";
@@ -49,12 +48,12 @@ int MainWindow::tty_interface_conf(int df_minor_no, int device_type, int device_
     // Character size 8 bits, baud-rate 9600, enable receiver, no flow control or parity check
     my_termios.c_lflag = 0000000;
     // No input processing, no signals, cbreak mode (non-canonical), no echoing
-    my_termios.c_iflag = 0042400;
-    // CR to NL mapping, XON flow control, UTF8 encoding, rest is disabled
+    my_termios.c_iflag = 0040200;
+    // UTF8 encoding, ignore CR on input, no flow control, no parity checks
 
     if (!device_type) {
-        my_termios.c_cc[VMIN] = 0;
-        my_termios.c_cc[VTIME] = 2;
+        my_termios.c_cc[VMIN] = 1;
+        my_termios.c_cc[VTIME] = 0;
     }
     else {
         my_termios.c_cc[VMIN] = 8;
@@ -70,7 +69,7 @@ int MainWindow::tty_interface_conf(int df_minor_no, int device_type, int device_
         throw std::runtime_error(err_message);
     }
 
-    tcsetattr(serial, TCSANOW, &my_termios);
+    tcsetattr(serial, TCSANOW, &my_termios); // Perhaps better to use TCSAFLUSH
 
     /* Requesting the device to send an identifying string and cross-checking the interface is read ready */
     if (!device_type) {
@@ -86,11 +85,12 @@ int MainWindow::tty_interface_conf(int df_minor_no, int device_type, int device_
         tv.tv_sec = 3; tv.tv_usec = 0;
 
         tcflush(serial, TCIOFLUSH);
-        send_command(1,"*IDN?",NULL,serial);
+        tty_send(1,"*IDN?",NULL,serial);
 
         /* The baud is B9600 and the message ~61 bytes which takes ~ 50ms to transmit */
-        Sleeper::msleep(100);
+        //tcdrain(serial); //Apparently the proper way to ensure all data has been transmitted
         retval = select(serial + 1, &rfds, nullptr, nullptr, &tv);
+        Sleeper::msleep(65);
 
         if (retval == -1) {
             char *buff = strerror(errno);
@@ -98,7 +98,11 @@ int MainWindow::tty_interface_conf(int df_minor_no, int device_type, int device_
         }
         else if (retval) {
             char ans[100] = { '\0' };
-            tty_read(serial, ans);
+            try {
+                tty_read(serial, ans);
+            } catch (const runtime_error& e) {
+                throw std::runtime_error(e.what());
+            }
             qDebug()<<"[!] Device identified as: "<<ans;
         }
         else {

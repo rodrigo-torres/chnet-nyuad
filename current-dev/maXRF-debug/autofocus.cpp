@@ -5,10 +5,8 @@
 extern double ZPosition;
  QString KeyenceValue;
 extern int serialK,serialZ;
-extern int send_command(int chan,const char *comando, const char *parametri, int port);
-extern string read_answer(int port);
+extern int tty_send(int chan,const char *comando, const char *parametri, int port);
 
-//extern bool noKeyence_init;
 extern bool AutofocusOn, ZOnTarget;
  string checkK;
 
@@ -92,7 +90,7 @@ void MainWindow::readKeyence() {
     } catch (const std::invalid_argument& e) {
         cerr<<e.what();
         tcflush(serialK, TCIFLUSH);
-        send_command(1,"HLT",NULL,serialZ);
+        tty_send(1,"HLT",NULL,serialZ);
         qDebug()<<"[!] Flushed the Keyence serial";
         return;
     }
@@ -136,12 +134,12 @@ void MainWindow::AutoFocusRunning() {
              *          and the desired Z-motor position. Then issues a command to the Z-motor to move with the specified velocity to the calculated
              *          position.
              */
-            if (DistanceLevel>=5000)                         { sprintf(v, "%f", 2.50); send_command(1, "VEL", v,serialZ); }
-            if ((DistanceLevel>=3000)&&(DistanceLevel<5000)) { sprintf(v, "%f", 1.50); send_command(1, "VEL", v,serialZ); }
-            if ((DistanceLevel>=1000)&&(DistanceLevel<3000)) { sprintf(v, "%f", 1.00); send_command(1, "VEL", v,serialZ); }
-            if ((DistanceLevel>=500)&&(DistanceLevel<1000))  { sprintf(v, "%f", 0.50); send_command(1, "VEL", v,serialZ); }
-            if ((DistanceLevel>=200)&&(DistanceLevel<500))   { sprintf(v, "%f", 0.25); send_command(1, "VEL", v,serialZ); }
-            if (DistanceLevel < 200)	                     { send_command(1,"HLT",NULL,serialZ); return; }
+            if (DistanceLevel>=5000)                         { sprintf(v, "%f", 2.50); tty_send(1, "VEL", v,serialZ); }
+            if ((DistanceLevel>=3000)&&(DistanceLevel<5000)) { sprintf(v, "%f", 1.50); tty_send(1, "VEL", v,serialZ); }
+            if ((DistanceLevel>=1000)&&(DistanceLevel<3000)) { sprintf(v, "%f", 1.00); tty_send(1, "VEL", v,serialZ); }
+            if ((DistanceLevel>=500)&&(DistanceLevel<1000))  { sprintf(v, "%f", 0.50); tty_send(1, "VEL", v,serialZ); }
+            if ((DistanceLevel>=200)&&(DistanceLevel<500))   { sprintf(v, "%f", 0.25); tty_send(1, "VEL", v,serialZ); }
+            if (DistanceLevel < 200)	                     { tty_send(1,"HLT",NULL,serialZ); return; }
 
             //NewPosInt=qRound(NewPositionValue*1000);
             //if (ZOnTarget) return;
@@ -149,7 +147,7 @@ void MainWindow::AutoFocusRunning() {
                 //AutofocusStore=NewPosInt;
                 char sx[100];
                 sprintf(sx,"%f",NewPositionValue);
-                send_command(1,"MOV",sx,serialZ);
+                tty_send(1,"MOV",sx,serialZ);
             }
             ValueInRange=false;
 }

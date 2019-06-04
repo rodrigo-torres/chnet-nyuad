@@ -14,7 +14,7 @@ extern int DAQ_TYPE;
 extern float Yo,vy,Xo,vx,temp;
 
 extern int serialX, serialY;
-extern int send_command(int chan,const char *comando, const char *parametri, int port);
+extern int tty_send(int chan,const char *comando, const char *parametri, int port);
 extern double posXforacceleration;     extern double accelerationtime;	extern int accelerationtimesleep;
 
 
@@ -53,8 +53,8 @@ bool MainWindow::StartXYScan() {
             }
         }
         if (XOnTarget == true && YOnTarget == true) { // If motors are stationary, move to scan origin
-            send_command(1,"VEL 1 10",NULL,serialX);
-            send_command(1,"VEL 1 10",NULL,serialY);
+            tty_send(1,"VEL 1 10",NULL,serialX);
+            tty_send(1,"VEL 1 10",NULL,serialY);
             positionX = Xmin - posXforacceleration;
 
             moveStage(positionX, serialX);
@@ -81,7 +81,7 @@ void MainWindow::ScanXY() {
     if (positionY == Ymin1) { // Sets the velocity for the scan
         char v[10];
         sprintf(v,"%f",V);
-        send_command(1,"VEL",v,serialX);
+        tty_send(1,"VEL",v,serialX);
         *(shared_memory_cmd+70) = 1;
     }
 

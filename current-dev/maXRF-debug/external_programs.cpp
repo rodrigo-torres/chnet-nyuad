@@ -10,7 +10,7 @@ extern int *shared_memory_cmd, *shared_memory, *shared_memory2;
 
 extern bool AutofocusOn;
 extern int serialX, serialY, serialZ, serialK;
-extern int send_command(int chan,const char *comando, const char *parametri, int port);
+extern int tty_send(int chan,const char *comando, const char *parametri, int port);
 
 void MainWindow::StartVme() {
 
@@ -35,9 +35,9 @@ void MainWindow::StartVme() {
 }
 
 void MainWindow::Stop_Vme() {
-    send_command(1,"HLT",NULL,serialX);
-    send_command(1,"HLT",NULL,serialY);
-    send_command(1,"HLT",NULL,serialZ);
+    tty_send(1,"HLT",NULL,serialX);
+    tty_send(1,"HLT",NULL,serialY);
+    tty_send(1,"HLT",NULL,serialZ);
     timer->blockSignals(true);
     timerAutofocus->blockSignals(true);
 
