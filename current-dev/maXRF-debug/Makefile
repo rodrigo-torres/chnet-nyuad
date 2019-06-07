@@ -74,6 +74,7 @@ SOURCES       = autofocus.cpp \
 		defDppGui.cpp \
 		creatorDppGui.cpp qrc_Resource.cpp \
 		moc_mainwindow.cpp \
+		moc_all_tty.cpp \
 		moc_DppGui.cpp
 OBJECTS       = autofocus.o \
 		Connections_Creator.o \
@@ -98,6 +99,7 @@ OBJECTS       = autofocus.o \
 		creatorDppGui.o \
 		qrc_Resource.o \
 		moc_mainwindow.o \
+		moc_all_tty.o \
 		moc_DppGui.o
 DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib64/qt5/mkspecs/common/unix.conf \
@@ -262,11 +264,13 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib64/qt5/mkspecs/features/yacc.prf \
 		/usr/lib64/qt5/mkspecs/features/lex.prf \
 		maXRF-app.pro mainwindow.h \
+		all_tty.h \
 		DppGui.h \
 		../Header.h \
 		../Shm.h \
 		../variables.h \
-		../QT_variables.h autofocus.cpp \
+		../QT_variables.h \
+		all_tty.h autofocus.cpp \
 		Connections_Creator.cpp \
 		export.cpp \
 		external_programs.cpp \
@@ -655,7 +659,7 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents Resource.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib64/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents mainwindow.h DppGui.h ../Header.h ../Shm.h ../variables.h ../QT_variables.h $(DISTDIR)/
+	$(COPY_FILE) --parents mainwindow.h all_tty.h DppGui.h ../Header.h ../Shm.h ../variables.h ../QT_variables.h all_tty.h $(DISTDIR)/
 	$(COPY_FILE) --parents autofocus.cpp Connections_Creator.cpp export.cpp external_programs.cpp GUI_Creator.cpp laser.cpp main.cpp mainwindow.cpp mainwindow_DefinePixels.cpp mainwindow_loadSHM.cpp mainwindow_mouse.cpp mainwindow_online.cpp mainwindow_showMap.cpp Menu.cpp motors_move.cpp ScanYX_XY.cpp SHM_Creator.cpp TTY_motors.cpp motors_init.cpp defDppGui.cpp creatorDppGui.cpp $(DISTDIR)/
 
 
@@ -696,9 +700,9 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /usr/lib64/qt5/mkspecs/features/data/dummy.cpp
 	g++ -pipe -g -std=gnu++11 -D_REENTRANT -Wall -W -dM -E -o moc_predefs.h /usr/lib64/qt5/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_mainwindow.cpp moc_DppGui.cpp
+compiler_moc_header_make_all: moc_mainwindow.cpp moc_all_tty.cpp moc_DppGui.cpp moc_all_tty.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_mainwindow.cpp moc_DppGui.cpp
+	-$(DEL_FILE) moc_mainwindow.cpp moc_all_tty.cpp moc_DppGui.cpp moc_all_tty.cpp
 moc_mainwindow.cpp: mainwindow.h \
 		DppGui.h \
 		../Shm.h \
@@ -706,10 +710,26 @@ moc_mainwindow.cpp: mainwindow.h \
 		/usr/lib64/qt5/bin/moc
 	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Desktop/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Desktop/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/home/frao/Desktop/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include mainwindow.h -o moc_mainwindow.cpp
 
+moc_all_tty.cpp: all_tty.h \
+		mainwindow.h \
+		DppGui.h \
+		../Shm.h \
+		moc_predefs.h \
+		/usr/lib64/qt5/bin/moc
+	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Desktop/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Desktop/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/home/frao/Desktop/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include all_tty.h -o moc_all_tty.cpp
+
 moc_DppGui.cpp: DppGui.h \
 		moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
 	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Desktop/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Desktop/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/home/frao/Desktop/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include DppGui.h -o moc_DppGui.cpp
+
+moc_all_tty.cpp: all_tty.h \
+		mainwindow.h \
+		DppGui.h \
+		../Shm.h \
+		moc_predefs.h \
+		/usr/lib64/qt5/bin/moc
+	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Desktop/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Desktop/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/home/frao/Desktop/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include all_tty.h -o moc_all_tty.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -833,7 +853,8 @@ TTY_motors.o: TTY_motors.cpp mainwindow.h \
 motors_init.o: motors_init.cpp mainwindow.h \
 		DppGui.h \
 		../Shm.h \
-		../Header.h
+		../Header.h \
+		all_tty.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o motors_init.o motors_init.cpp
 
 defDppGui.o: defDppGui.cpp mainwindow.h \
@@ -850,6 +871,9 @@ qrc_Resource.o: qrc_Resource.cpp
 
 moc_mainwindow.o: moc_mainwindow.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_mainwindow.o moc_mainwindow.cpp
+
+moc_all_tty.o: moc_all_tty.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_all_tty.o moc_all_tty.cpp
 
 moc_DppGui.o: moc_DppGui.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_DppGui.o moc_DppGui.cpp

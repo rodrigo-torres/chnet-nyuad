@@ -1,12 +1,11 @@
 ﻿#include "mainwindow.h"
 #include <../Header.h>
 
-/*** PENDING: ALL device files should be closed at the program's execution end */
 /*** PENDING: read_answer() should be corrected to display the response value */
 
 extern int IniXready, IniYready, IniZready;
 extern int serialX, serialY, serialZ, serialK;
-extern bool XConnected, YConnected, ZConnected;
+bool XConnected, YConnected, ZConnected;
 
 extern int tty_send(int chan,const char *comando, const char *parametri, int port);
 extern void tty_read(int port, char *ans, unsigned long wait = 0);
@@ -135,8 +134,8 @@ void MainWindow::tty_init(int id) {
     int dev_type;
     id < 3 ? dev_type = 0 : dev_type = 1;
 
-    if (id < 3 && !(*list_motor_conn)) {
-        qDebug()<<"[!] Connection to this linear stage already established";
+    if (isatty(*list_fds[id])) {
+        qDebug()<<"[!] Connection to this device file has already been established";
         return;
     }
 
@@ -153,7 +152,6 @@ void MainWindow::tty_init(int id) {
         else status->showMessage("[!] White while initializing this linear stage...");
 
         Enabling_Tabwidget();
-        *list_motor_conn[id] = true;
     }
     else {
         AssignACM_pushButton->setEnabled(false);
@@ -167,7 +165,7 @@ void MainWindow::Enabling_Tabwidget() {
         tab2_3 ->setEnabled(true);
         tab2_4 ->setEnabled(true);
     }
-    if (ZConnected) INIT_Z_pushButton->setEnabled(true);
+    if (isatty(serialZ)) INIT_Z_pushButton->setEnabled(true);
 }
 
 

@@ -6,9 +6,6 @@ extern bool CameraOn;
 extern int measuring_time;   extern int DAQ_TYPE;
 extern int *shared_memory_cmd, *shared_memory, *shared_memory2;
 
-
-
-extern bool AutofocusOn;
 extern int serialX, serialY, serialZ, serialK;
 extern int tty_send(int chan,const char *comando, const char *parametri, int port);
 

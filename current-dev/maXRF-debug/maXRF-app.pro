@@ -15,7 +15,8 @@ CONFIG += qt warn_on thread
 CONFIG += console
 
 # Input
-HEADERS += mainwindow.h DppGui.h ../Header.h ../Shm.h ../variables.h ../QT_variables.h
+HEADERS += mainwindow.h all_tty.h DppGui.h ../Header.h ../Shm.h ../variables.h ../QT_variables.h \
+    all_tty.h
 SOURCES += autofocus.cpp \
            Connections_Creator.cpp \
            export.cpp \

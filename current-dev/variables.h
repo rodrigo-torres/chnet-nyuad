@@ -21,7 +21,7 @@ bool NewFileLoaded=false;
 int portX=0, IniX=0, IniXready=0, serialX = -1;
 int portY=1, IniY=0, IniYready=0, serialY = -1;
 int portZ=2, IniZ=0, IniZready=0, serialZ = -1;
-int serialK;
+int serialK = -1;
 
 int SerialiStatus=0;
 
@@ -41,7 +41,7 @@ int Xminvero,Yminvero, Xmaxvero, Ymaxvero;
 double MaxIntegral=0, MinIntegral=10000;
 
 double Xmin=100000., Ymin=100000., Xmax=200000., Ymax=200000., Zmin=25000., Zmax=50000.;
-double Xmin1=100000., Ymax1=100000., Xmax1=100000., Ymin1=100000., Zmin1=25000., Zmax1=25000.;
+double Xmin1=100000., Ymax1=100000., Xmax1=100000., Ymin1=100000.;
 double X_goto=100000.,Y_goto=100000., Z_goto=25000.;
 
 int MotoreWindowStatus=0; int MotoreWindowStatusZ=0; 

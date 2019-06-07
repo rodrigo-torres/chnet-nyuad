@@ -78,6 +78,7 @@ public:
 
 class timerController;
 class timerHandler;
+class all_tty;
 
 
 
@@ -119,6 +120,7 @@ public:
     void LoadNewFileWithNoCorrection_SHM();
 
     friend class timerHandler;
+    friend class all_tty;
 
     QTabWidget *tabWidget;
     QWidget *tab;
@@ -162,7 +164,7 @@ private slots:
     void RateMeter();
     //void CutB();
     void LoadTxt();
-    void MergeTxt();
+    //void MergeTxt();
     void readmultidetcalpar();
     void Changeparameters();
 
@@ -195,7 +197,7 @@ private slots:
     void X_to(double);
     void Y_to(double);
 
-    void moveToRef(float refpos, int serial);
+    //void moveToRef(float refpos, int serial);
     void Init_Xmotor();
     void Init_Ymotor();
 
@@ -488,8 +490,8 @@ public slots:
     void LoadSHM_SumMap();
     //void Treshold();
 
-    void Zminimo(double);
-    void Zmassimo(double);
+    //void Zminimo(double);
+    //void Zmassimo(double);
 
     void Z_to(double);
     void Init_Zmotor();

@@ -4,7 +4,7 @@
 
 /////////variabili e funzioni definite altrove ma necessarie/////////////////////////
 extern bool MapIsOpened, CutBorders;
-extern int ChMin, ChMax,Nshift,point,OffsetX, OffsetY,PixelX,PixelY,Pixeldim,i,j;
+extern int ChMin, ChMax,Nshift,point,OffsetX, OffsetY,PixelX,PixelY,Pixeldim;
 extern int pixel_Xstep, pixel_Ystep;
 extern bool NewFileLoaded;
 extern int Xmap[],Ymap[],MaxX,MaxY,MinX,MinY,Xminvero, Yminvero,Xmaxvero, Ymaxvero,MaxX_ori,MinX_ori,MaxY_ori,MinY_ori;
@@ -262,8 +262,6 @@ void MainWindow::displaySumImage_SHM() { // Displays a composed map (sum of up t
 
             for(int current=0; current<point; current++)
             {
-                i=Xmap[current]; j=Ymap[current];
-
                     double intensity1=(Integral1[current]/MaxIntegral1)*255;if(MaxIntegral1==0)intensity1=0;
                     double intensity2=(Integral2[current]/MaxIntegral2)*255;if(MaxIntegral2==0)intensity2=0;
                     double intensity3=(Integral3[current]/MaxIntegral3)*255;if(MaxIntegral3==0)intensity3=0;
