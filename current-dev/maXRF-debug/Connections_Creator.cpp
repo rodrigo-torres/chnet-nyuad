@@ -9,15 +9,11 @@ void MainWindow::CONNECTIONS_CREATOR()
 /////////////// TABWIDGET2 TAB1 ASSIGN X & Y PORTS
 
 
-     connect(pushButton_tab_2_2X, SIGNAL(released()),
-            this, SLOT(StartX()));
 
-     connect(pushButton_tab_2_2Y, SIGNAL(released()),
-            this, SLOT(StartY()));
 
-     connect(pushButton_tab_2_2ABORT, SIGNAL(clicked()), this, SLOT(stop_motorXY()));
+     connect(pushButton_tab_2_2ABORT, SIGNAL(clicked()), this, SLOT(set_abort_flag()));
 
-     connect(STOPMOVE_pushButton, SIGNAL(clicked()), this, SLOT(stop_motorXY()));
+     connect(STOPMOVE_pushButton, SIGNAL(clicked()), this, SLOT(set_abort_flag()));
 
      connect(MOVE_TO_X_doubleSpinBox, SIGNAL(valueChanged(double)), 
           this, SLOT(X_to(double)));
@@ -54,8 +50,6 @@ void MainWindow::CONNECTIONS_CREATOR()
 
 ////////////////////////////////////////////////////////////////////// Z MOTOR
 
-     connect(INIT_Z_pushButton, SIGNAL(released()),
-            this, SLOT(StartZ()));
 
      connect(MOVE_Z_To_doubleSpinBox, SIGNAL(valueChanged(double)), 
           this, SLOT(Z_to(double)));
@@ -65,6 +59,11 @@ void MainWindow::CONNECTIONS_CREATOR()
      connect(ENABLE_TRACKING_checkBox, SIGNAL(clicked()), this, SLOT(TrackingON()));
 
 
+     /* Connections for tab 1 widgets */
+
+     connect(pushButton_tab_2_2X, SIGNAL(released()), this, SLOT(Init_Xmotor()));
+     connect(pushButton_tab_2_2Y, SIGNAL(released()), this, SLOT(Init_Ymotor()));
+     connect(INIT_Z_pushButton, SIGNAL(released()), this, SLOT(Init_Zmotor()));
      // Device files configuration
 
      QSpinBox *buttons_device_files[4] = { };
@@ -90,14 +89,6 @@ void MainWindow::CONNECTIONS_CREATOR()
          mapper_assign_dfs->setMapping(assign_dfs[i], i);
          connect(assign_dfs[i], SIGNAL(released()), mapper_assign_dfs, SLOT(map()));
      }   connect(mapper_assign_dfs, SIGNAL(mapped(int)), this, SLOT(tty_init(int)));
-
-//     connect(pushButton_assignX_port, SIGNAL(released()), this, SLOT(AssignX()));
-//     connect(pushButton_assignY_port, SIGNAL(released()), this, SLOT(AssignY()));
-//     connect(AssignZ_pushButton, SIGNAL(released()), this, SLOT(AssignZ()));
-     
-//     connect(AssignACM_pushButton, SIGNAL(released()), this, SLOT(Init_KeyenceLaser()));
-
-
 }
 
 

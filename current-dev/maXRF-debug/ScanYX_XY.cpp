@@ -2,7 +2,7 @@
 #include "../Header.h"
 #include <../Shm.h>
 
-extern bool XYscanning, XOnTarget, YOnTarget, YHasMoved;
+extern bool XYscanning, stage_on_target[3], YHasMoved;
 extern double positionX, positionY, scan_velocity, Xmax, Xmin, Ymax, Ymin, time_per_pixel, Py;
 extern double Xmin1, Xmax1, Ymin1, Ymax1;
 
@@ -47,7 +47,7 @@ bool MainWindow::StartXYScan() {
                 }
             }
         }
-        if (XOnTarget == true && YOnTarget == true) { // If motors are stationary, move to scan origin
+        if (stage_on_target[0] == true && stage_on_target[1] == true) { // If motors are stationary, move to scan origin
             tty_send(1,"VEL 1 10",NULL,serialX);
             tty_send(1,"VEL 1 10",NULL,serialY);
             positionX = Xmin - posXforacceleration;
@@ -72,7 +72,7 @@ bool MainWindow::StartXYScan() {
 
 
 void MainWindow::ScanXY() {
-    if (!XOnTarget || !YOnTarget) return;
+    if (!stage_on_target[0] || !stage_on_target[1]) return;
     if (positionY == Ymin1) { // Sets the velocity for the scan
         char v[10];
         sprintf(v,"%f",scan_velocity);

@@ -57,7 +57,6 @@ SOURCES       = autofocus.cpp \
 		export.cpp \
 		external_programs.cpp \
 		GUI_Creator.cpp \
-		laser.cpp \
 		main.cpp \
 		mainwindow.cpp \
 		mainwindow_DefinePixels.cpp \
@@ -81,7 +80,6 @@ OBJECTS       = autofocus.o \
 		export.o \
 		external_programs.o \
 		GUI_Creator.o \
-		laser.o \
 		main.o \
 		mainwindow.o \
 		mainwindow_DefinePixels.o \
@@ -275,7 +273,6 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		export.cpp \
 		external_programs.cpp \
 		GUI_Creator.cpp \
-		laser.cpp \
 		main.cpp \
 		mainwindow.cpp \
 		mainwindow_DefinePixels.cpp \
@@ -660,7 +657,7 @@ distdir: FORCE
 	$(COPY_FILE) --parents Resource.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib64/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents mainwindow.h all_tty.h DppGui.h ../Header.h ../Shm.h ../variables.h ../QT_variables.h all_tty.h $(DISTDIR)/
-	$(COPY_FILE) --parents autofocus.cpp Connections_Creator.cpp export.cpp external_programs.cpp GUI_Creator.cpp laser.cpp main.cpp mainwindow.cpp mainwindow_DefinePixels.cpp mainwindow_loadSHM.cpp mainwindow_mouse.cpp mainwindow_online.cpp mainwindow_showMap.cpp Menu.cpp motors_move.cpp ScanYX_XY.cpp SHM_Creator.cpp TTY_motors.cpp motors_init.cpp defDppGui.cpp creatorDppGui.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents autofocus.cpp Connections_Creator.cpp export.cpp external_programs.cpp GUI_Creator.cpp main.cpp mainwindow.cpp mainwindow_DefinePixels.cpp mainwindow_loadSHM.cpp mainwindow_mouse.cpp mainwindow_online.cpp mainwindow_showMap.cpp Menu.cpp motors_move.cpp ScanYX_XY.cpp SHM_Creator.cpp TTY_motors.cpp motors_init.cpp defDppGui.cpp creatorDppGui.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -777,9 +774,6 @@ GUI_Creator.o: GUI_Creator.cpp mainwindow.h \
 		../Header.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o GUI_Creator.o GUI_Creator.cpp
 
-laser.o: laser.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o laser.o laser.cpp
-
 main.o: main.cpp mainwindow.h \
 		DppGui.h \
 		../Shm.h \
@@ -791,7 +785,8 @@ mainwindow.o: mainwindow.cpp ../Header.h \
 		DppGui.h \
 		../Shm.h \
 		../variables.h \
-		../QT_variables.h
+		../QT_variables.h \
+		all_tty.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o mainwindow.cpp
 
 mainwindow_DefinePixels.o: mainwindow_DefinePixels.cpp mainwindow.h \

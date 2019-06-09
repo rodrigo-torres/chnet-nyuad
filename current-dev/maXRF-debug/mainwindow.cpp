@@ -5,6 +5,7 @@
 #include <../Shm.h>
 #include <unistd.h>
 #include <QThread>
+#include <all_tty.h>
 
 extern int shmid[];
 extern double posXforacceleration;
@@ -12,11 +13,15 @@ extern double accelerationtime;
 extern int accelerationtimesleep;
 extern double Px;
 
+extern controller *controller_ptr;
+
 bool MapIsOpened = false;
 bool CameraOn = false;
 bool energychanged = false;
 
-bool XOnTarget = false, YOnTarget = false, ZOnTarget = false;
+extern bool stage_on_target[3];
+bool stage_on_target[] = { false };
+
 bool XYscanning = false, YHasMoved = true;
 
 bool AutofocusOn=false;
@@ -63,7 +68,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     scrollArea->setAlignment(Qt::AlignCenter);
 
     timer = new QTimer(this);                                                // TIMER for program control
-    connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
+    connect(timer, SIGNAL(timeout()), this, SLOT(tty_timer()));
 
     timerAutofocus =new QTimer(this);                                        // TIMER for RECORDING Z DISTANCE FROM TARGET
     connect(timerAutofocus, SIGNAL(timeout()), this, SLOT(Focustimer()));
@@ -136,7 +141,7 @@ void MainWindow::hideImage() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void MainWindow::timerEvent() {
+void MainWindow::tty_timer() {
 
     if (IniZready && !AutofocusOn) stage_check_on_target(serialZ, 2);
     if (IniXready) stage_check_on_target(serialX, 0);
@@ -219,7 +224,7 @@ void MainWindow::stage_check_on_target(int serial, int id) {
     const char prefix[] = "Stage ";
     const char *axes[]  = { "X: ", "Y: ", "Z: "};
     QLineEdit *monitors[] = { CurrentActionX, CurrentActionY, CurrentActionZ };
-    bool *on_target[] = { &XOnTarget, &YOnTarget, &ZOnTarget };
+    bool *on_target[] = { &stage_on_target[0], &stage_on_target[1], &stage_on_target[2] };
 
     char ans[15] = { '\0' };
     tty_send(1, "ONT?", nullptr, serial); // Expected a response with format 1=%d with %d = 1,0
@@ -325,19 +330,11 @@ void MainWindow::StartZ() {
 }
 
 
-void MainWindow::stop_motorXY() {
-    int fds[] = { serialX, serialY, serialZ };
-    for (int i = 0; i < static_cast<int>(sizeof(fds)); i++) {
-        int t = isatty(fds[i]);
-        if (t == 0) continue;
-
-        char ans[15] = { '\0' };
-        tty_send(1, "HLT", nullptr, fds[i]);
-        tty_send(1, "ERR?", nullptr, fds[i]);
-        tty_read(fds[i], ans);
-
-        qDebug()<<"[!] Linear stage at FD "<<fds[i]<<"halted with error code: "<<ans;
-    }   // Error code should be 10: "Controller stopped on command"
+void MainWindow::set_abort_flag() { // raises a flag for abortion
+    QMutex m;
+    m.lock();
+    *(shared_memory_cmd+200) = 1;
+    m.unlock();
 }
 
 
@@ -736,7 +733,6 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     event->ignore();
 
     int processIDs[7][2] = { { 0 }, { 0 } };
-    int processLaser = *(shared_memory_laser+40) ;
 
     printf("\n... Terminating data acquisition session\n");
     if (*(shared_memory_cmd+70)) *(shared_memory_cmd+70) = 0;
@@ -754,14 +750,9 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     shmdt(shared_memory4);
     shmdt(shared_memory5);
     shmdt(shared_memory_rate);
-    shmdt(shared_memory_laser);
     shmdt(shared_memory_cmd);
 
     qDebug()<<"... Killing child processes";
-
-    sprintf(process, "kill -s TERM %i &", processLaser);
-    system(process);
-
     for (int i = 0; i < 7; i++) {
         if (processIDs[i][0] == 1) {
             qDebug()<<"... Killing process with ID: "<<processIDs[i][1];
@@ -769,6 +760,8 @@ void MainWindow::closeEvent(QCloseEvent *event) {
             system(process);
         }
     }
+
+    if (controller_ptr != nullptr) delete controller_ptr;
 
     event->accept();
 }

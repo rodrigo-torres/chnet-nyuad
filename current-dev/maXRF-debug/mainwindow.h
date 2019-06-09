@@ -76,11 +76,8 @@ public:
     static void sleep(unsigned long secs){QThread::sleep(secs);}
 };
 
-class timerController;
-class timerHandler;
 class all_tty;
-
-
+class controller;
 
 struct punto {
     int point_x;
@@ -119,7 +116,7 @@ public:
     //void LoadNewFileWithCorrection_SHM();
     void LoadNewFileWithNoCorrection_SHM();
 
-    friend class timerHandler;
+    friend class controller;
     friend class all_tty;
 
     QTabWidget *tabWidget;
@@ -207,10 +204,10 @@ private slots:
     void ScanXY();
     void MoveDoubleClick();
     void Abort();
-    void stop_motorXY();
+    void set_abort_flag();
     //void CheckXOnTarget();
     //void CheckYOnTarget();
-    void timerEvent();
+    void tty_timer();
 
     void stage_init(int serial);
     void stage_check_on_target(int serial, int id);

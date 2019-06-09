@@ -3,11 +3,11 @@
 #include <../Shm.h>
 #include <time.h>
 #include <fstream>
-#include <thread>
-#include <mutex>
 #include <all_tty.h>
 
-controller *controller_ptr;
+controller *controller_ptr = nullptr;
+
+extern int* shared_memory_cmd;
 
 // Since qtimers cannot be started from a different thread, we're constricted to using QTHREAD
 mutex m_lock;
@@ -16,7 +16,7 @@ int interval = 250;
 bool TimerActive = false;
 
 extern int IniXready, IniYready, IniZready;
-extern bool XOnTarget, YOnTarget, ZOnTarget;
+extern bool stage_on_target[3];
 
 // These are global variables that specify the file descriptors for the USB ports and the type of motors used.
 extern int serialX,serialY,serialZ;
@@ -29,6 +29,20 @@ all_tty::all_tty(MainWindow *ptr) : _ptr(ptr) {
     int val  = -1;
     val = ptr->spinBox_assignX->value();
     qDebug()<<"pointer to class MainWindow succesfully passed, spinboxX value: "<<val;
+}
+
+void all_tty::abort() {
+    int fds[] = { serialX, serialY, serialZ };
+    for (int i = 0; i < 3; i++) {
+        if (!isatty(fds[i])) continue ;
+
+        char ans[15] = { '\0' };
+        tty_send(1, "HLT", nullptr, fds[i]);
+        tty_send(1, "ERR?", nullptr, fds[i]);
+        tty_read(fds[i], ans);
+
+        qDebug()<<"[!] Linear stage at FD "<<fds[i]<<"halted with error code: "<<ans;
+    }   // Error code should be 10: "Controller stopped on command"
 }
 
 int all_tty::mod_tty_send(int fd, string line) {
@@ -98,16 +112,17 @@ void all_tty::stage_init(int serial) {
     /* Identifying linear stage */
     int fds[] = { serialX, serialY, serialZ };
     int id = -1;
-    for (int i = 0; i < static_cast<int>(sizeof(fds)); i++) {
+    for (int i = 0; i < 3; i++) {
         if (fds[i] == serial) id = i;
     }
 
-    bool *on_target[] = { &XOnTarget, &YOnTarget, &ZOnTarget};
+    bool *on_target[] = { &stage_on_target[0], &stage_on_target[1], &stage_on_target[2]};
 
     /* Disabling all stage initialization pushbuttons to prevent conflicts */
     _ptr->pushButton_tab_2_2X->setEnabled(false);
     _ptr->pushButton_tab_2_2Y->setEnabled(false);
     _ptr->INIT_Z_pushButton->setEnabled(false);
+    _ptr->timer->blockSignals(true);
 
 
     char message[100];
@@ -133,6 +148,10 @@ void all_tty::stage_init(int serial) {
 
         do {
             Sleeper::msleep(100);
+            if (*(shared_memory_cmd+200) ==  1) {
+                abort();
+                return;
+            }
             _ptr->stage_check_on_target(serial, id);
         } while (!(*on_target[id]));
 
@@ -150,13 +169,18 @@ void all_tty::stage_init(int serial) {
 
         do {
             Sleeper::msleep(100);
-            _ptr->stage_check_on_target(serial, 0);
+            if (*(shared_memory_cmd+200) ==  1) {
+                abort();
+                return;
+            }
+            _ptr->stage_check_on_target(serial, id);
         } while (!(*on_target[id]));
 
         id == 2 ? _ptr->tab_3->setEnabled(true) : _ptr->Enable_TabWidget_3_4_XY();
 
         if (TimerActive == false) {
-            //_ptr->timer->start(interval);
+            _ptr->timer->blockSignals(false);
+            emit this->stage_timer_start(interval);
             TimerActive=true;
         }
 
@@ -168,91 +192,13 @@ void all_tty::stage_init(int serial) {
         qDebug()<<"Invalid motor selection";
     }
     /* Renabling all stage initialization pushbuttons */
+    _ptr->timer->blockSignals(false);
     _ptr->pushButton_tab_2_2X->setEnabled(true);
     _ptr->pushButton_tab_2_2Y->setEnabled(true);
     _ptr->INIT_Z_pushButton->setEnabled(true);
 }
 
 void MainWindow::stage_init(int serial) {
-    /* Identifying linear stage */
-    int fds[] = { serialX, serialY, serialZ };
-    int id = -1;
-    for (int i = 0; i < static_cast<int>(sizeof(fds)); i++) {
-        if (fds[i] == serial) id = i;
-    }
-
-    bool *on_target[] = { &XOnTarget, &YOnTarget, &ZOnTarget};
-
-    /* Disabling all stage initialization pushbuttons to prevent conflicts */
-    pushButton_tab_2_2X->setEnabled(false);
-    pushButton_tab_2_2Y->setEnabled(false);
-    INIT_Z_pushButton->setEnabled(false);
-
-
-    char message[100];
-    const char *model[] = { "/M404_8PD.txt", "/M404_8PD.txt",  "/M404_2PD.txt" };
-    strncpy(message, "Loading configuration file: ", sizeof(message));
-    strcat(message, model[id]);
-
-    status->showMessage(message, 60);
-
-    bool ret = 1;
-    //id == 2 ? ret = loadparam_M404_2pd(serial) : ret = loadparam_M404_8pd(serial);
-    all_tty tty_o(this);
-    tty_o.stage_load_param(serial, model[id]);
-
-    if (ret) {
-        qDebug()<<"... Changing selected stage velocity";
-        const char *vel_param[] = { "VEL 1 15", "VEL 1 10", "VEL 1 5"};
-        tty_send(1, vel_param[id], nullptr, serial);
-
-        qDebug()<<"... Enabling position servo";
-        tty_send(1, "SVO 1 1", nullptr, serial);
-
-        qDebug()<<"... Moving selected stage to its negative limit";
-        tty_send(1, "FNL 1", nullptr, serial);
-
-        do {
-            Sleeper::msleep(100);
-            stage_check_on_target(serial, id);
-        } while (!(*on_target[id]));
-
-        qDebug()<<"... Defining reference position";
-        tty_send(1, "DEF 1", nullptr, serial);
-
-        qDebug()<<"... Going to reference position"
-                  "\n... Please wait";
-
-        double ref_pos[] = { 100., 100., 25. };
-
-        char stemp[100];
-        sprintf(stemp, "%f", ref_pos[id]);
-        tty_send(1, "MOV", stemp, serial);
-
-        do {
-            Sleeper::msleep(100);
-            stage_check_on_target(serial, 0);
-        } while (!(*on_target[id]));
-
-        id == 2 ? tab_3->setEnabled(true) : Enable_TabWidget_3_4_XY();
-
-        if (TimerActive == false) {
-            timer->start(interval);
-            TimerActive=true;
-        }
-
-        int *inited[] = { &IniXready, &IniYready, &IniZready};
-        *inited[id] = 1;
-    }
-
-    else {
-        qDebug()<<"Invalid motor selection";
-    }
-    /* Renabling all stage initialization pushbuttons */
-    pushButton_tab_2_2X->setEnabled(true);
-    pushButton_tab_2_2Y->setEnabled(true);
-    INIT_Z_pushButton->setEnabled(true);
-
 }
 
 void MainWindow::Init_Xmotor() {
@@ -260,7 +206,7 @@ void MainWindow::Init_Xmotor() {
         qDebug()<<"[!] Communication with this port has not yet been initialized";
         return;
     }
-    controller_ptr = new controller(this);
+    if (controller_ptr == nullptr) controller_ptr = new controller(this);
     emit controller_ptr->stage_init(serialX);
     //all_tty tty_o(this);
     //tty_o.stage_init(serialX);
@@ -270,9 +216,9 @@ void MainWindow::Init_Ymotor() {
     if (!isatty(serialY)) {
         qDebug()<<"[!] Communication with this port has not yet been initialized";
         return;
-    }
-    all_tty tty_o(this);
-    tty_o.stage_init(serialY);
+    }  
+    if (controller_ptr == nullptr) controller_ptr = new controller(this);
+    emit controller_ptr->stage_init(serialY);
 }
 
 void MainWindow::Init_Zmotor(){
@@ -280,8 +226,8 @@ void MainWindow::Init_Zmotor(){
         qDebug()<<"[!] Communication with this port has not yet been initialized";
         return;
     }
-    all_tty tty_o(this);
-    tty_o.stage_init(serialZ);
+    if (controller_ptr == nullptr) controller_ptr = new controller(this);
+    emit controller_ptr->stage_init(serialZ);
 }
 
 

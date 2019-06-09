@@ -22,7 +22,6 @@ SOURCES += autofocus.cpp \
            export.cpp \
            external_programs.cpp \
            GUI_Creator.cpp \
-           laser.cpp \
            main.cpp \
            mainwindow.cpp \
            mainwindow_DefinePixels.cpp \

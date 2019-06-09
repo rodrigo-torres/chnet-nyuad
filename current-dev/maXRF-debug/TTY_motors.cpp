@@ -5,7 +5,6 @@
 
 extern int IniXready, IniYready, IniZready;
 extern int serialX, serialY, serialZ, serialK;
-bool XConnected, YConnected, ZConnected;
 
 extern int tty_send(int chan,const char *comando, const char *parametri, int port);
 extern void tty_read(int port, char *ans, unsigned long wait = 0);
@@ -129,7 +128,6 @@ int MainWindow::tty_interface_conf(int df_minor_no, int device_type, int device_
 void MainWindow::tty_init(int id) {
     int* list_fds[] = { &serialX, &serialY, &serialZ, &serialK };
     int* list_motor_init[] = { &IniXready, &IniYready, &IniZready };
-    bool* list_motor_conn[] = { &XConnected, &YConnected, &ZConnected };
 
     int dev_type;
     id < 3 ? dev_type = 0 : dev_type = 1;

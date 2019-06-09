@@ -7,10 +7,10 @@
 #pragma once
 
 extern int shmid[8];
-extern key_t key, key2, key3, key4, key5, key_cmd, key_rate, key_laser;
+extern key_t key, key2, key3, key4, key5, key_cmd, key_rate;
 extern int *shared_memory, *shared_memory2, *shared_memory3, *shared_memory4;
 extern char*shared_memory5;
-extern int *shared_memory_cmd, *shared_memory_rate, *shared_memory_laser;
+extern int *shared_memory_cmd, *shared_memory_rate;
 
 
 
