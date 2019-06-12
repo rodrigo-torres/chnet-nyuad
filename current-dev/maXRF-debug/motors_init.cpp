@@ -1,47 +1,51 @@
-#include "mainwindow.h"
+//#include "mainwindow.h"
 #include "../Header.h"
 #include <../Shm.h>
 #include <time.h>
 #include <fstream>
-#include <all_tty.h>
+#include "mainwindow.h"
+#include "all_tty.h"
 
 controller *controller_ptr = nullptr;
-
 extern int* shared_memory_cmd;
 
-// Since qtimers cannot be started from a different thread, we're constricted to using QTHREAD
-mutex m_lock;
-// These are global variables used in the time stamp of the scan function.
+extern QString stylesheet3;
+
+extern int serialX, serialY, serialZ;
+
+extern int interval;
 int interval = 250;
-bool TimerActive = false;
-
-extern int IniXready, IniYready, IniZready;
-extern bool stage_on_target[3];
-
-// These are global variables that specify the file descriptors for the USB ports and the type of motors used.
-extern int serialX,serialY,serialZ;
 
 // These are global functions used to commmunicate to the motors through the file descriptors.
 extern int tty_send(int channel, const char *command, const char *parameter, int port);
 void tty_read(int port, char *ans, unsigned long wait = 0);
 
+void controller::start_timer(int interval) {
+    mainwindow_ptr->timer->start(interval);
+}
+
 all_tty::all_tty(MainWindow *ptr) : _ptr(ptr) {
-    int val  = -1;
-    val = ptr->spinBox_assignX->value();
-    qDebug()<<"pointer to class MainWindow succesfully passed, spinboxX value: "<<val;
+    /* Initializing the members of struct stage_t */
+    for (int i = 0; i < 3; i++) {
+        stage[i].df_minor_number = i;
+        stage[i].stage_init_status = 0;
+        stage[i].stage_fd = -1;
+        stage[i].stage_id = i;
+        stage[i].stage_on_target = false;
+    }
 }
 
 void all_tty::abort() {
-    int fds[] = { serialX, serialY, serialZ };
+    //int fds[] = { serialX, serialY, serialZ };
     for (int i = 0; i < 3; i++) {
-        if (!isatty(fds[i])) continue ;
+        if (!isatty(stage[i].stage_fd)) continue ;
 
         char ans[15] = { '\0' };
-        tty_send(1, "HLT", nullptr, fds[i]);
-        tty_send(1, "ERR?", nullptr, fds[i]);
-        tty_read(fds[i], ans);
+        tty_send(1, "HLT", nullptr, stage[i].stage_fd);
+        tty_send(1, "ERR?", nullptr, stage[i].stage_fd);
+        tty_read(stage[i].stage_fd, ans);
 
-        qDebug()<<"[!] Linear stage at FD "<<fds[i]<<"halted with error code: "<<ans;
+        qDebug()<<"[!] Linear stage at FD "<<stage[i].stage_fd<<"halted with error code: "<<ans;
     }   // Error code should be 10: "Controller stopped on command"
 }
 
@@ -108,15 +112,57 @@ void all_tty::stage_load_param(int fd, const char *file_name) {
     else qDebug()<<"[!] Configuration file not found";
 }
 
-void all_tty::stage_init(int serial) {
-    /* Identifying linear stage */
-    int fds[] = { serialX, serialY, serialZ };
-    int id = -1;
-    for (int i = 0; i < 3; i++) {
-        if (fds[i] == serial) id = i;
+void all_tty::stage_check_on_target(stage_t* stage) {
+    const char prefix[] = "Stage ";
+    const char *axes[]  = { "X: ", "Y: ", "Z: "};
+    QLineEdit *monitors[] = { _ptr->CurrentActionX, _ptr->CurrentActionY, _ptr->CurrentActionZ };
+
+    int id = stage->stage_id;
+    bool *on_target = &(stage->stage_on_target);
+
+    char ans[15] = { '\0' };
+    tty_send(1, "ONT?", nullptr, stage->stage_fd); // Expected a response with format 1=%d with %d = 1,0
+
+    try {
+        tty_read(stage->stage_fd, ans, 10);
+    } catch (const runtime_error& e) {
+        qDebug()<<e.what();
     }
 
-    bool *on_target[] = { &stage_on_target[0], &stage_on_target[1], &stage_on_target[2]};
+    if (ans[2] == '1' ) *on_target = true;
+    else *on_target = false;
+
+    char ans2[15] = { '\0' };
+    tty_send(1,"POS?", nullptr, stage->stage_fd); // Expected a response with format 1={x->xxx}.xxxx
+
+    try {
+        tty_read(stage->stage_fd, ans2, 15);
+    } catch (const runtime_error& e) {
+        qDebug()<<e.what();
+    }
+
+//  Not requires as when the servo is on, Z position is already stored
+//    if (id == 2) {
+//        QString temp = &ans2[2];
+//        ZPosition = temp.toDouble();
+//    }
+
+    char message[25] = { '\0' };
+    strncpy(message, prefix, sizeof(prefix));
+    strncat(message, axes[id], 4);
+    strncat(message, &ans2[2], 10);
+    strncat(message, " mm", sizeof(" mm"));
+    monitors[id]->setText(message);
+    monitors[id]->setStyleSheet(stylesheet3);
+}
+
+void all_tty::stage_init(int ind) {
+    stage_t* stage_p = &stage[ind];
+
+    /* Identifying linear stage */
+    int fd = stage_p->stage_fd;
+    int id = stage_p->stage_id;
+    bool* on_target = &(stage_p->stage_on_target);
 
     /* Disabling all stage initialization pushbuttons to prevent conflicts */
     _ptr->pushButton_tab_2_2X->setEnabled(false);
@@ -133,18 +179,18 @@ void all_tty::stage_init(int serial) {
     //_ptr->status->showMessage(message, 60);
 
     bool ret = 1;
-    stage_load_param(serial, model[id]);
+    stage_load_param(fd, model[id]);
 
     if (ret) {
         qDebug()<<"... Changing selected stage velocity";
         const char *vel_param[] = { "VEL 1 15", "VEL 1 10", "VEL 1 5"};
-        tty_send(1, vel_param[id], nullptr, serial);
+        tty_send(1, vel_param[id], nullptr, fd);
 
         qDebug()<<"... Enabling position servo";
-        tty_send(1, "SVO 1 1", nullptr, serial);
+        tty_send(1, "SVO 1 1", nullptr, fd);
 
         qDebug()<<"... Moving selected stage to its negative limit";
-        tty_send(1, "FNL 1", nullptr, serial);
+        tty_send(1, "FNL 1", nullptr, fd);
 
         do {
             Sleeper::msleep(100);
@@ -152,11 +198,11 @@ void all_tty::stage_init(int serial) {
                 abort();
                 return;
             }
-            _ptr->stage_check_on_target(serial, id);
-        } while (!(*on_target[id]));
+            stage_check_on_target(stage_p);
+        } while (!(*on_target));
 
         qDebug()<<"... Defining reference position";
-        tty_send(1, "DEF 1", nullptr, serial);
+        tty_send(1, "DEF 1", nullptr, fd);
 
         qDebug()<<"... Going to reference position"
                   "\n... Please wait";
@@ -165,7 +211,7 @@ void all_tty::stage_init(int serial) {
 
         char stemp[100];
         sprintf(stemp, "%f", ref_pos[id]);
-        tty_send(1, "MOV", stemp, serial);
+        tty_send(1, "MOV", stemp, fd);
 
         do {
             Sleeper::msleep(100);
@@ -173,19 +219,17 @@ void all_tty::stage_init(int serial) {
                 abort();
                 return;
             }
-            _ptr->stage_check_on_target(serial, id);
-        } while (!(*on_target[id]));
+            stage_check_on_target(stage_p);
+        } while (!(*on_target));
 
         id == 2 ? _ptr->tab_3->setEnabled(true) : _ptr->Enable_TabWidget_3_4_XY();
 
-        if (TimerActive == false) {
+        if (_ptr->timer->isActive()) {
             _ptr->timer->blockSignals(false);
             emit this->stage_timer_start(interval);
-            TimerActive=true;
         }
 
-        int *inited[] = { &IniXready, &IniYready, &IniZready};
-        *inited[id] = 1;
+        stage_p->stage_init_status = 1;
     }
 
     else {
@@ -198,8 +242,6 @@ void all_tty::stage_init(int serial) {
     _ptr->INIT_Z_pushButton->setEnabled(true);
 }
 
-void MainWindow::stage_init(int serial) {
-}
 
 void MainWindow::Init_Xmotor() {
     if (!isatty(serialX)) {
@@ -207,9 +249,7 @@ void MainWindow::Init_Xmotor() {
         return;
     }
     if (controller_ptr == nullptr) controller_ptr = new controller(this);
-    emit controller_ptr->stage_init(serialX);
-    //all_tty tty_o(this);
-    //tty_o.stage_init(serialX);
+    emit controller_ptr->stage_init(0);
 }
 
 void MainWindow::Init_Ymotor() {
@@ -218,7 +258,7 @@ void MainWindow::Init_Ymotor() {
         return;
     }  
     if (controller_ptr == nullptr) controller_ptr = new controller(this);
-    emit controller_ptr->stage_init(serialY);
+    emit controller_ptr->stage_init(1);
 }
 
 void MainWindow::Init_Zmotor(){
@@ -227,7 +267,7 @@ void MainWindow::Init_Zmotor(){
         return;
     }
     if (controller_ptr == nullptr) controller_ptr = new controller(this);
-    emit controller_ptr->stage_init(serialZ);
+    emit controller_ptr->stage_init(2);
 }
 
 

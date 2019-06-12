@@ -5,7 +5,7 @@
 #include <../Shm.h>
 #include <unistd.h>
 #include <QThread>
-#include <all_tty.h>
+//#include <all_tty.h>
 
 extern int shmid[];
 extern double posXforacceleration;

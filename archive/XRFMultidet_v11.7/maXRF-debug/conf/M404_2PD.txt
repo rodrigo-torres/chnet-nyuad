@@ -1,0 +1,45 @@
+# Configuration file for linear stage PI M404.8PD
+# Check if each parameter was passed succesfully with "SPA?"
+#
+# Linear stage name
+SPA 1 60 M-404.2PD
+# P-term
+SPA 1 1 180
+# I-term
+SPA 1 2 45
+# D-term
+SPA 1 3 300
+# I-limit
+SPA 1 4 2000
+# Maximum position error in counts
+SPA 1 8 0.5
+# Maximum allowed velocity in physical units (mm/s)
+SPA 1 10 50
+# Maximum allowed acceleration in physical units
+SPA 1 11 30
+# Numerator of counts per physical unit factor -> affects transmission ratio and stage resolution
+SPA 1 14 4000
+# Denominator of counts per physical unit factor
+SPA 1 15 1
+# Declares a rotary stage
+SPA 1 19 0
+# Declares the stage has reference
+SPA 1 20 1
+# Maximum travel range in positive direction
+SPA 1 21 50.
+# Value at reference position
+SPA 1 22 25.
+# Distance from the negative limit to the reference position
+SPA 1 23 25. 
+# Axis limit mode, a value of 0 = positive limit switch active high and negative limit switch high
+SPA 1 24 0
+# Distance from the positive limit to the reference position
+SPA 1 47 25
+# Maximum travel range in negative direction
+SPA 1 48 0
+# Inver the reference? (boolean)
+SPA 1 49 0
+# Activates the stop of the hardware limit switches
+SPA 1 50 0
+# Axis unit
+SPA 1 117442049 MM

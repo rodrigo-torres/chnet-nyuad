@@ -4,7 +4,7 @@
 //
 // SHM SEGMENTS are defined in Shm.h
 
-#pragma once
+#pragma oncezzz
 
 extern int shmid[8];
 extern key_t key, key2, key3, key4, key5, key_cmd, key_rate;

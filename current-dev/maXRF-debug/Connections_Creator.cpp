@@ -60,10 +60,10 @@ void MainWindow::CONNECTIONS_CREATOR()
 
 
      /* Connections for tab 1 widgets */
-
-     connect(pushButton_tab_2_2X, SIGNAL(released()), this, SLOT(Init_Xmotor()));
+     //connect(pushButton_tab_2_2X, SIGNAL(released()), this, SLOT(Init_Xmotor()));
      connect(pushButton_tab_2_2Y, SIGNAL(released()), this, SLOT(Init_Ymotor()));
      connect(INIT_Z_pushButton, SIGNAL(released()), this, SLOT(Init_Zmotor()));
+
      // Device files configuration
 
      QSpinBox *buttons_device_files[4] = { };
@@ -78,14 +78,18 @@ void MainWindow::CONNECTIONS_CREATOR()
          connect(buttons_device_files[i], SIGNAL(valueChanged(int)), mapper_device_files, SLOT(map()));
      }   connect(mapper_device_files, SIGNAL(mapped(int)), this, SLOT(tty_set_path(int)));
 
-     QPushButton *assign_dfs[4] = { };
+     QPushButton *assign_dfs[7] = { };
      assign_dfs[0] = pushButton_assignX_port;
      assign_dfs[1] = pushButton_assignY_port;
      assign_dfs[2] = AssignZ_pushButton;
      assign_dfs[3] = AssignACM_pushButton;
+     assign_dfs[4] = pushButton_tab_2_2X;
+     assign_dfs[5] = pushButton_tab_2_2Y;
+     assign_dfs[6] = INIT_Z_pushButton;
+
 
      QSignalMapper *mapper_assign_dfs = new QSignalMapper();
-     for (int i = 0; i < 4; i++) {
+     for (int i = 0; i < 7; i++) {
          mapper_assign_dfs->setMapping(assign_dfs[i], i);
          connect(assign_dfs[i], SIGNAL(released()), mapper_assign_dfs, SLOT(map()));
      }   connect(mapper_assign_dfs, SIGNAL(mapped(int)), this, SLOT(tty_init(int)));

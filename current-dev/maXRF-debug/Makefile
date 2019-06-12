@@ -291,8 +291,7 @@ DIST          = /opt/Qt/5.12.3/clang_64/mkspecs/features/spec_pre.prf \
 		../Header.h \
 		../Shm.h \
 		../variables.h \
-		../QT_variables.h \
-		all_tty.h autofocus.cpp \
+		../QT_variables.h autofocus.cpp \
 		Connections_Creator.cpp \
 		export.cpp \
 		external_programs.cpp \
@@ -754,7 +753,7 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents Resource.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents /opt/Qt/5.12.3/clang_64/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents mainwindow.h all_tty.h DppGui.h ../Header.h ../Shm.h ../variables.h ../QT_variables.h all_tty.h $(DISTDIR)/
+	$(COPY_FILE) --parents mainwindow.h all_tty.h DppGui.h ../Header.h ../Shm.h ../variables.h ../QT_variables.h $(DISTDIR)/
 	$(COPY_FILE) --parents autofocus.cpp Connections_Creator.cpp export.cpp external_programs.cpp GUI_Creator.cpp main.cpp mainwindow.cpp mainwindow_DefinePixels.cpp mainwindow_loadSHM.cpp mainwindow_mouse.cpp mainwindow_online.cpp mainwindow_showMap.cpp Menu.cpp motors_move.cpp ScanYX_XY.cpp SHM_Creator.cpp TTY_motors.cpp motors_init.cpp defDppGui.cpp creatorDppGui.cpp $(DISTDIR)/
 
 
@@ -798,9 +797,9 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /opt/Qt/5.12.3/clang_64/mkspecs/features/data/dummy.cpp
 	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++ -pipe -stdlib=libc++ -g -std=gnu++11 $(EXPORT_ARCH_ARGS) -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk -mmacosx-version-min=10.12 -Wall -W -dM -E -o moc_predefs.h /opt/Qt/5.12.3/clang_64/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_mainwindow.cpp moc_all_tty.cpp moc_DppGui.cpp moc_all_tty.cpp
+compiler_moc_header_make_all: moc_mainwindow.cpp moc_all_tty.cpp moc_DppGui.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_mainwindow.cpp moc_all_tty.cpp moc_DppGui.cpp moc_all_tty.cpp
+	-$(DEL_FILE) moc_mainwindow.cpp moc_all_tty.cpp moc_DppGui.cpp
 moc_mainwindow.cpp: mainwindow.h \
 		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QMainWindow \
 		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qmainwindow.h \
@@ -1292,186 +1291,6 @@ moc_DppGui.cpp: DppGui.h \
 		moc_predefs.h \
 		/opt/Qt/5.12.3/clang_64/bin/moc
 	/opt/Qt/5.12.3/clang_64/bin/moc $(DEFINES) --include /Users/rosska/Desktop/macro-XRF/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/moc_predefs.h -I/opt/Qt/5.12.3/clang_64/mkspecs/macx-clang -I/Users/rosska/Desktop/macro-XRF/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/Users/rosska/Desktop/macro-XRF/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/opt/Qt/5.12.3/clang_64/lib/QtOpenGL.framework/Headers -I/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers -I/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers -I/opt/Qt/5.12.3/clang_64/lib/QtSql.framework/Headers -I/opt/Qt/5.12.3/clang_64/lib/QtXml.framework/Headers -I/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include -F/opt/Qt/5.12.3/clang_64/lib DppGui.h -o moc_DppGui.cpp
-
-moc_all_tty.cpp: all_tty.h \
-		mainwindow.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QMainWindow \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qmainwindow.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QLabel \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qlabel.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QSpinBox \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qspinbox.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QCheckBox \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qcheckbox.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QMenu \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qmenu.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QComboBox \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qcombobox.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QMessageBox \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qmessagebox.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QScrollArea \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qscrollarea.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QStatusBar \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qstatusbar.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QAction \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qaction.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers/QSize \
-		/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers/qsize.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QMenuBar \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qmenubar.h \
-		DppGui.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QApplication \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qapplication.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QWidget \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qwidget.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/QtGui \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qtguiglobal.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qabstracttextdocumentlayout.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qaccessible.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qaccessiblebridge.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qaccessibleobject.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qaccessibleplugin.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qbackingstore.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qbitmap.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qbrush.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qclipboard.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qcolor.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qcursor.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qdesktopservices.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qdrag.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qevent.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qfont.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qfontdatabase.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qfontinfo.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qfontmetrics.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qgenericmatrix.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qgenericplugin.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qgenericpluginfactory.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qglyphrun.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qguiapplication.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qicon.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qiconengine.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qiconengineplugin.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qimage.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qimageiohandler.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qimagereader.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qimagewriter.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qinputmethod.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qkeysequence.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qmatrix.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qmatrix4x4.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qmovie.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qoffscreensurface.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qopengl.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qopenglbuffer.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qopenglcontext.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qopengldebug.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qopenglextrafunctions.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qopenglframebufferobject.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qopenglfunctions.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qopenglpaintdevice.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qopenglpixeltransferoptions.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qopenglshaderprogram.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qopengltexture.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qopengltextureblitter.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qopengltimerquery.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qopenglversionfunctions.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qopenglvertexarrayobject.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qopenglwindow.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qpagedpaintdevice.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qpagelayout.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qpagesize.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qpaintdevice.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qpaintdevicewindow.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qpaintengine.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qpainter.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qpainterpath.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qpalette.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qpdfwriter.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qpen.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qpicture.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qpictureformatplugin.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qpixelformat.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qpixmap.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qpixmapcache.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qpolygon.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qquaternion.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qrasterwindow.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qrawfont.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qregion.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qrgb.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qrgba64.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qscreen.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qsessionmanager.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qstandarditemmodel.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qstatictext.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qstylehints.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qsurface.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qsurfaceformat.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qsyntaxhighlighter.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qtextcursor.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qtextdocument.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qtextdocumentfragment.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qtextdocumentwriter.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qtextformat.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qtextlayout.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qtextlist.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qtextobject.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qtextoption.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qtexttable.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qtouchdevice.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qtransform.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qvalidator.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qvector2d.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qvector3d.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qvector4d.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qwindow.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qwindowdefs.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/qtguiversion.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QGridLayout \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qgridlayout.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QPushButton \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qpushbutton.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers/QFile \
-		/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers/qfile.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers/QString \
-		/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers/qstring.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers/QObject \
-		/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers/qobject.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers/QFont \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QLCDNumber \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qlcdnumber.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QSlider \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qslider.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QVBoxLayout \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qboxlayout.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers/QDir \
-		/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers/qdir.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers/QTextStream \
-		/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers/qtextstream.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QLineEdit \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qlineedit.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QTabWidget \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qtabwidget.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers/QTimerEvent \
-		/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers/qcoreevent.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QFileDialog \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qfiledialog.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers/QByteArray \
-		/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers/qbytearray.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QGroupBox \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qgroupbox.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/QRadioButton \
-		/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers/qradiobutton.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers/QDebug \
-		/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers/qdebug.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers/QBuffer \
-		/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers/qbuffer.h \
-		/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers/qsharedmemory.h \
-		../Shm.h \
-		moc_predefs.h \
-		/opt/Qt/5.12.3/clang_64/bin/moc
-	/opt/Qt/5.12.3/clang_64/bin/moc $(DEFINES) --include /Users/rosska/Desktop/macro-XRF/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/moc_predefs.h -I/opt/Qt/5.12.3/clang_64/mkspecs/macx-clang -I/Users/rosska/Desktop/macro-XRF/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/Users/rosska/Desktop/macro-XRF/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/opt/Qt/5.12.3/clang_64/lib/QtOpenGL.framework/Headers -I/opt/Qt/5.12.3/clang_64/lib/QtWidgets.framework/Headers -I/opt/Qt/5.12.3/clang_64/lib/QtGui.framework/Headers -I/opt/Qt/5.12.3/clang_64/lib/QtSql.framework/Headers -I/opt/Qt/5.12.3/clang_64/lib/QtXml.framework/Headers -I/opt/Qt/5.12.3/clang_64/lib/QtCore.framework/Headers -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include -F/opt/Qt/5.12.3/clang_64/lib all_tty.h -o moc_all_tty.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:

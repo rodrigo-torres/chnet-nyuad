@@ -209,7 +209,7 @@ private slots:
     //void CheckYOnTarget();
     void tty_timer();
 
-    void stage_init(int serial);
+    //void stage_init(int serial);
     void stage_check_on_target(int serial, int id);
 
 
