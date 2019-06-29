@@ -4,7 +4,7 @@
 //
 // SHM SEGMENTS are defined in Shm.h
 
-#pragma oncezzz
+#pragma once
 
 extern int shmid[8];
 extern key_t key, key2, key3, key4, key5, key_cmd, key_rate;
@@ -15,7 +15,6 @@ extern int *shared_memory_cmd, *shared_memory_rate;
 
 
 int DAQ_TYPE=1;
-bool NewFileLoaded=false;
 ///////////////////////////////// VARIABLES MOTORS 
 
 int portX=0, IniX=0, IniXready=0, serialX = -1;
@@ -55,9 +54,6 @@ int X1,Y1,X2,Y2; // in mainwindow_mouse.cpp
 
 
 double numpixelforaccel;
-double posXforacceleration;
-double accelerationtime;
-int accelerationtimesleep;
 
 
 

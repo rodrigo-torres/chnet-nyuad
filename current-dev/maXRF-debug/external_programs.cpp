@@ -1,13 +1,13 @@
 ﻿#include "mainwindow.h"
 #include "../Header.h"
 
+extern tty tty_ptr;
 
 extern bool CameraOn;
 extern int measuring_time;   extern int DAQ_TYPE;
 extern int *shared_memory_cmd, *shared_memory, *shared_memory2;
 
 extern int serialX, serialY, serialZ, serialK;
-extern int tty_send(int chan,const char *comando, const char *parametri, int port);
 
 void MainWindow::StartVme() {
 
@@ -32,12 +32,7 @@ void MainWindow::StartVme() {
 }
 
 void MainWindow::Stop_Vme() {
-    tty_send(1,"HLT",NULL,serialX);
-    tty_send(1,"HLT",NULL,serialY);
-    tty_send(1,"HLT",NULL,serialZ);
-    timer->blockSignals(true);
-    timerAutofocus->blockSignals(true);
-
+    emit abort();
     if(*(shared_memory_cmd+70)==1) {
 
         *(shared_memory_cmd+70)=0;
@@ -66,10 +61,6 @@ void MainWindow::Stop_Vme() {
     }
 
     else qDebug()<<"[!] Point mode acquisition already off";
-
-    timer->blockSignals(false);
-    timerAutofocus->blockSignals(false);
-    tcflush(serialK, TCIFLUSH);
 }
 
 void MainWindow::ShowHistogram() {

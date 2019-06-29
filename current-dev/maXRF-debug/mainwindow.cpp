@@ -1,19 +1,14 @@
 #include "../Header.h"
 #include "mainwindow.h"
 #include "../variables.h"
-#include "../QT_variables.h"
-#include <../Shm.h>
 #include <unistd.h>
 #include <QThread>
-//#include <all_tty.h>
+#include <tty.h>
 
 extern int shmid[];
-extern double posXforacceleration;
-extern double accelerationtime;
-extern int accelerationtimesleep;
 extern double Px;
 
-extern controller *controller_ptr;
+tty *tty_ptr;
 
 bool MapIsOpened = false;
 bool CameraOn = false;
@@ -56,7 +51,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     createActions();
     builder_Menu();            	    /// CREATING MENU from Menu.cpp
     GUI_CREATOR();
-    CONNECTIONS_CREATOR();
+    handle_connections();
 
     imageLabel = new ImgLabel;
 
@@ -70,14 +65,123 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     timer = new QTimer(this);                                                // TIMER for program control
     connect(timer, SIGNAL(timeout()), this, SLOT(tty_timer()));
 
-    timerAutofocus =new QTimer(this);                                        // TIMER for RECORDING Z DISTANCE FROM TARGET
-    connect(timerAutofocus, SIGNAL(timeout()), this, SLOT(Focustimer()));
-
-
     readmultidetcalpar();
+
+    start_thread_tty();
 }
 
 
+void MainWindow::start_thread_tty() {
+
+    tty_ptr = new tty();
+    tty_ptr->moveToThread(&test_thread);
+
+    connect(&test_thread, &QThread::finished, tty_ptr, &QObject::deleteLater);
+    connect(tty_ptr, &tty::toggle_tab1, this, &MainWindow::toggle_tab1);
+    connect(tty_ptr, &tty::toggle_widgets, this, &MainWindow::toggle_widgets);
+    connect(tty_ptr, &tty::update_monitor, this, &MainWindow::update_monitor);
+
+    connect(this, &MainWindow::set_target, tty_ptr, &tty::set_target);
+    connect(this, &MainWindow::keyence_reading, tty_ptr, &tty::enable_servo);
+    connect(this, &MainWindow::start_servo, tty_ptr, &tty::start_servo);
+
+    QSignalMapper *mapper_device_files = new QSignalMapper();
+    for (int i = 0; i < 4; i++) {
+        mapper_device_files->setMapping(tab1_df_number[i], i);
+        connect(tab1_df_number[i], SIGNAL(valueChanged(int)), mapper_device_files, SLOT(map()));
+    }   connect(mapper_device_files, SIGNAL(mapped(int)), tty_ptr, SLOT(set_df_minor(int)));
+
+    QSignalMapper *mapper_assign_dfs = new QSignalMapper();
+    for (int i = 0; i < 4; i++) {
+        mapper_assign_dfs->setMapping(tab1_df_open[i], i);
+        connect(tab1_df_open[i], SIGNAL(released()), mapper_assign_dfs, SLOT(map()));
+    }   connect(mapper_assign_dfs, SIGNAL(mapped(int)), tty_ptr, SLOT(tty_init(int)));
+
+    QSignalMapper *mapper_init_stages = new QSignalMapper;
+    for (int i = 0; i < 3; i++) {
+        mapper_init_stages->setMapping(tab1_stage_init[i], i);
+        connect(tab1_stage_init[i], SIGNAL(released()), mapper_init_stages, SLOT(map()));
+    }   connect(mapper_init_stages, SIGNAL(mapped(int)), tty_ptr, SLOT(stage_init(int)));
+
+    QSignalMapper *mapperMoveStages = new QSignalMapper();
+    for (int i = 0; i < 9; i++) {
+        mapperMoveStages->setMapping(buttonTab3[i], i);
+        connect(buttonTab3[i], SIGNAL(released()), mapperMoveStages, SLOT(map()));
+    }   connect(mapperMoveStages, SIGNAL(mapped(int)), tty_ptr, SLOT(move_stage(int)));
+
+
+    test_thread.start();
+
+};
+
+/* Signals */
+
+void MainWindow::enable_keyence_reading() {
+    QCheckBox *tmp = static_cast<QCheckBox*>(this->sender());
+    bool active = tmp->checkState();
+
+    servo_checkbox->setEnabled(active);
+    emit keyence_reading(active);
+}
+
+void MainWindow::enable_servo() {
+    QCheckBox *tmp = static_cast<QCheckBox*>(this->sender());
+    bool active = tmp->checkState();
+
+    buttonTab3[2]->setEnabled(active);
+    buttonTab3[7]->setEnabled(active);
+    buttonTab3[8]->setEnabled(active);
+    spinboxTab3[2]->setEnabled(active);
+
+    emit start_servo(active);
+}
+
+
+/* Public slots */
+
+
+void MainWindow::toggle_tab1(bool state) {
+    for (int i = 0; i < 3; i++) {
+        tab1_df_number[i]->setEnabled(state);
+        tab1_df_open[i]->setEnabled(state);
+        tab1_stage_init[i]->setEnabled(state);
+    }
+}
+
+void MainWindow::toggle_widgets(int id) {
+    switch (id) {
+    case 0: case 1:
+        tab3->setEnabled(true);
+        break;
+    case 2:
+        tab2->setEnabled(true);
+        break;
+    case 3:
+        AUTOFOCUS_ON_pushButton->setEnabled(true);
+    }
+}
+
+void MainWindow::update_monitor(QString message, QString style, int id){
+    dev_monitor[id]->setText(message);
+    dev_monitor[id]->setStyleSheet(style);
+}
+
+void MainWindow::tab3_set_target() {
+    QDoubleSpinBox *tmp = static_cast<QDoubleSpinBox*>(this->sender());
+    double number = tmp->value();
+
+    for (int id = 0; id < 3; id++) {
+        if (tmp == spinboxTab3[id]) emit set_target(id, number);
+    }
+}
+
+
+void MainWindow::set_abort_flag() { // raises a flag for abortion
+    QMutex m;
+    m.lock();
+    *(shared_memory_cmd+200) = 1;
+    m.unlock();
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -143,130 +247,9 @@ void MainWindow::hideImage() {
 
 void MainWindow::tty_timer() {
 
-    if (IniZready && !AutofocusOn) stage_check_on_target(serialZ, 2);
-    if (IniXready) stage_check_on_target(serialX, 0);
-    if (IniYready) stage_check_on_target(serialY, 1);
     if (XYscanning)ScanXY();
-    //if(AutofocusOn)AutoFocusRunning();
-    MoveDoubleClick();
     CheckSegFault();
 }
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//                                MOTORS: COMMAND and ANSWERS HANDSHAKE
-//                                
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-int tty_send(int channel,const char *command, const char *parameter, int port) {
-    char chan=channel+'0';
-    string cm = command;
-
-    if (parameter == nullptr) cm = cm + '\n';
-    else cm = cm + ' ' + chan + ' ' + parameter + '\n';
-
-    const char *temp =cm.c_str();
-
-    long n = write(port, cm.data(), cm.size());
-    tcdrain(port);
-
-    if (n > 0) return 0;
-    else {
-        qDebug()<<"[!] Writing to bus failed"
-                  "[!] Check connection and writing priviledges";
-        qDebug()<<strerror(errno);
-        return 1;
-    }
-}
-
-void tty_read(int port, char *ans, unsigned long wait = 0) {
-    char buff[100] = { '\0' };
-
-    long n = 0;
-    int size = 0;
-    while ((n = read(port, &buff[size], 1)) > 0) {
-        if (buff[size] == '\n') break;
-        else size += n;
-    }
-    if (n < 0) throw std::runtime_error(strerror(errno));
-    strcpy(ans, buff);
-    if (ans[size-1] == '\n') ans[size-1] = '\0';
-}
-
-string read_answer(int port)                                                       // Z MOTOR: READ ANSWER CHAR
-{
-    string rest;
-    char c[100];
-    int n=0;
-
-    while( ( n = read(port, &c, sizeof(c)) ) > 0 ) {
-        c[n]=0;
-        rest=rest+c;
-        if ( c[n-1] == '\n' ) {
-            break;
-        }
-    }
-    return rest;
-}
-
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//                                MOTORS: CHECK_ON_TARGET
-//                                
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-void MainWindow::stage_check_on_target(int serial, int id) {
-    const char prefix[] = "Stage ";
-    const char *axes[]  = { "X: ", "Y: ", "Z: "};
-    QLineEdit *monitors[] = { CurrentActionX, CurrentActionY, CurrentActionZ };
-    bool *on_target[] = { &stage_on_target[0], &stage_on_target[1], &stage_on_target[2] };
-
-    char ans[15] = { '\0' };
-    tty_send(1, "ONT?", nullptr, serial); // Expected a response with format 1=%d with %d = 1,0
-
-    try {
-        tty_read(serial, ans, 10);
-    } catch (const runtime_error& e) {
-        qDebug()<<e.what();
-    }
-
-    if (ans[2] == '1' ) *on_target[id] = true;
-    else *on_target[id] = false;
-
-    char ans2[15] = { '\0' };
-    tty_send(1,"POS?", nullptr, serial); // Expected a response with format 1={x->xxx}.xxxx
-
-    try {
-        tty_read(serial, ans2, 15);
-    } catch (const runtime_error& e) {
-        qDebug()<<e.what();
-    }
-
-    if (id == 2) {
-        QString temp = &ans2[2];
-        ZPosition = temp.toDouble();
-    }
-
-    char message[25] = { '\0' };
-    strncpy(message, prefix, sizeof(prefix));
-    strncat(message, axes[id], 4);
-    strncat(message, &ans2[2], 10);
-    strncat(message, " mm", sizeof(" mm"));
-    monitors[id]->setText(message);
-    monitors[id]->setStyleSheet(stylesheet3);
-}
-
-
-void MainWindow::Enable_TabWidget_3_4_XY()                                           // ENABLING XY MOVE WIDGET
-{
-    if(IniXready && IniYready){tab2_3->setEnabled(true); tab2_4->setEnabled(true);}
-}
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -274,69 +257,17 @@ void MainWindow::Enable_TabWidget_3_4_XY()                                      
 //                                
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void MainWindow::scan_parameters(double val) {
+    QDoubleSpinBox *temp = static_cast<QDoubleSpinBox*>(this->sender());
+    int i = 0;
 
-void MainWindow::Velocity(double number)                       // MOTOR SETTINGS XY VELOCITY
-{
-    scan_velocity=number;
-    int V_adc=scan_velocity*1000;
-    printf("V_adc:%d\n", V_adc);
-    *(shared_memory_cmd+67)=V_adc;
-    time_per_pixel=Px/scan_velocity;
-    qDebug()<<"velocità "<<scan_velocity<<"mm/s"<<"Scrittura posizione ogni "<<time_per_pixel<<" ms";
-    char v[10];
-    sprintf(v,"%f",scan_velocity);
-    tty_send(1,"VEL",v,serialX);
-    tty_send(1,"VEL",v,serialY);
+    //Px=val*1000 (and Py)
+    //Xmin1=val*1000 (and Xmax1, Ymin1, Ymax1)
+    //pixel_Xstep=val (and pixel_Ystep)
+    //positionX=val (and positionY)
+
+    *(shared_memory_cmd+300+i) = val*1000;
 }
-
-void MainWindow::PassoX_Func(double number1)                     // MOTOR SETTINGS STEP
-{Px=number1*1000; *(shared_memory_cmd+60)=Px; pixel_Xstep=number1;}
-void MainWindow::PassoY_Func(double number5)
-{Py=number5*1000; *(shared_memory_cmd+61)=Py; pixel_Ystep=number5;}
-
-
-void MainWindow::Xminimo(double number2)                         // MOTOR SETTINGS MINIMUM POSITION
-{Xmin1=number2*1000;  positionX=Xmin1; *(shared_memory_cmd+50)=Xmin1;}
-void MainWindow::Yminimo(double number3) 
-{Ymin1=number3*1000;  positionY=Ymin1; *(shared_memory_cmd+52)=Ymin1;}
-
-
-void MainWindow::Xmassimo(double number3)                         // MOTOR SETTINGS MAXIMUM POSITION
-{Xmax1=number3*1000; *(shared_memory_cmd+51)=Xmax1;}
-void MainWindow::Ymassimo(double number7) 
-{Ymax1=number7*1000; *(shared_memory_cmd+53)=Ymax1;}
-
-
-void MainWindow::X_to(double number9)                             // MOTOR SETTINGS GO_TO
-{X_goto=number9*1000;}
-void MainWindow::Y_to(double number10) 
-{Y_goto=number10*1000;}
-void MainWindow::Z_to(double number9) 
-{Z_goto=number9*1000;}
-
-
-void MainWindow::StartX() {
-    Init_Xmotor();
-}
-
-
-void MainWindow::StartY() {
-    Init_Ymotor();
-}
-
-
-void MainWindow::StartZ() {
-        Init_Zmotor();
-}
-
-
-void MainWindow::set_abort_flag() { // raises a flag for abortion
-    QMutex m;
-    m.lock();
-    *(shared_memory_cmd+200) = 1;
-    m.unlock();
-}
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -414,7 +345,7 @@ void MainWindow::CheckSegFault()                           // DAQ: MEMORY CONTRO
         if(XYscanning==true)
         {
             XYscanning=false;
-            Abort();
+            //abort
             qDebug()<<"[!] Scan interrumpted because shared memory is full";
         }
         *(shared_memory2+6)=0;
@@ -661,16 +592,10 @@ void MainWindow::LoadTxt()  { // Writes values of binary file into shared memory
 
 
 
-void MainWindow::SaveTxt() { //scrive Position.txt leggendo i dati in memoria
-
-    tty_send(1,"HLT",NULL,serialX);
-    tty_send(1,"HLT",NULL,serialY);
-    tty_send(1,"HLT",NULL,serialZ);
-    timer->blockSignals(true);
-    timerAutofocus->blockSignals(true);
-
+void MainWindow::SaveTxt() {
     QString saveDir = "/home/frao/Desktop/XRFData";
     QString percorso = QFileDialog::getSaveFileName(this,tr("Save as"), saveDir);
+
     QFile file2(percorso);
     file2.open(QIODevice::ReadWrite);
     QTextStream out2(&file2);
@@ -692,45 +617,17 @@ void MainWindow::SaveTxt() { //scrive Position.txt leggendo i dati in memoria
     string str = percorso.toStdString();
     char *cstr = &str[0u];
     printf("[!] File saved in: %s", cstr);
-
-    timer->blockSignals(false);
-    timerAutofocus->blockSignals(false);
-    tcflush(serialK, TCIFLUSH);
 }
 
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//                                WINDOWS DESTRUCTOR
-//                                
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-void MainWindow::Abort() {
-    if (*(shared_memory_cmd+70) == 1) *(shared_memory_cmd+70) = 0;
-
-    if ( XYscanning==true ) {
-        tty_send(1,"HLT",NULL,serialX);
-        tty_send(1,"ERR?",NULL,serialX);
-
-        char *cstr1 = &(read_answer(serialX))[0u];
-        printf("[!] X-axis stage stopped with exit value: %s", cstr1);
-
-        tty_send(1,"HLT",NULL,serialY);
-        tty_send(1,"ERR?",NULL,serialY);
-
-        char *cstr2 = &(read_answer(serialY))[0u];
-        printf("[!] Y-axis stage stopped with exit value: %s", cstr2);
-
-        XYscanning = false;
-        YHasMoved  = true;
-        SaveTxt();
-    }
-}
 
 void MainWindow::closeEvent(QCloseEvent *event) {
     event->ignore();
+    event->accept();
+}
+
+MainWindow::~MainWindow() {
 
     int processIDs[7][2] = { { 0 }, { 0 } };
 
@@ -761,12 +658,8 @@ void MainWindow::closeEvent(QCloseEvent *event) {
         }
     }
 
-    if (controller_ptr != nullptr) delete controller_ptr;
-
-    event->accept();
-}
-
-MainWindow::~MainWindow() {
+    test_thread.quit();
+    test_thread.wait();
 
 }
 
