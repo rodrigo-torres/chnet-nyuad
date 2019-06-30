@@ -4,9 +4,9 @@
 
 /////////variabili e funzioni definite altrove ma necessarie/////////////////////////
 extern bool MapIsOpened;
-extern int ChMin, ChMax,Nshift,point,OffsetX, OffsetY,PixelX,PixelY,Pixeldim;
+extern int point,OffsetX, OffsetY,PixelX,PixelY,Pixeldim;
 extern int pixel_Xstep, pixel_Ystep;
-extern int Xmap[],Ymap[],MaxX,MaxY,MinX,MinY,Xminvero, Yminvero,Xmaxvero, Ymaxvero,MaxX_ori,MinX_ori,MaxY_ori,MinY_ori;
+extern int Xmap[],Ymap[],MaxX,MaxY,MinX,MinY,MaxX_ori,MinX_ori,MaxY_ori,MinY_ori;
 extern double X[],Y[];
 extern double Integral[],MaxIntegral;
 extern int *shared_memory3;
@@ -201,13 +201,9 @@ void MainWindow::displaySumImage_SHM() { // Displays a composed map (sum of up t
                 Xmap[s]=(X[s]-MinX)/pixel_Xstep;
                 Ymap[s]=(Y[s]-MinY)/pixel_Ystep;
             }
-            Xmaxvero=MaxX; //memorizes the X max in micrometers
             MaxX=(MaxX-MinX)/pixel_Xstep;
-            Xminvero=MinX;
             MinX=0;
-            Ymaxvero=MaxY; //memorizes the Y max in micrometers
             MaxY=(MaxY-MinY)/pixel_Ystep;
-            Yminvero=MinY;
             MinY=0;
 
 

@@ -6,13 +6,11 @@
 
 /////////variabili e funzioni definite altrove ma necessarie/////////////////////////
 extern bool MapIsOpened;
-extern int OffsetX, OffsetY,PixelX,PixelY,point,X1,Y1,X2,Y2,MotoreWindowStatus,IniXready,IniYready;
-extern int pixel_Xstep,pixel_Ystep,Xminvero,Yminvero;
+extern int OffsetX, OffsetY,PixelX,PixelY,point,MotoreWindowStatus;
 extern double X[20000],Y[20000];
-extern double Integral[20000],MaxIntegral,x_image,y_image,x_image2,y_image2;
-extern int *(shared_memory), *(shared_memory_cmd);
-extern int *(shared_memory3);
-extern struct Pixel_BIG *Pointer;  //variabile globale per Pixelsmappa[point]
+extern double Integral[20000],MaxIntegral;
+extern int *(shared_memory), *(shared_memory_cmd), *(shared_memory3);
+extern struct Pixel_BIG *Pointer;
 extern int Appartiene(int x,int y, struct Pixel_BIG *px);
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -21,6 +19,7 @@ QString TextYes;
 double Go_Xc, Go_Yc;
 bool mouseleft=false; bool selectionStarted=false; bool found1=false; bool found2=false;
 
+extern double x_image, y_image, x_image2, y_image2;
 
 void ImgLabel::mousePressEvent(QMouseEvent *event)
 {
@@ -57,7 +56,7 @@ void ImgLabel::mousePressEvent(QMouseEvent *event)
     if (event->buttons() == Qt::RightButton && MapIsOpened==true)  //// Click con il tasto dx --> sposta i motori alla posizione selezionata
     {
 
-        if (MotoreWindowStatus==1 && IniXready==1 && IniYready==1)
+        if (MotoreWindowStatus==1) //&& IniXready==1 && IniYready==1)
         {
 
             bool found3=false;
@@ -113,8 +112,8 @@ void ImgLabel::mouseReleaseEvent(QMouseEvent *event) { // Click and release in d
     if(MapIsOpened==true && mouseleft==true) {
         int I,max_y,max_x,min_y,min_x;
         mouseleft=false;
-        x_image2 = event->x();
-        y_image2 = event->y();;
+        int x_image2 = event->x();
+        int y_image2 = event->y();;
 
         for(int c=0;c<point;c++) {
             if(Appartiene(x_image2,y_image2, &Pointer[c])) {

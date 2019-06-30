@@ -8,6 +8,7 @@
 #include <fcntl.h>
 
 #include <fstream>
+#include <math.h>
 
 #include <QObject>
 #include <QThread>
@@ -17,7 +18,8 @@
 #include <QSpinBox>
 #include <QSignalMapper>
 
-extern int *shared_memory_cmd, *shared_memory;
+extern int *shared_memory_cmd, *shared_memory, *shared_memory2;
+extern double *shared_memory5;
 extern QString stylesheet3;
 
 using namespace std;
@@ -68,6 +70,8 @@ public slots:
     void enable_servo(bool);
     void start_servo(bool);
 
+    void scan();
+
     void abort();
 
 signals:
@@ -75,6 +79,7 @@ signals:
     void update_statbar(QString);
     void update_monitor(QString, QString, int);
     void toggle_widgets(int);
+    void save_file();
 
 private:
     bool scanning = false;
@@ -83,8 +88,13 @@ private:
 
     int servo_interval = 250;
     double servo_threshold = 200.0;
-    void timer_event();
+
+    bool next_line = false;
+    double x_min = 100., x_max = 110., y_min = 100., y_max = 110., x_step = 1, y_step = 1, s_vel = 1;
+
     void servo();
+    void scan_loop();
+    void timer_event();
 
     device_t stage_x, stage_y, stage_z, keyence;
     device_t *devices[4] = { &stage_x, &stage_y, &stage_z, &keyence };

@@ -28,11 +28,9 @@ SOURCES += main.cpp \
            map_load.cpp \
            map_pixels.cpp \
            map_render.cpp \
-           map_export.cpp \
            map_mouse.cpp \
            map_online.cpp \
            shm.cpp \
            tty.cpp \
-           tty_scan.cpp \
-           tty_servo.cpp
+           tty_device_t.cpp
 RESOURCES += Resource.qrc

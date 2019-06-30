@@ -21,8 +21,8 @@ QT_BEGIN_MOC_NAMESPACE
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_MainWindow_t {
-    QByteArrayData data[56];
-    char stringdata0[695];
+    QByteArrayData data[54];
+    char stringdata0[676];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -78,15 +78,13 @@ QT_MOC_LITERAL(43, 541, 16), // "caenoscilloscope"
 QT_MOC_LITERAL(44, 558, 7), // "USB_DAQ"
 QT_MOC_LITERAL(45, 566, 11), // "OPTICAL_DAQ"
 QT_MOC_LITERAL(46, 578, 12), // "Image_Export"
-QT_MOC_LITERAL(47, 591, 11), // "StartXYScan"
-QT_MOC_LITERAL(48, 603, 6), // "ScanXY"
-QT_MOC_LITERAL(49, 610, 14), // "set_abort_flag"
-QT_MOC_LITERAL(50, 625, 9), // "tty_timer"
-QT_MOC_LITERAL(51, 635, 13), // "CheckSegFault"
-QT_MOC_LITERAL(52, 649, 7), // "SaveTxt"
-QT_MOC_LITERAL(53, 657, 9), // "XrayTable"
-QT_MOC_LITERAL(54, 667, 14), // "LoadSHM_SumMap"
-QT_MOC_LITERAL(55, 682, 12) // "enable_servo"
+QT_MOC_LITERAL(47, 591, 14), // "set_abort_flag"
+QT_MOC_LITERAL(48, 606, 9), // "tty_timer"
+QT_MOC_LITERAL(49, 616, 13), // "CheckSegFault"
+QT_MOC_LITERAL(50, 630, 7), // "SaveTxt"
+QT_MOC_LITERAL(51, 638, 9), // "XrayTable"
+QT_MOC_LITERAL(52, 648, 14), // "LoadSHM_SumMap"
+QT_MOC_LITERAL(53, 663, 12) // "enable_servo"
 
     },
     "MainWindow\0set_target\0\0keyence_reading\0"
@@ -104,10 +102,9 @@ QT_MOC_LITERAL(55, 682, 12) // "enable_servo"
     "enable_keyence_reading\0openDPPInter\0"
     "Detector\0Helium_interface\0VLC_interface\0"
     "caenoscilloscope\0USB_DAQ\0OPTICAL_DAQ\0"
-    "Image_Export\0StartXYScan\0ScanXY\0"
-    "set_abort_flag\0tty_timer\0CheckSegFault\0"
-    "SaveTxt\0XrayTable\0LoadSHM_SumMap\0"
-    "enable_servo"
+    "Image_Export\0set_abort_flag\0tty_timer\0"
+    "CheckSegFault\0SaveTxt\0XrayTable\0"
+    "LoadSHM_SumMap\0enable_servo"
 };
 #undef QT_MOC_LITERAL
 
@@ -117,7 +114,7 @@ static const uint qt_meta_data_MainWindow[] = {
        8,       // revision
        0,       // classname
        0,    0, // classinfo
-      54,   14, // methods
+      52,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -125,62 +122,60 @@ static const uint qt_meta_data_MainWindow[] = {
        4,       // signalCount
 
  // signals: name, argc, parameters, tag, flags
-       1,    2,  284,    2, 0x06 /* Public */,
-       3,    1,  289,    2, 0x06 /* Public */,
-       4,    1,  292,    2, 0x06 /* Public */,
-       5,    0,  295,    2, 0x06 /* Public */,
+       1,    2,  274,    2, 0x06 /* Public */,
+       3,    1,  279,    2, 0x06 /* Public */,
+       4,    1,  282,    2, 0x06 /* Public */,
+       5,    0,  285,    2, 0x06 /* Public */,
 
  // slots: name, argc, parameters, tag, flags
-       6,    1,  296,    2, 0x0a /* Public */,
-       7,    1,  299,    2, 0x0a /* Public */,
-       8,    3,  302,    2, 0x0a /* Public */,
-       9,    0,  309,    2, 0x0a /* Public */,
-      10,    1,  310,    2, 0x08 /* Private */,
-      11,    0,  313,    2, 0x08 /* Private */,
-      12,    0,  314,    2, 0x08 /* Private */,
-      13,    0,  315,    2, 0x08 /* Private */,
-      14,    0,  316,    2, 0x08 /* Private */,
-      15,    0,  317,    2, 0x08 /* Private */,
-      16,    0,  318,    2, 0x08 /* Private */,
-      17,    0,  319,    2, 0x08 /* Private */,
-      18,    0,  320,    2, 0x08 /* Private */,
-      19,    0,  321,    2, 0x08 /* Private */,
-      20,    0,  322,    2, 0x08 /* Private */,
-      21,    0,  323,    2, 0x08 /* Private */,
-      22,    1,  324,    2, 0x08 /* Private */,
-      23,    0,  327,    2, 0x08 /* Private */,
-      24,    0,  328,    2, 0x08 /* Private */,
-      25,    0,  329,    2, 0x08 /* Private */,
-      26,    0,  330,    2, 0x08 /* Private */,
-      27,    0,  331,    2, 0x08 /* Private */,
-      28,    0,  332,    2, 0x08 /* Private */,
-      29,    0,  333,    2, 0x08 /* Private */,
-      30,    0,  334,    2, 0x08 /* Private */,
-      31,    0,  335,    2, 0x08 /* Private */,
-      32,    0,  336,    2, 0x08 /* Private */,
-      33,    0,  337,    2, 0x08 /* Private */,
-      34,    0,  338,    2, 0x08 /* Private */,
-      35,    0,  339,    2, 0x08 /* Private */,
-      36,    0,  340,    2, 0x08 /* Private */,
-      37,    0,  341,    2, 0x08 /* Private */,
-      38,    0,  342,    2, 0x08 /* Private */,
-      39,    0,  343,    2, 0x08 /* Private */,
-      40,    0,  344,    2, 0x08 /* Private */,
-      41,    0,  345,    2, 0x08 /* Private */,
-      42,    0,  346,    2, 0x08 /* Private */,
-      43,    0,  347,    2, 0x08 /* Private */,
-      44,    0,  348,    2, 0x08 /* Private */,
-      45,    0,  349,    2, 0x08 /* Private */,
-      46,    0,  350,    2, 0x08 /* Private */,
-      47,    0,  351,    2, 0x08 /* Private */,
-      48,    0,  352,    2, 0x08 /* Private */,
-      49,    0,  353,    2, 0x08 /* Private */,
-      50,    0,  354,    2, 0x08 /* Private */,
-      51,    0,  355,    2, 0x08 /* Private */,
-      52,    0,  356,    2, 0x08 /* Private */,
-      53,    0,  357,    2, 0x08 /* Private */,
-      54,    0,  358,    2, 0x0a /* Public */,
-      55,    0,  359,    2, 0x0a /* Public */,
+       6,    1,  286,    2, 0x0a /* Public */,
+       7,    1,  289,    2, 0x0a /* Public */,
+       8,    3,  292,    2, 0x0a /* Public */,
+       9,    0,  299,    2, 0x0a /* Public */,
+      10,    1,  300,    2, 0x08 /* Private */,
+      11,    0,  303,    2, 0x08 /* Private */,
+      12,    0,  304,    2, 0x08 /* Private */,
+      13,    0,  305,    2, 0x08 /* Private */,
+      14,    0,  306,    2, 0x08 /* Private */,
+      15,    0,  307,    2, 0x08 /* Private */,
+      16,    0,  308,    2, 0x08 /* Private */,
+      17,    0,  309,    2, 0x08 /* Private */,
+      18,    0,  310,    2, 0x08 /* Private */,
+      19,    0,  311,    2, 0x08 /* Private */,
+      20,    0,  312,    2, 0x08 /* Private */,
+      21,    0,  313,    2, 0x08 /* Private */,
+      22,    1,  314,    2, 0x08 /* Private */,
+      23,    0,  317,    2, 0x08 /* Private */,
+      24,    0,  318,    2, 0x08 /* Private */,
+      25,    0,  319,    2, 0x08 /* Private */,
+      26,    0,  320,    2, 0x08 /* Private */,
+      27,    0,  321,    2, 0x08 /* Private */,
+      28,    0,  322,    2, 0x08 /* Private */,
+      29,    0,  323,    2, 0x08 /* Private */,
+      30,    0,  324,    2, 0x08 /* Private */,
+      31,    0,  325,    2, 0x08 /* Private */,
+      32,    0,  326,    2, 0x08 /* Private */,
+      33,    0,  327,    2, 0x08 /* Private */,
+      34,    0,  328,    2, 0x08 /* Private */,
+      35,    0,  329,    2, 0x08 /* Private */,
+      36,    0,  330,    2, 0x08 /* Private */,
+      37,    0,  331,    2, 0x08 /* Private */,
+      38,    0,  332,    2, 0x08 /* Private */,
+      39,    0,  333,    2, 0x08 /* Private */,
+      40,    0,  334,    2, 0x08 /* Private */,
+      41,    0,  335,    2, 0x08 /* Private */,
+      42,    0,  336,    2, 0x08 /* Private */,
+      43,    0,  337,    2, 0x08 /* Private */,
+      44,    0,  338,    2, 0x08 /* Private */,
+      45,    0,  339,    2, 0x08 /* Private */,
+      46,    0,  340,    2, 0x08 /* Private */,
+      47,    0,  341,    2, 0x08 /* Private */,
+      48,    0,  342,    2, 0x08 /* Private */,
+      49,    0,  343,    2, 0x08 /* Private */,
+      50,    0,  344,    2, 0x08 /* Private */,
+      51,    0,  345,    2, 0x08 /* Private */,
+      52,    0,  346,    2, 0x0a /* Public */,
+      53,    0,  347,    2, 0x0a /* Public */,
 
  // signals: parameters
     QMetaType::Void, QMetaType::Int, QMetaType::Double,    2,    2,
@@ -229,8 +224,6 @@ static const uint qt_meta_data_MainWindow[] = {
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Bool,
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
@@ -294,16 +287,13 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 42: _t->USB_DAQ(); break;
         case 43: _t->OPTICAL_DAQ(); break;
         case 44: _t->Image_Export(); break;
-        case 45: { bool _r = _t->StartXYScan();
-            if (_a[0]) *reinterpret_cast< bool*>(_a[0]) = std::move(_r); }  break;
-        case 46: _t->ScanXY(); break;
-        case 47: _t->set_abort_flag(); break;
-        case 48: _t->tty_timer(); break;
-        case 49: _t->CheckSegFault(); break;
-        case 50: _t->SaveTxt(); break;
-        case 51: _t->XrayTable(); break;
-        case 52: _t->LoadSHM_SumMap(); break;
-        case 53: _t->enable_servo(); break;
+        case 45: _t->set_abort_flag(); break;
+        case 46: _t->tty_timer(); break;
+        case 47: _t->CheckSegFault(); break;
+        case 48: _t->SaveTxt(); break;
+        case 49: _t->XrayTable(); break;
+        case 50: _t->LoadSHM_SumMap(); break;
+        case 51: _t->enable_servo(); break;
         default: ;
         }
     } else if (_c == QMetaObject::IndexOfMethod) {
@@ -368,13 +358,13 @@ int MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 54)
+        if (_id < 52)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 54;
+        _id -= 52;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 54)
+        if (_id < 52)
             *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 54;
+        _id -= 52;
     }
     return _id;
 }

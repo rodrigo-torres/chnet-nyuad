@@ -256,20 +256,13 @@ void MainWindow::GUI_CREATOR() {
     /* ################################################################# */
 
     tab4->setObjectName(QString::fromUtf8("tab2_4"));
-    tab4->setEnabled(false);
+    tab4->setEnabled(true);
 
 
     QGridLayout *scanTabLayout = new QGridLayout(tab4);
 
-    QDoubleSpinBox *arraySpinBox1[6];
-    arraySpinBox1[0] = scan_params[0] = new QDoubleSpinBox(tab4);
-    arraySpinBox1[1] = scan_params[1] = new QDoubleSpinBox(tab4);
-    arraySpinBox1[2] = scan_params[2] = new QDoubleSpinBox(tab4);
-    arraySpinBox1[3] = scan_params[3] = new QDoubleSpinBox(tab4);
-    arraySpinBox1[4] = scan_params[4] = new QDoubleSpinBox(tab4);
-    arraySpinBox1[5] = scan_params[5] = new QDoubleSpinBox(tab4 );
 
-    SCANXY_pushButton = new QPushButton();
+    tab4_start_scan = new QPushButton();
     SCAN_ABORT_pushButton = new QPushButton();
 
     QLabel *scanLabel1 = new QLabel;
@@ -281,34 +274,34 @@ void MainWindow::GUI_CREATOR() {
 
     for (int i = 0; i < 4; i++) {
         scan_params[i] = new QDoubleSpinBox(tab4);
-        arraySpinBox1[i]->setDecimals(2);
-        if (i == 1) arraySpinBox1[i]->setMaximum(140);
-        else arraySpinBox1[i]->setMaximum(200);
-        arraySpinBox1[i]->setSingleStep(0.5);
-        arraySpinBox1[i]->setValue(100);
-        arraySpinBox1[i]->setSuffix(" mm");
+        scan_params[i]->setDecimals(2);
+        if (i == 1) scan_params[i]->setMaximum(140);
+        else scan_params[i]->setMaximum(200);
+        scan_params[i]->setSingleStep(0.5);
+        scan_params[i]->setValue(100);
+        scan_params[i]->setSuffix(" mm");
     }
 
-    arraySpinBox1[0]->setPrefix("Min. X: ");
-    arraySpinBox1[1]->setPrefix("Max. X: ");
-    arraySpinBox1[2]->setPrefix("Min. Y: ");
-    arraySpinBox1[3]->setPrefix("Max. Y: ");
+    scan_params[0]->setPrefix("Min. X: ");
+    scan_params[1]->setPrefix("Max. X: ");
+    scan_params[2]->setPrefix("Min. Y: ");
+    scan_params[3]->setPrefix("Max. Y: ");
 
     for (int i = 4; i < 6; i++) {
         scan_params[i] = new QDoubleSpinBox(tab4);
-        arraySpinBox1[i]->setDecimals(2);
-        arraySpinBox1[i]->setMaximum(50);
-        arraySpinBox1[i]->setSingleStep(0.5);
-        arraySpinBox1[i]->setValue(1);
-        arraySpinBox1[i]->setSuffix(" mm");
+        scan_params[i]->setDecimals(2);
+        scan_params[i]->setMaximum(50);
+        scan_params[i]->setSingleStep(0.5);
+        scan_params[i]->setValue(1);
+        scan_params[i]->setSuffix(" mm");
     }
 
-    arraySpinBox1[4]->setPrefix("Step X: ");
-    arraySpinBox1[5]->setPrefix("Step Y: ");
+    scan_params[4]->setPrefix("Step X: ");
+    scan_params[5]->setPrefix("Step Y: ");
 
-    SCANXY_pushButton->setText("Start\nScan");
-    SCANXY_pushButton->setMinimumHeight(60);
-    SCANXY_pushButton->setStyleSheet("QPushButton {background-color: #02757D; font-weight: bold; color: white;}");
+    tab4_start_scan->setText("Start\nScan");
+    tab4_start_scan->setMinimumHeight(60);
+    tab4_start_scan->setStyleSheet("QPushButton {background-color: #02757D; font-weight: bold; color: white;}");
 
     SCAN_ABORT_pushButton->setText("ABORT");
     SCAN_ABORT_pushButton->setMinimumHeight(60);
@@ -324,7 +317,7 @@ void MainWindow::GUI_CREATOR() {
     scanTabLayout->addWidget(scan_params[3], 4, 1);
     scanTabLayout->addWidget(scan_params[4], 6, 1);
     scanTabLayout->addWidget(scan_params[5], 7, 1);
-    scanTabLayout->addWidget(SCANXY_pushButton, 1, 2, 2, 2);
+    scanTabLayout->addWidget(tab4_start_scan, 1, 2, 2, 2);
     scanTabLayout->addWidget(SCAN_ABORT_pushButton, 3, 2, 2, 2);
     scanTabLayout->setColumnStretch(0, 3);
     scanTabLayout->setColumnStretch(4, 3);

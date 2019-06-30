@@ -1,5 +1,6 @@
 ﻿#include <tty.h>
 
+
 tty::tty() {
     for (int id = 0; id < 4; id++) {
         id < 3 ? devices[id]->df_minor = id : devices[id]->df_minor = 0;
@@ -14,86 +15,6 @@ tty::tty() {
     connect(servo_timer, &QTimer::timeout, this, &tty::servo);
 }
 
-int tty::device_t::tty_send(string command) {
-    command = command + '\n'; // Very important, the controller expects a '\n' character
-    long n = write(dev_fd, command.data(), command.size());
-    tcdrain(dev_fd);
-
-    if (n > 0) return 0;
-    else {
-        qDebug()<<"[!] Writing to bus failed";
-        qDebug()<<strerror(errno);
-        return 1;
-    }
-}
-
-string tty::device_t::tty_read() {
-    char buff[100] = { '\0' };
-
-    long n = 0;
-    int size = 0;
-    while ((n = read(dev_fd, &buff[size], 1)) > 0) {
-        size += n;
-        if (buff[size - 1] == '\n') break;
-    }
-    if (n < 0) throw std::runtime_error(strerror(errno));
-    if (buff[size-1] == '\n') buff[size-1] = '\0';
-
-    string ans(buff);
-    return  ans;
-}
-
-string tty::device_t::tty_conf() {
-    /* Specifying the name of the (serial port) device file */
-    char num[2];
-    sprintf(num, "%d", df_minor);
-
-    string df_path;
-    df_path = "/dev/tty" + df_major + num;
-
-    /* Specifying the device file interface information (through the termios structure) */
-    struct termios my_termios;
-
-    cfsetispeed(&my_termios, B9600);
-    my_termios.c_oflag = 0000000;
-    // Output as is, no processing or mapping
-    my_termios.c_cflag = 0004275;
-    // Character size 8 bits, baud-rate 9600, enable receiver, no flow control or parity check
-    my_termios.c_lflag = 0000000;
-    // No input processing, no signals, cbreak mode (non-canonical), no echoing
-    my_termios.c_iflag = 0040200;
-    // UTF8 encoding, ignore CR on input, no flow control, no parity checks
-
-    my_termios.c_cc[VMIN] = 0; // we read byte-by-byte, non-blocking
-    my_termios.c_cc[VTIME]= 1;
-
-    int serial;
-    serial = open(df_path.c_str(), O_RDWR);
-    if (serial < 0) {
-        char err_message[31];
-        strncpy(err_message, "[!] Error opening ", 19);
-        strncat(err_message, df_path.c_str(), 13);
-        throw std::runtime_error(err_message);
-    }
-
-    tcsetattr(serial, TCSANOW, &my_termios); // Perhaps better to use TCSAFLUSH
-    dev_fd = serial;
-
-    /* Requesting the device to send an identifying string */
-    if (df_major.compare("USB") == 0) {
-        tcflush(serial, TCIOFLUSH);
-        tty_send("*IDN?");
-
-        string ans(tty_read());
-        qDebug()<<"[!] Device identified as: "<<ans.c_str();
-    }
-
-    /* Constructing serial monitor message */
-    string comment;
-    comment = "Stage " + id_l + ": " + df_path;
-
-    return comment;
-}
 
 void tty::set_df_minor(int id) {
     QSignalMapper *tmp = static_cast<QSignalMapper*>(this->sender());
@@ -153,76 +74,6 @@ void tty::device_t::stop() {
     else return;
 }
 
-int tty::device_t::set_param(string line) {
-
-    string part[4];
-    size_t pos = 0, npos = 0;
-
-    int i = 0;
-    while (i < 4) {
-        npos = line.find(" ", pos);
-        part[i++] = line.substr(pos, npos - pos);
-        pos = npos + 1;
-    }
-
-    tty_send(line);
-
-    part[0] = part[0] + '?' + ' ' + part[1] + ' ' + part[2];
-    tty_send(part[0]);
-
-    string ans = tty_read();
-    pos = ans.find("=") + 1;
-    npos = ans.find("\n");
-
-    ans = ans.substr(pos, npos);
-    ans = ans.substr(0, part[3].size());
-    int ret = part[3].compare(ans);
-    if (ret != 0) qDebug()<<"[!] Parameter not set correctly, identifier"<<part[2].c_str();
-
-    return abs(ret);
-}
-
-void tty::device_t::load_conf(const char *file_name) {
-    QString file_path_q = QDir::currentPath();
-    QByteArray temp = file_path_q.toUtf8();
-
-    char file_path[100];
-    strncpy(file_path, temp.data(), sizeof (file_path));
-    strcat(file_path, "/conf");
-    strcat(file_path, file_name);
-
-    ifstream file;
-    file.open(file_path);
-
-    int ret = 0;
-    string line;
-    if (file.is_open()) {
-        while (true) {
-            getline(file, line);
-            if (line.compare(0, 1, "#") == 0) continue;
-            if (file.eof()) break;
-
-            ret |= set_param(line);
-        }
-        if (ret != 0) qDebug()<<"[!] There were errors in setting the stage parameters"
-                                "\n[!] Please check your configuration file: "<<file_name;
-        else qDebug()<<"[!] All stage parameters loaded succesfully";
-    }
-    else qDebug()<<"[!] Configuration file not found";
-}
-
-void tty::device_t::check_ont() {
-    tty_send("ONT?");
-    string ans;
-    try {
-        ans = tty_read();
-    } catch (const runtime_error& e) {
-        qDebug()<<e.what();
-    }
-
-    if (ans.compare(2, 1, "1") == 0) on_target = true;
-    else on_target = false;
-}
 
 void tty::stage_init(int ind) {
     device_t* stage = devices[ind];
@@ -296,48 +147,16 @@ void tty::stage_init(int ind) {
     emit toggle_tab1(true);
 }
 
-void tty::device_t::get_pos() {
-        tty_send("POS?");
-
-        string ans;
-        try {
-            ans = tty_read();
-        } catch (const runtime_error& e) {
-            qDebug()<<e.what();
-        }
-
-        pos = atof((ans.substr(2)).c_str());
-}
-
-void tty::device_t::move_totarget() {
-    string starget = to_string(tar);
-    string command = "MOV 1 " + starget;
-
-    tty_send(command);
-    on_target = false;
-}
-
-void tty::device_t::move_step(bool direction) {
-    if (on_target) {
-        get_pos();
-        direction == true ? tar = pos + 1  : tar = pos - 1;
-        move_totarget();
-    }
-    else return;
-}
-
-QString tty::device_t::get_message() {
-    string ans = "Stage " + id_l + ": " + to_string(pos) + " mm";
-    return QString::fromStdString(ans);
-}
-
 void tty::timer_event() {
+    /* Check for abort flag */
     if (*(shared_memory_cmd+200) == 1) {
         abort();
         if (servo_active) servo_active = false;
+        if (scanning) scanning = false;
         return;
     }
 
+    /* Check motors on target */
     int limit;
     laser_active ? limit = 2 : limit = 3;
     for (int id = 0; id < limit; id++) {
@@ -349,6 +168,9 @@ void tty::timer_event() {
             emit update_monitor(ret, stylesheet3, id);
         }
     }
+
+    /* Check scan */
+    if (scanning) scan_loop();
 }
 
 void tty::set_target(int id, double target) {
@@ -422,18 +244,131 @@ void tty::set_velocity(double vel) {
 //    tty_send(1,"VEL",v,serialY);
 }
 
+void tty::servo() {
+    stage_z.get_pos();
+    QString ans = stage_z.get_message();
 
+    emit update_monitor(ans, stylesheet3, 2);
 
+    keyence.tty_send("1");
+    string diff = keyence.tty_read();
+    double value = stod(diff);
 
+    if (value > -15.0 && value < 15.0) {
+        QString message = "Keyence: " + QString::fromStdString(diff) + " mm";
+        emit update_monitor(message, stylesheet3, 3);
+    }
+    else {
+        QString message = "Keyence: Out Of Range";
+        QString style = "QLineEdit {background-color: #E7B416; font-weight: bold; color: white;}";
+        emit update_monitor(message, style, 3);
+    }
 
+    if (servo_active) {
+        stage_z.tar = stage_z.pos + value;
+        double velocity = abs(value) / 2;
 
+        if (servo_threshold > abs(value * 1000)) {
+            stage_z.tty_send("HLT");
+            stage_z.tty_send("ERR?");
 
+            string ans = stage_z.tty_read();
+            if (ans.compare("10") != 0) qDebug()<<"[!] Servo motor stopped with error: "
+                                               <<QString::fromStdString(ans);
+        }
+        else {
+            string vel = to_string(velocity);
+            vel.insert(0, "VEL 1 ");
+            stage_z.tty_send(vel);
+            stage_z.move_totarget();
+        }
+    }
+}
 
+void tty::scan() {
+    // Disable conflicting widgets
+    update_timer->stop();
 
+    /* Getting the scan parameter */
+    x_min = *(shared_memory5);
+    x_max = *(shared_memory5+1);
+    y_min = *(shared_memory5+2);
+    y_max = *(shared_memory5+3);
+    x_step= *(shared_memory5+4);
+    y_step= *(shared_memory5+5);
+    s_vel = *(shared_memory5+6);
 
+    /* Calculating the compensation variables */
 
+    double accel_time = s_vel / 200; // Motor acceleration specified as 200 mms-2
+    double accel_dist = 0.5 * 100 * (accel_time * accel_time); // units are in um
 
+    x_min -= accel_dist;
+    x_max += accel_dist;
 
+    /* Moving to beginning coordinates of the scan */
 
+    do {
+        stage_x.check_ont();
+        stage_y.check_ont();
+    } while (!stage_x.on_target || !stage_y.on_target);
 
+    stage_x.tar = x_min;
+    stage_y.tar = y_min;
+    stage_x.tty_send("VEL 1 10");
+    stage_y.tty_send("VEL 1 10");
+    stage_x.move_totarget();
+    stage_y.move_totarget();
 
+    /* Waiting for both motors on target */
+
+    do {
+        stage_x.check_ont();
+        stage_y.check_ont();
+    } while (!stage_x.on_target || !stage_y.on_target);
+
+    /* Setting scan velocity and scanning flag to true */
+    scanning = true;
+    string command = "VEL 1 " + to_string(s_vel);
+    stage_x.tty_send(command);
+
+    // Request prompt dialogue from MainWindow
+    *(shared_memory_cmd+70) = 1; // Synchronizing with the DAQ
+
+    /* Sending X motor to 1st limit */
+    stage_x.tar = x_max;
+    stage_x.move_totarget();
+
+    update_timer->start(250);
+}
+
+void tty::scan_loop() {
+    if (stage_y.on_target && next_line) {
+        fabs(stage_x.pos - x_min) < x_min * 0.01 ?
+                    stage_x.tar = x_max : stage_x.tar = x_min;
+        stage_x.move_totarget();
+        next_line = false;
+    }
+    else if (stage_x.on_target && !next_line) {
+        double delta = fabs(stage_y.pos - y_max);
+        if (delta > y_max * 0.001) { // Pass to the next line
+            stage_y.tar += y_step;
+            stage_y.move_totarget();
+            next_line = true;
+
+            //while (*(shared_memory2+8) != 1) QThread::msleep(100);
+            *(shared_memory2+8) = 0;
+        }
+        else { // The scan is done
+            scanning = false;
+            next_line = false;
+            if (*(shared_memory_cmd+70) == 1) {
+                int counting = 0;
+                //while (*(shared_memory2+8) != 1 && counting < 5) { QThread::msleep(1000); counting++; }
+                *(shared_memory2+8) = 0;
+                *(shared_memory_cmd+70) = 0;
+                emit save_file();
+            }
+        }
+    }
+}

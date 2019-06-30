@@ -45,7 +45,6 @@ public:
     void MENU_CONNECTIONS_CREATOR();
     void handle_connections();
     void SHM_CREATOR();
-    void SHM_delete();
     void builder_Menu();
     void start_thread_tty();
 
@@ -121,8 +120,6 @@ private slots:
 
     void Image_Export();
 
-    bool StartXYScan();
-    void ScanXY();
     void set_abort_flag();
     void tty_timer();
 
@@ -248,7 +245,7 @@ private:
 
     QDoubleSpinBox *scan_params[7];
 
-    QPushButton *SCANXY_pushButton;
+    QPushButton *tab4_start_scan;
     QPushButton *SCAN_ABORT_pushButton;
 
     /* Below Tab Widget. Monitors and other scan variables */

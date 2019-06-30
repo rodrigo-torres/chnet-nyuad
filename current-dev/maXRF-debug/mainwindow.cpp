@@ -4,41 +4,24 @@
 #include <unistd.h>
 #include <QThread>
 #include <tty.h>
+#include <algorithm>
 
 extern int shmid[];
-extern double Px;
 
 tty *tty_ptr;
 
 bool MapIsOpened = false;
 bool CameraOn = false;
-bool energychanged = false;
-
-extern bool stage_on_target[3];
-bool stage_on_target[] = { false };
-
-bool XYscanning = false, YHasMoved = true;
-
-bool AutofocusOn=false;
 
 int measuring_time = 300; // for single-spectrum DAQ
 int point, OffsetX, OffsetY, Pixeldim = 1; // for XRF map display
 
-double positionX = 100, positionY = 100, scan_velocity = 1, time_per_pixel = 1000; // for scan limits
-double ZPosition = 25.0;
-double ChMin = 3, ChMax = 16384; // for spectrum scale
-double Pz = 250;
 double x_image, y_image, x_image2, y_image2;
 
 char process[30];
 
 struct Pixel_BIG *Pointer; //puntatore da far puntare a PixelsMappa una volta creato
-
-double ChMin1=0, ChMax1=0, ChMin2=0, ChMax2=0, ChMin3=0, ChMax3=0;
-
-
 QString stylesheet3 = "QLineEdit {background-color: #2DC937; font-weight: bold; color: white;}";
-
 
 
 
@@ -80,10 +63,13 @@ void MainWindow::start_thread_tty() {
     connect(tty_ptr, &tty::toggle_tab1, this, &MainWindow::toggle_tab1);
     connect(tty_ptr, &tty::toggle_widgets, this, &MainWindow::toggle_widgets);
     connect(tty_ptr, &tty::update_monitor, this, &MainWindow::update_monitor);
+    connect(tty_ptr, &tty::save_file, this, &MainWindow::SaveTxt);
 
     connect(this, &MainWindow::set_target, tty_ptr, &tty::set_target);
     connect(this, &MainWindow::keyence_reading, tty_ptr, &tty::enable_servo);
     connect(this, &MainWindow::start_servo, tty_ptr, &tty::start_servo);
+
+    connect(tab4_start_scan, &QPushButton::clicked, tty_ptr, &tty::scan);
 
     QSignalMapper *mapper_device_files = new QSignalMapper();
     for (int i = 0; i < 4; i++) {
@@ -108,6 +94,7 @@ void MainWindow::start_thread_tty() {
         mapperMoveStages->setMapping(buttonTab3[i], i);
         connect(buttonTab3[i], SIGNAL(released()), mapperMoveStages, SLOT(map()));
     }   connect(mapperMoveStages, SIGNAL(mapped(int)), tty_ptr, SLOT(move_stage(int)));
+
 
 
     test_thread.start();
@@ -247,7 +234,7 @@ void MainWindow::hideImage() {
 
 void MainWindow::tty_timer() {
 
-    if (XYscanning)ScanXY();
+    //if (XYscanning)ScanXY();
     CheckSegFault();
 }
 
@@ -258,15 +245,21 @@ void MainWindow::tty_timer() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::scan_parameters(double val) {
+    /* Assign an index depending on the widget sending the signal */
     QDoubleSpinBox *temp = static_cast<QDoubleSpinBox*>(this->sender());
-    int i = 0;
+
+    int n = sizeof(scan_params) / sizeof(scan_params[0]);
+    auto itr = std::find(scan_params, scan_params + n, temp);
+    long index = distance(scan_params, itr);
+
+    /* Pass the double value to shared memory at the assigned index */
+
+    *(shared_memory5+index) = val;
 
     //Px=val*1000 (and Py)
     //Xmin1=val*1000 (and Xmax1, Ymin1, Ymax1)
     //pixel_Xstep=val (and pixel_Ystep)
     //positionX=val (and positionY)
-
-    *(shared_memory_cmd+300+i) = val*1000;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -330,26 +323,26 @@ void MainWindow::SelDigiCh0and1()
 
 void MainWindow::CheckSegFault()                           // DAQ: MEMORY CONTROL FOR SEGMENTATION FAULT
 {
-    if(*(shared_memory2+6)==1)
-    {
-        if(*(shared_memory_cmd+70)==1)
-        {
-            int pidVme=*(shared_memory_cmd+80);
-            sprintf(process, "kill -s TERM %i &", pidVme);
-            system(process);
-            *(shared_memory_cmd+70)=0;
-            SaveTxt();
-            qDebug()<<"[!] Acquisition interrumpted because shared memory is full";
-        }
+//    if(*(shared_memory2+6)==1)
+//    {
+//        if(*(shared_memory_cmd+70)==1)
+//        {
+//            int pidVme=*(shared_memory_cmd+80);
+//            sprintf(process, "kill -s TERM %i &", pidVme);
+//            system(process);
+//            *(shared_memory_cmd+70)=0;
+//            SaveTxt();
+//            qDebug()<<"[!] Acquisition interrumpted because shared memory is full";
+//        }
 
-        if(XYscanning==true)
-        {
-            XYscanning=false;
-            //abort
-            qDebug()<<"[!] Scan interrumpted because shared memory is full";
-        }
-        *(shared_memory2+6)=0;
-    }
+//        if(XYscanning==true)
+//        {
+//            XYscanning=false;
+//            //abort
+//            qDebug()<<"[!] Scan interrumpted because shared memory is full";
+//        }
+//        *(shared_memory2+6)=0;
+//    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -384,18 +377,18 @@ void MainWindow::SelectChannels()                             // MAP: CHANNEL SE
     {
         double chan1 = QInputDialog::getInt(this, tr("Lower Channel"),tr("ChLow:"), 0, 0, 16384, 1, &ok1);
         if (ok1)
-        {qDebug()<<"New lower channel "<<chan1<<'\n'; ChMin=chan1;}
+        {qDebug()<<"New lower channel "<<chan1<<'\n'; *(shared_memory5+100)=chan1;}
         double  chan2 = QInputDialog::getInt(this, tr("Upper Channel"),tr("ChHigh:"), 16384, 0, 16384, 1, &ok2);
         if (ok2)
-        {qDebug()<<"New upper channel "<<chan2<<'\n'; ChMax=chan2;}
+        {qDebug()<<"New upper channel "<<chan2<<'\n'; *(shared_memory5+101)=chan2;}
     }
     else if (*(shared_memory+24) == 1) {
             double chan1 = QInputDialog::getDouble(this, tr("Lower Energy"), tr("ELow:"), 0, 0, 60, 2, &ok1);
             if (ok1)
-            {qDebug()<<"New lower energy "<<chan1<<'\n'; ChMin=int(chan1*1000);energychanged=true;}
+            {qDebug()<<"New lower energy "<<chan1<<'\n'; *(shared_memory5+100)=chan1;}
             double chan2 = QInputDialog::getDouble(this, tr("Upper Energy"), tr("EHigh:"), 60, 0, 60, 2, &ok2);
             if (ok2)
-            {qDebug()<<"New upper energy "<<chan2<<'\n'; ChMax=int(chan2*1000);energychanged=true;}
+            {qDebug()<<"New upper energy "<<chan2<<'\n'; *(shared_memory5+101)=chan2;}
         }
 }
 
@@ -408,7 +401,7 @@ void MainWindow::Pixels() { // Change pixel dimension
 
     if (ok1) {
         Pixeldim = px;
-        printf("[!] New pixel dimension: %d", px);
+        printf("[!] New pixel dimension: %d\n", px);
     }
     else printf("[!] Couldn't obtain new pixel dimensions\n");
 }
@@ -419,9 +412,8 @@ void MainWindow::LoadNewFile_SHM() { // Loads a new file in memory
 }
 
 void MainWindow::LoadElementsMapSum() {
-
-    ChMin1 = 0; ChMin2 = 0; ChMin3 = 0;
-    ChMax1 = 0; ChMax2 = 0; ChMax3 = 0;
+    for (int i = 0; i < 6; i++)
+        *(shared_memory5+100+i) = 0;
 
     elementsdlg = new QDialog;
     elementsdlg->setFixedSize(400, 200);
@@ -509,30 +501,18 @@ void MainWindow::LoadElementsMapSum() {
 
 void MainWindow::writeCompMapLimits(int id) {
     QSignalMapper *temp = static_cast<QSignalMapper*>(this->sender());
-    if (*(shared_memory+24)) {
-        QDoubleSpinBox *spnbox = static_cast<QDoubleSpinBox*>(temp->mapping(id));
-        double value = spnbox->value();
 
-        if (id == 0) ChMin1 = value;
-        else if (id == 1) ChMax1 = value;
-        else if (id == 2) ChMin2 = value;
-        else if (id == 3) ChMax2 = value;
-        else if (id == 4) ChMin3 = value;
-        else if (id == 5) ChMax3 = value;
-        else printf("[!] Unknown sender to the composed map limits function");
+    double value;
+    if (*(shared_memory+24)) {
+        QDoubleSpinBox *obj = static_cast<QDoubleSpinBox*>(temp->mapping(id));
+        value = obj->value();
     }
     else {
-        QSpinBox *spnbox = static_cast<QSpinBox*>(temp->mapping(id));
-        int value = spnbox->value();
-
-        if (id == 0) ChMin1 = static_cast<double>(value);
-        else if (id == 1) ChMax1 = static_cast<double>(value);
-        else if (id == 2) ChMin2 = static_cast<double>(value);
-        else if (id == 3) ChMax2 = static_cast<double>(value);
-        else if (id == 4) ChMin3 = static_cast<double>(value);
-        else if (id == 5) ChMax3 = static_cast<double>(value);
-        else printf("[!] Unknown sender to the composed map limits function");
+        QSpinBox *obj = static_cast<QSpinBox*>(temp->mapping(id));
+        value = obj->value();
     }
+
+    *(shared_memory5+102+id) = value;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

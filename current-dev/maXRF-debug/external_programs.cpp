@@ -7,8 +7,6 @@ extern bool CameraOn;
 extern int measuring_time;   extern int DAQ_TYPE;
 extern int *shared_memory_cmd, *shared_memory, *shared_memory2;
 
-extern int serialX, serialY, serialZ, serialK;
-
 void MainWindow::StartVme() {
 
     if(*(shared_memory_cmd+70)==0) {

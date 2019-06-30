@@ -47,42 +47,43 @@ long ranqd1(long *idum, double jlo, double jhi) {
 }
 
 extern bool MapIsOpened;
-extern int *shared_memory, *shared_memory2, *shared_memory3, *shared_memory_cmd;
-extern double ChMin1, ChMax1, ChMin2, ChMax2, ChMin3, ChMax3;
-extern double ChMin, ChMax;
+extern int *shared_memory, *shared_memory2, *shared_memory3,*shared_memory_cmd;
+extern double *shared_memory5;
 
 long codePosX = 50000000, codePosY = 60000000, codeDetA = 20000000, codeDetB = 30000000;
+
+
+void adjust_map_limits() {
+    // Called if energy calibration is active in the spectrum visualization program.
+    QString dir = QDir::currentPath();
+    dir += "/conf/Calibration.txt";
+    QFile file(dir);
+    file.open(QIODevice::ReadOnly);
+    QString a,b;
+    a = file.readLine();
+    b = file.readLine();
+    double const_a = a.toDouble();
+    double const_b = b.toDouble();
+    file.close();
+
+    for (int i = 0; i < 8; i ++) {
+    *(shared_memory5+100+i) -= const_b;
+    *(shared_memory5+100+i) /= const_a;
+    }
+}
 
 void MainWindow::LoadNewFileWithNoCorrection_SHM() {
     bool firstData = true;
     int dataread, vectorMap[20000] = {0};
     double jlo = 0, jhi = 0;
 
-    double const_a=1, const_b=0;
     double calGrad = static_cast<double>(*(shared_memory_cmd+101)) / static_cast<double>(*(shared_memory_cmd+103));
     double calOffs = static_cast<double>(*(shared_memory_cmd+102)) / static_cast<double>(*(shared_memory_cmd+103));
     setseed();
 
-    if (*(shared_memory+24)==1) {// Called if energy calibration is active in the spectrum visualization program.
+    if (*(shared_memory+24) == 1) adjust_map_limits();
 
-        QString dir = QDir::currentPath();
-        dir += "/conf/Calibration.txt";
-        QFile file(dir);
-        file.open(QIODevice::ReadOnly);
-        QString a,b;
-        a = file.readLine();
-        b = file.readLine();
-        const_a = a.toDouble();
-        const_b = b.toDouble();
-        file.close();
-
-        ChMin = ChMin / 1000;
-        ChMax = ChMax / 1000;
-        ChMin = (ChMin - const_b) / const_a;
-        ChMax = (ChMax - const_b) / const_a;
-    }
-
-    printf("Lower bound:\t%.0f\nUpper bound:\t%.0f\nGradient:\t%5.3f\nOffset:\t\t%5.3f\n", ChMin, ChMax, const_a, const_b);
+    printf("Lower bound:\t%.0f\nUpper bound:\t%.0f\n", *(shared_memory5+100), *(shared_memory5+101));
 
     if (MapIsOpened == true) hideImage();
     printf("... Records in memory:\t%d\n", *(shared_memory2+4));
@@ -162,7 +163,7 @@ void MainWindow::LoadNewFileWithNoCorrection_SHM() {
                 else dataread -= codeDetB;
             }
 
-            if (dataread >= ChMin && dataread <= ChMax) {
+            if (dataread >= *(shared_memory5+100) && dataread <= *(shared_memory5+101)) {
                 vectorMap[2] += 1;
                 vectorMap[dataread + 3] += 1; // The vectorMap is shifted by 3 positions
             }
@@ -194,30 +195,10 @@ void MainWindow::LoadNewFileWithNoCorrection_SHM() {
     printf("... Map correctly loaded\n... No pixel correction applied\n");
 }
 
-//void MainWindow::LoadNewFileWithCorrection_SHM() {
-//    // This function can no longer be called from anywhere in the code (as the PixelCorrection boolean is always false)
-//}
-
 void MainWindow::LoadSHM_SumMap() {
 
 
-    if (*(shared_memory+24)) {// Called if energy calibration is active in the spectrum visualization program.
-        QFile file("conf/Calibration.txt");
-        file.open(QIODevice::ReadOnly);
-        QString a,b;
-        a = file.readLine();
-        b = file.readLine();
-        double const_a = a.toDouble();
-        double const_b = b.toDouble();
-        file.close();
-
-        ChMin1 = (ChMin1 - const_b) / const_a;
-        ChMax1 = (ChMax1 - const_b) / const_a;
-        ChMin2 = (ChMin2 - const_b) / const_a;
-        ChMax2 = (ChMax2 - const_b) / const_a;
-        ChMin3 = (ChMin3 - const_b) / const_a;
-        ChMax3 = (ChMax3 - const_b) / const_a;
-    }
+    if (*(shared_memory+24)) adjust_map_limits();
 
 
 
@@ -304,11 +285,11 @@ void MainWindow::LoadSHM_SumMap() {
                 else dataread -= codeDetB;
             }
 
-            if (dataread >= ChMin && dataread <= ChMax) vectorMap[dataread+5] += 1;
+            if (dataread >= *(shared_memory5+100) && dataread <= *(shared_memory5+101)) vectorMap[dataread+5] += 1;
 
-            if (dataread >= ChMin1 && dataread <= ChMax1)       vectorMap[2] += 1;
-            else if (dataread >= ChMin2 && dataread <= ChMax2 ) vectorMap[3] += 1;
-            else if (dataread >= ChMin3 && dataread <= ChMax3 ) vectorMap[4] += 1;
+            if (dataread >= *(shared_memory5+102) && dataread <= *(shared_memory5+103))       vectorMap[2] += 1;
+            else if (dataread >= *(shared_memory5+104) && dataread <= *(shared_memory5+105)) vectorMap[3] += 1;
+            else if (dataread >= *(shared_memory5+106) && dataread <= *(shared_memory5+107) ) vectorMap[4] += 1;
 
             j++;
             break;
