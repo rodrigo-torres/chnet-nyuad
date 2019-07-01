@@ -100,12 +100,12 @@ void MainWindow::LoadNewFileWithNoCorrection_SHM() {
 
         switch (casenumber) {
         case 0:
-            dataread -= codePosX;
+            //dataread -= codePosX;
             vectorMap[j] = dataread;
             j++;
 
             dataread = *(shared_memory2+11+j);
-            dataread -= codePosY;
+            //dataread -= codePosY;
             vectorMap[j] = dataread ;
             j++;
 
@@ -129,12 +129,12 @@ void MainWindow::LoadNewFileWithNoCorrection_SHM() {
             *(shared_memory3+numdati) = -1;
             numdati++;
 
-            dataread -= codePosX;
+            //dataread -= codePosX;
             vectorMap[0] = dataread;
             j++;
 
             dataread = *(shared_memory2+11+j);
-            dataread -= codePosY;
+            //dataread -= codePosY;
             vectorMap[1] = dataread;
             j++;
 

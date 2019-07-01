@@ -22,7 +22,7 @@ QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_MainWindow_t {
     QByteArrayData data[54];
-    char stringdata0[676];
+    char stringdata0[674];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -77,14 +77,14 @@ QT_MOC_LITERAL(42, 527, 13), // "VLC_interface"
 QT_MOC_LITERAL(43, 541, 16), // "caenoscilloscope"
 QT_MOC_LITERAL(44, 558, 7), // "USB_DAQ"
 QT_MOC_LITERAL(45, 566, 11), // "OPTICAL_DAQ"
-QT_MOC_LITERAL(46, 578, 12), // "Image_Export"
-QT_MOC_LITERAL(47, 591, 14), // "set_abort_flag"
-QT_MOC_LITERAL(48, 606, 9), // "tty_timer"
-QT_MOC_LITERAL(49, 616, 13), // "CheckSegFault"
-QT_MOC_LITERAL(50, 630, 7), // "SaveTxt"
-QT_MOC_LITERAL(51, 638, 9), // "XrayTable"
-QT_MOC_LITERAL(52, 648, 14), // "LoadSHM_SumMap"
-QT_MOC_LITERAL(53, 663, 12) // "enable_servo"
+QT_MOC_LITERAL(46, 578, 10), // "export_map"
+QT_MOC_LITERAL(47, 589, 14), // "set_abort_flag"
+QT_MOC_LITERAL(48, 604, 9), // "tty_timer"
+QT_MOC_LITERAL(49, 614, 13), // "CheckSegFault"
+QT_MOC_LITERAL(50, 628, 7), // "SaveTxt"
+QT_MOC_LITERAL(51, 636, 9), // "XrayTable"
+QT_MOC_LITERAL(52, 646, 14), // "LoadSHM_SumMap"
+QT_MOC_LITERAL(53, 661, 12) // "enable_servo"
 
     },
     "MainWindow\0set_target\0\0keyence_reading\0"
@@ -102,7 +102,7 @@ QT_MOC_LITERAL(53, 663, 12) // "enable_servo"
     "enable_keyence_reading\0openDPPInter\0"
     "Detector\0Helium_interface\0VLC_interface\0"
     "caenoscilloscope\0USB_DAQ\0OPTICAL_DAQ\0"
-    "Image_Export\0set_abort_flag\0tty_timer\0"
+    "export_map\0set_abort_flag\0tty_timer\0"
     "CheckSegFault\0SaveTxt\0XrayTable\0"
     "LoadSHM_SumMap\0enable_servo"
 };
@@ -286,7 +286,7 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 41: _t->caenoscilloscope(); break;
         case 42: _t->USB_DAQ(); break;
         case 43: _t->OPTICAL_DAQ(); break;
-        case 44: _t->Image_Export(); break;
+        case 44: _t->export_map(); break;
         case 45: _t->set_abort_flag(); break;
         case 46: _t->tty_timer(); break;
         case 47: _t->CheckSegFault(); break;

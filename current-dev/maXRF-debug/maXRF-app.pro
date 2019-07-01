@@ -15,8 +15,9 @@ CONFIG += qt warn_on thread
 CONFIG += console
 
 # Input
-HEADERS += mainwindow.h tty.h dpp.h ../Header.h ../Shm.h ../variables.h \
-    ../qt_dependencies.h
+HEADERS += mainwindow.h tty.h dpp.h ../Header.h ../Shm.h \
+    ../qt_dependencies.h \
+    map.h
 SOURCES += main.cpp \
            dpp_gui.cpp \
            dpp_main.cpp \

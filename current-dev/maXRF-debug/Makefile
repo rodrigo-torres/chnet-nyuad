@@ -258,8 +258,8 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		dpp.h \
 		../Header.h \
 		../Shm.h \
-		../variables.h \
-		../qt_dependencies.h main.cpp \
+		../qt_dependencies.h \
+		map.h main.cpp \
 		dpp_gui.cpp \
 		dpp_main.cpp \
 		mainwindow.cpp \
@@ -643,7 +643,7 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents Resource.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib64/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents mainwindow.h tty.h dpp.h ../Header.h ../Shm.h ../variables.h ../qt_dependencies.h $(DISTDIR)/
+	$(COPY_FILE) --parents mainwindow.h tty.h dpp.h ../Header.h ../Shm.h ../qt_dependencies.h map.h $(DISTDIR)/
 	$(COPY_FILE) --parents main.cpp dpp_gui.cpp dpp_main.cpp mainwindow.cpp mainwindow_gui.cpp mainwindow_menu.cpp mainwindow_conns.cpp external_programs.cpp map_load.cpp map_pixels.cpp map_render.cpp map_mouse.cpp map_online.cpp shm.cpp tty.cpp tty_device_t.cpp $(DISTDIR)/
 
 
@@ -783,21 +783,22 @@ map_load.o: map_load.cpp mainwindow.h \
 map_pixels.o: map_pixels.cpp mainwindow.h \
 		../qt_dependencies.h \
 		../Shm.h \
-		dpp.h
+		dpp.h \
+		map.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o map_pixels.o map_pixels.cpp
 
 map_render.o: map_render.cpp mainwindow.h \
 		../qt_dependencies.h \
 		../Shm.h \
 		dpp.h \
-		../Header.h
+		map.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o map_render.o map_render.cpp
 
 map_mouse.o: map_mouse.cpp mainwindow.h \
 		../qt_dependencies.h \
 		../Shm.h \
 		dpp.h \
-		../Header.h
+		map.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o map_mouse.o map_mouse.cpp
 
 map_online.o: map_online.cpp mainwindow.h \

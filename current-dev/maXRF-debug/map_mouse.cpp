@@ -1,248 +1,177 @@
 #include "mainwindow.h"
-//#include "variables.h"
-#include "../Header.h"
-#include <QString>
-#include <../Shm.h>
+#include "map.h"
 
-/////////variabili e funzioni definite altrove ma necessarie/////////////////////////
 extern bool MapIsOpened;
-extern int OffsetX, OffsetY,PixelX,PixelY,point,MotoreWindowStatus;
-extern double X[20000],Y[20000];
-extern double Integral[20000],MaxIntegral;
-extern int *(shared_memory), *(shared_memory_cmd), *(shared_memory3);
-extern struct Pixel_BIG *Pointer;
-extern int Appartiene(int x,int y, struct Pixel_BIG *px);
+extern int *shared_memory, *shared_memory_cmd, *shared_memory3;
+extern int pixel_on_map(int *x,int *y);
 
-//////////////////////////////////////////////////////////////////////////////////////
 
-QString TextYes;
-double Go_Xc, Go_Yc;
-bool mouseleft=false; bool selectionStarted=false; bool found1=false; bool found2=false;
+bool mouseleft=false; bool found1=false;
 
-extern double x_image, y_image, x_image2, y_image2;
+int x_image, y_image;
 
-void ImgLabel::mousePressEvent(QMouseEvent *event)
-{
-    int I;
-
+void ImgLabel::mousePressEvent(QMouseEvent *event) {
     if (event->buttons() == Qt::LeftButton && MapIsOpened) { // Click con il tasto sx --> mi mostra l'integrale del punto
+        found1 = false;
+        mouseleft = true;
 
-        mouseleft=true;
-        found1=false;
-
-        x_image = event->x(); // queste non sono le vere posizioni dei motori se Pixeldim>1!!!
+        x_image = event->x();
         y_image = event->y();
-        qDebug()<<"... Pixel coordinates clicked (x, y): "<<x_image<<y_image;
+        int it = pixel_on_map(&x_image, &y_image);
 
-
-        for (int c = 0; c < point; c++) {
-            if(Appartiene(x_image,y_image, &Pointer[c]))
-            {
-                found1=true;
-                x_image=X[c]/1000; ///il Pointer[c] a cui appartiene il punto è associato a quaesta coppia X[c],Y[c]
-                y_image=Y[c]/1000; ///queste sono le vere posizioni dei motori
-                I=Integral[c];
-
-                qDebug()<<"Integrale del pixel= "<<I<<'\n';
-                break;
-            }
-
-
+        if (it == -1) qDebug()<<"[!] First point not found in map";
+        else {
+            found1 = true;
+            qDebug()<<"[!] Point integral is "<<integral[it];
         }
-        if(found1==false) //CurrentAction->setText(TextNo);
-            qDebug()<<"Punto 1 non compreso nella scansione\n";
     }
 
-    if (event->buttons() == Qt::RightButton && MapIsOpened==true)  //// Click con il tasto dx --> sposta i motori alla posizione selezionata
-    {
+    /* Right click: moves motors to the position corresponding to the chosen pixel*/
 
-        if (MotoreWindowStatus==1) //&& IniXready==1 && IniYready==1)
-        {
+    //    if (event->buttons() == Qt::RightButton && MapIsOpened) {
 
-            bool found3=false;
-            int X_chosen,Y_chosen, Go_X, Go_Y;
-            X_chosen = event->x();
-            Y_chosen = event->y();
+    //        if (MotoreWindowStatus==1) //&& IniXready==1 && IniYready==1)
+    //        {
 
-            Go_X=PixelX-X_chosen-OffsetX; ///NB:queste non sono le vere posizioni dei motori se Pixeldim>1!!!
-            Go_Y=PixelY-Y_chosen-OffsetY;
-            for(int c=0;c<point;c++)
-            {
-                if(Appartiene(Go_X,Go_Y, &Pointer[c]))
-                {
-                    found3=true;
-                    Go_X=X[c]; ///queste sono le vere posizioni dei motori
-                    Go_Y=Y[c];
-                    Go_Xc=X[c]/1000;
-                    Go_Yc=Y[c]/1000;
-                    qDebug()<<"Coordinate del pixel nella mappa "<<Go_Xc<<Go_Yc<<'\n';
-                    qDebug()<<"Integrale del pixel= "<<Integral[c]<<'\n';
-                    break;
-                }
-            }
-            if(found3==false)
-                qDebug()<<"Punto 1 non compreso nella scansione\n";
-            else
-            {
-                QMessageBox::StandardButton reply;
-                reply=QMessageBox::question(this, "ATTENZIONE", "Spostare i motori alla posizione scelta?",
-                                            QMessageBox::Yes|QMessageBox::No);
+    //            bool found3=false;
+    //            int clicked_x = event->x();
+    //            int clicked_y = event->y();
 
-                if (reply == QMessageBox::Yes)
-                {
-                    qDebug()<<"Sposto i motori alla posizione "<<Go_Xc<<Go_Yc<<".....";
-                    *(shared_memory+19)=1;
-                    *(shared_memory_cmd+64)=Go_X;
-                    *(shared_memory_cmd+65)=Go_Y;
-                }
-            }
-        }
-        else
-            qDebug()<<"Inizializzare i motori!";
+    //            for(size_t c = 0; c < integral.size(); c++) {
+    //                if(Appartiene(clicked_x, clicked_y, &Pointer[c])) {
+    //                    found3=true;
+    //                    Go_X =x_coord[c]; ///queste sono le vere posizioni dei motori
+    //                    Go_Y =y_coord[c];
+    //                    Go_Xc=x_coord[c] / 1000;
+    //                    Go_Yc=y_coord[c] / 1000;
 
-    }
+    //                    for (size_t s = 0; s < map_size; s++) {
+    //                        x_coord[s] = (x_coord[s] - min_x) / *(shared_memory_cmd+60);
+    //                        y_coord[s] = (y_coord[s] - min_y) / *(shared_memory_cmd+61);
+    //                    }
+    //                    qDebug()<<"Coordinate del pixel nella mappa "<<Go_Xc<<Go_Yc<<'\n';
+    //                    qDebug()<<"Integrale del pixel= "<<integral[c]<<'\n';
+    //                    break;
+    //                }
+    //            }
+    //            if(found3==false)
+    //                qDebug()<<"Punto 1 non compreso nella scansione\n";
+    //            else
+    //            {
+    //                QMessageBox::StandardButton reply;
+    //                reply=QMessageBox::question(this, "ATTENZIONE", "Spostare i motori alla posizione scelta?",
+    //                                            QMessageBox::Yes|QMessageBox::No);
+
+    //                if (reply == QMessageBox::Yes)
+    //                {
+    //                    qDebug()<<"Sposto i motori alla posizione "<<Go_Xc<<Go_Yc<<".....";
+    //                    *(shared_memory+19)=1;
+    //                    *(shared_memory_cmd+64)=Go_X;
+    //                    *(shared_memory_cmd+65)=Go_Y;
+    //                }
+    //            }
+    //        }
+    //        else
+    //            qDebug()<<"Inizializzare i motori!";
+
+    //    }
+
 }
 
+int largest(int a, int b) {
+    int ret;
+    a > b ? ret = a : ret = b;
+    return  ret;
+}
+
+int smallest(int a, int b) {
+    int ret;
+    a < b ? ret = a : ret = b;
+    return  ret;
+}
+
+
 void ImgLabel::mouseReleaseEvent(QMouseEvent *event) { // Click and release in different pixel -> displays the rectangle's count integral
-    int histopos=0, u=0, k=0;
-    int xshm,yshm,conteggi,canale;
-    int Spettro[16000]={0};
-    found2=false;
 
-    if(MapIsOpened==true && mouseleft==true) {
-        int I,max_y,max_x,min_y,min_x;
+    if (MapIsOpened && mouseleft) {
         mouseleft=false;
+
         int x_image2 = event->x();
-        int y_image2 = event->y();;
+        int y_image2 = event->y();
+        int it = pixel_on_map(&x_image2, &y_image2);
 
-        for(int c=0;c<point;c++) {
-            if(Appartiene(x_image2,y_image2, &Pointer[c])) {
-                found2=true;
-                x_image2=X[c]/1000; ///queste sono le vere posizioni dei motori
-                y_image2=Y[c]/1000;
-                I=Integral[c];
-                break;
-            }
-        }
+        if (it == -1) qDebug()<<"[!] Second point not found in map";
+        else if (found1) {
+            int pos = 0;
+            int codePosX = 50000000, codePosY = 60000000;
+            int read_x, read_y, counts, channel, spectrum[16384] = { 0 };
 
-        if (!found2) qDebug()<<"[!] Second point selected is not within the scan dimensions";
-        if (found2 && found1) {
+            /* If a rectangle is selected on the map */
+            if (x_image != x_image2 || y_image != y_image2) {
+                int min_x = smallest(x_image, x_image2);
+                int max_x = largest(x_image, x_image2);
+                int min_y = smallest(y_image, y_image2);
+                int max_y = largest(y_image, y_image2);
 
-            if (x_image!=x_image2 || y_image!=y_image2) {
-                // If I select a rectangle on the map.
-                if (x_image<x_image2) {min_x=x_image; max_x=x_image2;}
-                else {max_x=x_image; min_x=x_image2;}
-                if (y_image<y_image2) {min_y=y_image; max_y=y_image2;}
-                else {max_y=y_image; min_y=y_image2;}
 
-                while(*(shared_memory3+histopos)!=-2) {
-                    if(k<2) {
-                        xshm=*(shared_memory3+histopos);
-                        k++;
-                        histopos++;
+                while (shared_memory3[pos] != -2) {
+                    if (shared_memory3[pos] > codePosX) {
+                        read_x = shared_memory3[pos] - codePosX; pos++;
+                        read_y = shared_memory3[pos] - codePosY; pos++;
+                        pos++;
 
-                        yshm=*(shared_memory3+histopos);
-                        k++;
-                        histopos++;
-
-                        if(xshm<=max_x*1000 && xshm>=min_x*1000 && yshm<=max_y*1000 && yshm>=min_y*1000 ) {
-
-                            histopos++;  //salto l'integrale
-                            while(*(shared_memory3+histopos)!=-1) {
-                                conteggi=*(shared_memory3+histopos);
-                                histopos++;
-                                canale=*(shared_memory3+histopos);
-                                Spettro[canale]=Spettro[canale]+conteggi;
-                                histopos++;
-                            }
-                        }
+                        if (read_x >= min_x && read_x <= max_x)
+                            if (read_y >= min_y && read_y <= max_y)
+                                while (shared_memory3[pos] != -1) {
+                                    counts = shared_memory3[pos]; pos++;
+                                    channel = shared_memory3[pos]; pos++;
+                                    spectrum[channel] += counts;
+                                }
                     }
-
-                    else {
-                        histopos++;
-                    }
-
-                    if (*(shared_memory3+histopos)==-1) {
-                        k=0;
-                        histopos++;
-                    }
+                    else pos++;
                 }
 
-                // puts the value in shared memory
-                for (u=0; u<16000;u++) {
-                    if ( *(shared_memory_cmd+100) == 0 ) { *(shared_memory+100+u) = Spettro[u];}
-                    if ( *(shared_memory_cmd+100) == 1 ) { *(shared_memory+20000+u) = Spettro[u];}
-                    if ( *(shared_memory_cmd+100) == 2 ) { *(shared_memory+40000+u) = Spettro[u];}
+                /* Passing the values to spectra visualization window through shared memory */
+                for (int i = 0; i < 16384; i++) {
+                    if ( *(shared_memory_cmd+100) == 0 ) { *(shared_memory+100+i)   = spectrum[i];}
+                    if ( *(shared_memory_cmd+100) == 1 ) { *(shared_memory+20000+i) = spectrum[i];}
+                    if ( *(shared_memory_cmd+100) == 2 ) { *(shared_memory+40000+i) = spectrum[i];}
                 }
-
                 *(shared_memory+99)=1;
             }
 
+            /* If only one point is clicked */
+            else if (x_image == x_image2 && y_image == y_image2) {
 
+                while (shared_memory3[pos] != -2) {
+                    if (shared_memory3[pos] > codePosX) {
+                        read_x = shared_memory3[pos] - codePosX; pos++;
+                        read_y = shared_memory3[pos] - codePosY; pos++;
+                        pos++;
 
-            else
-                if (x_image==x_image2 && y_image==y_image2)      //se invece ho cliccato solo su un punto
-
-
-
-                {
-
-                    while(*(shared_memory3+histopos)!=-2)
-                    {
-
-                        if(k<2)
-                        {
-                            xshm=*(shared_memory3+histopos);
-                            k++;
-                            histopos++;
-
-                            yshm=*(shared_memory3+histopos);
-                            k++;
-                            histopos++;
-
-                            if (xshm==x_image*1000 && yshm==y_image*1000)
-                            {
-                                histopos++;  //salto l'integrale
-                                while(*(shared_memory3+histopos)!=-1)
-                                {
-                                    conteggi=*(shared_memory3+histopos);
-                                    histopos++;
-                                    canale=*(shared_memory3+histopos);
-                                    Spettro[canale]=conteggi;
-                                    histopos++;
-                                }
-                                for (u=0; u<16000;u++) {
-                                    if ( *(shared_memory_cmd+100) == 0 ) { *(shared_memory+100+u) = Spettro[u];}
-                                    if ( *(shared_memory_cmd+100) == 1 ) { *(shared_memory+20000+u) = Spettro[u];}
-                                    if ( *(shared_memory_cmd+100) == 2 ) { *(shared_memory+40000+u) = Spettro[u];}
-                                }
-                                *(shared_memory+99)=1;
-                                break;
+                        if (read_x == x_image && read_y == y_image) {
+                            while (shared_memory3[pos] != -1) {
+                                counts = shared_memory3[pos]; pos++;
+                                channel = shared_memory3[pos]; pos++;
+                                spectrum[channel] += counts;
                             }
-
+                        break;
                         }
-
-                        else
-                        {
-                            histopos++;
-                        }
-
-                        if(*(shared_memory3+histopos)==-1)
-                        {
-                            k=0;
-                            histopos++;
-                        }
-
-
                     }
+                    else pos++;
                 }
-            qDebug()<<"Coordinate del pixel "<<x_image<<y_image<<'\n';
 
+                /* Passing the values to spectra visualization window through shared memory */
+                for (int i = 0; i < 16384; i++) {
+                    if ( *(shared_memory_cmd+100) == 0 ) { *(shared_memory+100+i)   = spectrum[i];}
+                    if ( *(shared_memory_cmd+100) == 1 ) { *(shared_memory+20000+i) = spectrum[i];}
+                    if ( *(shared_memory_cmd+100) == 2 ) { *(shared_memory+40000+i) = spectrum[i];}
+                }
+                *(shared_memory+99) = 1;
+            }
 
         }
-        else qDebug()<<"[!] One of the selected points is not within the scan dimensions";
     }
-
 }
 
 

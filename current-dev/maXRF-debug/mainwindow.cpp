@@ -6,30 +6,29 @@
 #include <tty.h>
 #include <algorithm>
 
-extern int shmid[];
+extern int shmid[8];
+extern key_t key, key2, key3, key4, key5, key_cmd, key_rate;
+extern int *shared_memory, *shared_memory2, *shared_memory3, *shared_memory4;
+extern double *shared_memory5;
+extern int *shared_memory_cmd, *shared_memory_rate;
 
 tty *tty_ptr;
 
 bool MapIsOpened = false;
 bool CameraOn = false;
 
-int measuring_time = 300; // for single-spectrum DAQ
-int point, OffsetX, OffsetY, Pixeldim = 1; // for XRF map display
 
-double x_image, y_image, x_image2, y_image2;
+int DAQ_TYPE = 1;
+int measuring_time = 300; // for single-spectrum DAQ
+int Pixeldim = 1; // for XRF map display
 
 char process[30];
 
-struct Pixel_BIG *Pointer; //puntatore da far puntare a PixelsMappa una volta creato
 QString stylesheet3 = "QLineEdit {background-color: #2DC937; font-weight: bold; color: white;}";
 
 
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
-
-    PixelX=595;
-    PixelY=595;
-
     SHM_CREATOR();                 /// CREATING SHARED MEMORY SEGMENT
     createActions();
     builder_Menu();            	    /// CREATING MENU from Menu.cpp

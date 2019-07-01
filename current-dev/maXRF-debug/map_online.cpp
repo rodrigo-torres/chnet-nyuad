@@ -1,8 +1,7 @@
 #include "mainwindow.h"
 #include <QtGui>
 
-using namespace std;
-extern int *(shared_memory_cmd);
+extern int *shared_memory_cmd;
 extern bool MapIsOpened;
 
 void MainWindow::GoOnLine() {

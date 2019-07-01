@@ -7,9 +7,6 @@ int *shared_memory_cmd, *shared_memory_rate;
 int *shared_memory, *shared_memory2, *shared_memory3, *shared_memory4;
 double*shared_memory5;
 
-extern int MotoreWindowStatus, CentralWindowStatus;
-extern int pixel_Xstep, pixel_Ystep;
-
 template <typename T> T* assignSHM(key_t key, size_t size, int id) {
     int shmID = shmget(key, size, IPC_CREAT | 0666);
     shmid[id] = shmID;
@@ -39,9 +36,6 @@ void MainWindow::SHM_CREATOR() {
     /////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////// REDEFINED (DEC-2016) SHM_CMD INTRODUCED   ///////////////////////////////////////
 
-    *shared_memory_cmd=MotoreWindowStatus;       /// XY Motor status
-    *(shared_memory_cmd+1)=MotoreWindowStatus;   /// Z Motor status
-
     *(shared_memory_cmd+40)=0;                   /// X[point] Position (default=0)
     *(shared_memory_cmd+41)=0;                   /// Y[point] Position (default=0)
     *(shared_memory_cmd+42)=0;                   /// Z Position (default=0)
@@ -52,8 +46,8 @@ void MainWindow::SHM_CREATOR() {
     *(shared_memory_cmd+52)=100000;                   /// Ymin (default=0)
     *(shared_memory_cmd+53)=110000;                   /// Ymax (default=0)
 
-    *(shared_memory_cmd+60)=pixel_Xstep;              /// X step (default=0)
-    *(shared_memory_cmd+61)=pixel_Ystep;              /// Y step (default=0)
+    *(shared_memory_cmd+60)= 1000;              /// X step (default=0)
+    *(shared_memory_cmd+61)= 1000;              /// Y step (default=0)
 
 
     *(shared_memory_cmd+64)=0;                   /// X movement (default=0)

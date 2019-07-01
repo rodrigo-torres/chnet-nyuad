@@ -15,19 +15,9 @@ public:
 };
 
 class tty;
-class controller;
 
-struct punto {
-    int point_x;
-    int point_y;
-};
 
-struct Pixel_BIG {
-    int centro[2]; ///coordinate del centro pixel 0x 1y
-    int dimensione;
-    struct punto *total;  /// (dimensione*dimensione) punti
 
-};
 
 class MainWindow : public QMainWindow
 {
@@ -118,7 +108,7 @@ private slots:
     void USB_DAQ();
     void OPTICAL_DAQ();
 
-    void Image_Export();
+    void export_map();
 
     void set_abort_flag();
     void tty_timer();
@@ -146,7 +136,6 @@ private:
     QScrollArea *scrollArea;
     QLabel *imageLabel;
 
-    QImage *Image_to_save;
     QImage *MyImage;
     double scaleFactor;
 

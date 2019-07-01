@@ -232,16 +232,11 @@ void tty::start_servo(bool active) {
 }
 
 void tty::set_velocity(double vel) {
-//    scan_velocity=number;
-//    int V_adc=scan_velocity*1000;
-//    printf("V_adc:%d\n", V_adc);
-//    *(shared_memory_cmd+67)=V_adc;
-//    time_per_pixel=Px/scan_velocity;
-//    qDebug()<<"velocità "<<scan_velocity<<"mm/s"<<"Scrittura posizione ogni "<<time_per_pixel<<" ms";
-//    char v[10];
-//    sprintf(v,"%f",scan_velocity);
-//    tty_send(1,"VEL",v,serialX);
-//    tty_send(1,"VEL",v,serialY);
+    s_vel = vel;
+    *(shared_memory5+6) = vel;
+
+    stage_x.tty_send("VEL 1" + to_string(vel));
+    stage_y.tty_send("VEL 1" + to_string(vel));
 }
 
 void tty::servo() {

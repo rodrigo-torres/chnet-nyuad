@@ -395,7 +395,7 @@ void MainWindow::GUI_CREATOR() {
 
     connect(Digitizer_Button, SIGNAL(clicked()), this, SLOT(openDPPInter()));
     connect(VLC_Button, SIGNAL(clicked()), this, SLOT(VLC_interface()));
-    connect(Export_Button, SIGNAL(clicked()), this, SLOT(Image_Export()));
+    connect(Export_Button, SIGNAL(clicked()), this, SLOT(export_map()));
     connect(XRAY_TABLE_Button, SIGNAL(clicked()), this, SLOT(XrayTable()));
 
     /////////////////////////////// USB CONNECTION //////////////////////////////////
