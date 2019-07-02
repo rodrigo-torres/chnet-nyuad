@@ -130,26 +130,21 @@ void ImgLabel::mouseReleaseEvent(QMouseEvent *event) { // Click and release in d
                     }
                     else pos++;
                 }
-
-                /* Passing the values to spectra visualization window through shared memory */
-                for (int i = 0; i < 16384; i++) {
-                    if ( *(shared_memory_cmd+100) == 0 ) { *(shared_memory+100+i)   = spectrum[i];}
-                    if ( *(shared_memory_cmd+100) == 1 ) { *(shared_memory+20000+i) = spectrum[i];}
-                    if ( *(shared_memory_cmd+100) == 2 ) { *(shared_memory+40000+i) = spectrum[i];}
-                }
-                *(shared_memory+99)=1;
             }
 
             /* If only one point is clicked */
             else if (x_image == x_image2 && y_image == y_image2) {
 
-                while (shared_memory3[pos] != -2) {
-                    if (shared_memory3[pos] > codePosX) {
+                while (shared_memory3[pos] != -2)
+                {
+                    if (shared_memory3[pos] > codePosX)
+                    {
                         read_x = shared_memory3[pos] - codePosX; pos++;
                         read_y = shared_memory3[pos] - codePosY; pos++;
                         pos++;
 
-                        if (read_x == x_image && read_y == y_image) {
+                        if (read_x == x_image && read_y == y_image)
+                        {
                             while (shared_memory3[pos] != -1) {
                                 counts = shared_memory3[pos]; pos++;
                                 channel = shared_memory3[pos]; pos++;
@@ -160,16 +155,15 @@ void ImgLabel::mouseReleaseEvent(QMouseEvent *event) { // Click and release in d
                     }
                     else pos++;
                 }
-
-                /* Passing the values to spectra visualization window through shared memory */
-                for (int i = 0; i < 16384; i++) {
-                    if ( *(shared_memory_cmd+100) == 0 ) { *(shared_memory+100+i)   = spectrum[i];}
-                    if ( *(shared_memory_cmd+100) == 1 ) { *(shared_memory+20000+i) = spectrum[i];}
-                    if ( *(shared_memory_cmd+100) == 2 ) { *(shared_memory+40000+i) = spectrum[i];}
-                }
-                *(shared_memory+99) = 1;
             }
 
+            /* Passing the values to spectra visualization window through shared memory */
+            for (int i = 0; i < 16384; i++) {
+                if ( *(shared_memory_cmd+100) == 0 ) { *(shared_memory+100+i)   = spectrum[i];}
+                if ( *(shared_memory_cmd+100) == 1 ) { *(shared_memory+20000+i) = spectrum[i];}
+                if ( *(shared_memory_cmd+100) == 2 ) { *(shared_memory+40000+i) = spectrum[i];}
+            }
+            *(shared_memory+99) = 1;
         }
     }
 }
