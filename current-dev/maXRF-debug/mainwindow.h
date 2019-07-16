@@ -73,7 +73,7 @@ private slots:
     void Info2_1();
 
     void open_MAP();
-    void Define_Pixels();
+//    void Define_Pixels();
     void GoOnLine();
     void displayImage_SHM();
     void displaySumImage_SHM();

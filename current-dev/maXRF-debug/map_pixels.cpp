@@ -2,23 +2,7 @@
 #include "map.h"
 
 extern int Pixeldim, *shared_memory_cmd;
-Pixel_BIG *Pointer;
 
-void createPixel(size_t pix) {
-    Pixel_BIG *px = &Pointer[pix];
-    px->dimensione = Pixeldim;
-
-    size_t contour = static_cast<size_t>(Pixeldim * Pixeldim);
-    px->total = new punto[contour];
-
-    for (int i = 0; i < Pixeldim; i++) {
-        for (int j = 0; j < Pixeldim; j++){
-            int index = (Pixeldim * i) + j;
-            px->total[index].point_x = x_coord[pix] * Pixeldim + i;
-            px->total[index].point_y = y_coord[pix] * Pixeldim + j;
-        }
-    }
-}
 
 int pixel_on_map(int *x, int *y) { // Returns true if the coordinate (x, y) belongs to a pixel
     if (*x <= x_len && *y <= y_len) {
@@ -36,15 +20,6 @@ int pixel_on_map(int *x, int *y) { // Returns true if the coordinate (x, y) belo
         return it;
     }
     return -1;
-}
-
-void MainWindow::Define_Pixels() {
-    if (Pointer != nullptr) delete[] Pointer;
-
-    size_t size = x_coord.size();
-    Pointer = new Pixel_BIG[size];
-
-    for (size_t z = 0; z < size; z++) createPixel(z);
 }
 
 void MainWindow::export_map()

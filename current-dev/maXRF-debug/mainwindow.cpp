@@ -520,6 +520,57 @@ void MainWindow::writeCompMapLimits(int id) {
 //                                
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include <numeric>
+
+class xrf_image {
+    xrf_image() {
+        loadDir = "/home/frao/Desktop/XRFData";
+    }
+
+public:
+    void prototype_load_map();
+
+private:
+    uint mask_d = 0x80000000;
+    double parameters[7];
+    QString loadDir;
+
+};
+
+
+
+void xrf_image::prototype_load_map() {
+    QString filepath = QFileDialog::getOpenFileName(nullptr, "Open file...", loadDir);
+
+    if (!filepath.isEmpty()) {
+        QFile file(filepath);
+        if (file.exists()) {
+            file.open(QIODevice::ReadOnly);
+            QString line = file.readLine();
+
+
+            if (line.startsWith("v")) { // Data with new header protocol
+                int size  = (sizeof parameters) / (sizeof parameters[0]);
+                for (int i = 0; i < size; i++) {
+                    line = file.readLine();
+                    parameters[i] = line.toInt();
+                }
+
+            }
+
+            // Calculate the number of pixels in image from parameters
+            // Allocate memory for an array of Pixel_Big structures
+            // Pass the position values to the Pixel_Big structure
+            // Parse the event values and populate a temporary array for each detector
+            // Hash the counts for each channel with the channel itself only if counts is not zero
+            // Pushback these values onto a vector<int> (reserve 16384, then shrink to size)
+            //
+
+        }
+    }
+
+
+}
 
 void MainWindow::LoadTxt()  { // Writes values of binary file into shared memory
     QString loadDir = "/home/frao/Desktop/XRFData";

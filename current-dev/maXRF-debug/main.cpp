@@ -78,6 +78,7 @@ int main(int argc, char *argv[]) {
         Sleeper::msleep(1000);
     }
 
+    qDebug()<< sizeof(long int);
 
     QApplication a(argc, argv);
     MainWindow w;
