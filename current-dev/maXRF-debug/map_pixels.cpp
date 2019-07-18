@@ -24,25 +24,27 @@ int pixel_on_map(int *x, int *y) { // Returns true if the coordinate (x, y) belo
 
 void MainWindow::export_map()
 {
-    QImage *saved_image = new QImage;
-    if(saved_image->loadFromData(MapImage)) {
-        QString fileName =  QFileDialog::getSaveFileName(this,tr("Export image as... *.png"), tr("png Files (*.png)"));
-        if (!fileName.isEmpty()) {
-            QString strSaveName, endCommand, extension;
-            strSaveName= ""; extension=".png";
-            strSaveName.append(fileName);
-            if (!strSaveName.endsWith(".png")) {strSaveName.append(extension);}
-            QFile file(strSaveName);
+    QImage image;
+    QString path("/home/frao/Desktop/XRFData");
+
+    if (image.loadFromData(MapImage))
+    {
+        QString fileName =  QFileDialog::getSaveFileName(this, "Save image as PNG", path, tr("Images (*.png)"));
+
+        if (!fileName.isEmpty())
+        {
+            if (!fileName.endsWith(".png")) fileName.append(".png");
+
+            QFile file(fileName);
             file.open(QIODevice::WriteOnly);
-            if(saved_image->save(&file)) {
+
+            if (image.save(&file))
+            {
                 file.close();
-                strSaveName.prepend("... File saved in: ");
-                //CurrentAction->setText(strSaveName);
-                status->showMessage(strSaveName, 30);
+                fileName.prepend("... File saved in: ");
+                status->showMessage(fileName, 30);
             }
         }
     }
-
-    else //qDebug()<<"... No image loaded";
-        status->showMessage("No image loaded", 30);
+    else status->showMessage("[!] No image loaded", 30000);
 }
