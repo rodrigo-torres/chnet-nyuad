@@ -53,8 +53,8 @@ void MainWindow::displayImage_SHM() {
 
 
         for (size_t s = 0; s < map_size; s++) {
-            x_coord[s] = (x_coord[s] - min_x) / *(shared_memory_cmd+60);
-            y_coord[s] = (y_coord[s] - min_y) / *(shared_memory_cmd+61);
+            x_coord[s] = (x_coord[s] - min_x) / x_step;
+            y_coord[s] = (y_coord[s] - min_y) / y_step;
         }
 
         x_len = x_len * Pixeldim;

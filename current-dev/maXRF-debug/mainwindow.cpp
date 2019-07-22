@@ -529,15 +529,113 @@ class xrf_image {
 
 public:
     void prototype_load_map();
+    void create_pixel(int);
 
 private:
-    uint mask_d = 0x80000000;
+    QFile file;
+    uint map_length;
+    uint map_height;
+    uint pix_total;
+
+    vector<int> x_coords;
+    vector<int> y_coords;
+    vector<int> integral;
+
     double parameters[7];
     QString loadDir;
 
 };
 
 
+
+template <typename T>
+struct pixel_t {
+    pixel_t() {
+
+    }
+    typedef typename std::vector<T>::iterator iterator;
+    iterator x;
+    iterator y;
+    ushort pixel_no;
+
+    vector<int> det_a;
+    vector<int> det_b;
+    vector<int>::iterator it_integral;
+    vector<int>::iterator it_elem_integral;
+};
+
+static vector<pixel_t<int>> map_data;
+
+
+void xrf_image::create_pixel(int p)
+{
+    typedef pixel_t<int> pixel;
+    QString line;
+
+    int number;
+    int temp_a[16384] = {};
+    int temp_b[16384] = {};
+
+    int masks[4]  = { 0x8000000, 0x4000000, 0x2000000, 0x1000000 };
+
+    // Creat the first pixel
+    pixel *tmp = new pixel;
+
+    line = file.readLine();
+    number = line.toInt();
+    number ^= masks[1];
+
+    if (*x_coords.end() == number)
+
+    x_coords.push_back(number);
+    tmp->x = x_coords.begin() + p;
+
+    line = file.readLine();
+    number = line.toInt();
+    number ^= masks[0];
+
+    y_coords.push_back(number);
+    tmp->y = y_coords.begin() + p;
+
+    tmp->pixel_no = p;
+
+    while (true)
+    {
+        line = file.readLine();
+        number = line.toInt();
+
+        if (number >= masks[1]) break;
+        if (number >= masks[2])
+        {
+            number ^= masks[2];
+            temp_b[number] += 1;
+        }
+        else
+        {
+            number ^= masks[3];
+            temp_a[number] += 1;
+        }
+    }
+
+    tmp->det_a.reserve(16384);
+    tmp->det_b.reserve(16384);
+    for (int i = 0; i < 16384; i ++)
+    {
+        if (temp_a[i] == 0) continue;
+        temp_a[i] |= (i << 16);
+        tmp->det_a.push_back(temp_a[i]);
+    }
+    for (int i = 0; i < 16384; i ++)
+    {
+        if (temp_b[i] == 0) continue;
+        temp_b[i] |= (i << 16);
+        tmp->det_a.push_back(temp_b[i]);
+    }
+    tmp->det_a.shrink_to_fit();
+    tmp->det_b.shrink_to_fit();
+
+    map_data.push_back(*tmp);
+}
 
 void xrf_image::prototype_load_map() {
     QString filepath = QFileDialog::getOpenFileName(nullptr, "Open file...", loadDir);
@@ -556,16 +654,48 @@ void xrf_image::prototype_load_map() {
                     parameters[i] = line.toInt();
                 }
 
+                map_length = (parameters[0] - parameters[1]) / parameters[4];
+                map_height = 1 + (parameters[2] - parameters[3]) / parameters[5];
+                pix_total  = map_length * map_height;
+
+                typedef pixel_t<int> pixel;
+                size_t size_m = sizeof (pixel);
+                size_m *= pix_total;
+
+                map_data.clear();
+                map_data.reserve(size_m);
+                x_coords.reserve(size_m);
+                y_coords.reserve(size_m);
+                integral.reserve(size_m);
+
+                int i = 0;
+                create_pixel(0); i++;
+                while (!file.atEnd())
+                {
+
+                }
+
+
+
+
+
+
+
+
+                // Rest of pixels
+
+                while (!file.atEnd())
+                {
+                    pixel *tmp = new pixel;
+                    tmp->pixel_no = i;
+
+
+
+
+
+                }
+
             }
-
-            // Calculate the number of pixels in image from parameters
-            // Allocate memory for an array of Pixel_Big structures
-            // Pass the position values to the Pixel_Big structure
-            // Parse the event values and populate a temporary array for each detector
-            // Hash the counts for each channel with the channel itself only if counts is not zero
-            // Pushback these values onto a vector<int> (reserve 16384, then shrink to size)
-            //
-
         }
     }
 
