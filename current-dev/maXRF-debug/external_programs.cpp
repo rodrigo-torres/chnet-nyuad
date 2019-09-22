@@ -1,7 +1,7 @@
 ﻿#include "mainwindow.h"
 #include "../Header.h"
 
-extern tty tty_ptr;
+extern tty_agent tty_ptr;
 
 extern bool CameraOn;
 extern int measuring_time;   extern int DAQ_TYPE;

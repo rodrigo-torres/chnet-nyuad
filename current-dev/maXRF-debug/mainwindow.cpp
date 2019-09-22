@@ -12,7 +12,7 @@ extern int *shared_memory, *shared_memory2, *shared_memory3, *shared_memory4;
 extern double *shared_memory5;
 extern int *shared_memory_cmd, *shared_memory_rate;
 
-tty *tty_ptr;
+tty_agent *tty_ptr;
 
 bool MapIsOpened = false;
 bool CameraOn = false;
@@ -23,9 +23,6 @@ int measuring_time = 300; // for single-spectrum DAQ
 int Pixeldim = 1; // for XRF map display
 
 char process[30];
-
-QString stylesheet3 = "QLineEdit {background-color: #2DC937; font-weight: bold; color: white;}";
-
 
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
@@ -55,32 +52,24 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
 void MainWindow::start_thread_tty() {
 
-    tty_ptr = new tty();
+    tty_ptr = new tty_agent();
     tty_ptr->moveToThread(&test_thread);
 
     connect(&test_thread, &QThread::finished, tty_ptr, &QObject::deleteLater);
-    connect(tty_ptr, &tty::toggle_tab1, this, &MainWindow::toggle_tab1);
-    connect(tty_ptr, &tty::toggle_widgets, this, &MainWindow::toggle_widgets);
-    connect(tty_ptr, &tty::update_monitor, this, &MainWindow::update_monitor);
-    connect(tty_ptr, &tty::save_file, this, &MainWindow::SaveTxt);
+    connect(tty_ptr, &tty_agent::toggle_tab1, this, &MainWindow::toggle_tab1);
+    connect(tty_ptr, &tty_agent::toggle_widgets, this, &MainWindow::toggle_widgets);
+    connect(tty_ptr, &tty_agent::update_monitor, this, &MainWindow::update_monitor);
+    connect(tty_ptr, &tty_agent::save_file, this, &MainWindow::SaveTxt);
 
-    connect(this, &MainWindow::set_target, tty_ptr, &tty::set_target);
-    connect(this, &MainWindow::keyence_reading, tty_ptr, &tty::enable_servo);
-    connect(this, &MainWindow::start_servo, tty_ptr, &tty::start_servo);
+    connect(this, &MainWindow::set_target, tty_ptr, &tty_agent::set_target);
+    connect(this, &MainWindow::keyence_reading, tty_ptr, &tty_agent::enable_servo);
+    connect(this, &MainWindow::start_servo, tty_ptr, &tty_agent::start_servo);
 
-    connect(tab4_start_scan, &QPushButton::clicked, tty_ptr, &tty::scan);
+    connect(this, &MainWindow::df_open, tty_ptr, &tty_agent::tty_init);
 
-    QSignalMapper *mapper_device_files = new QSignalMapper();
-    for (int i = 0; i < 4; i++) {
-        mapper_device_files->setMapping(tab1_df_number[i], i);
-        connect(tab1_df_number[i], SIGNAL(valueChanged(int)), mapper_device_files, SLOT(map()));
-    }   connect(mapper_device_files, SIGNAL(mapped(int)), tty_ptr, SLOT(set_df_minor(int)));
+    connect(tab4_start_scan, &QPushButton::clicked, tty_ptr, &tty_agent::scan);
 
-    QSignalMapper *mapper_assign_dfs = new QSignalMapper();
-    for (int i = 0; i < 4; i++) {
-        mapper_assign_dfs->setMapping(tab1_df_open[i], i);
-        connect(tab1_df_open[i], SIGNAL(released()), mapper_assign_dfs, SLOT(map()));
-    }   connect(mapper_assign_dfs, SIGNAL(mapped(int)), tty_ptr, SLOT(tty_init(int)));
+
 
     QSignalMapper *mapper_init_stages = new QSignalMapper;
     for (int i = 0; i < 3; i++) {

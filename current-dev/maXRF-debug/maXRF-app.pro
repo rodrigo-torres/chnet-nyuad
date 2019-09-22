@@ -32,6 +32,6 @@ SOURCES += main.cpp \
            map_mouse.cpp \
            map_online.cpp \
            shm.cpp \
-           tty.cpp \
-           tty_device_t.cpp
+           tty_agent.cpp \
+           tty_handlers.cpp
 RESOURCES += Resource.qrc

@@ -66,8 +66,8 @@ SOURCES       = main.cpp \
 		map_mouse.cpp \
 		map_online.cpp \
 		shm.cpp \
-		tty.cpp \
-		tty_device_t.cpp qrc_Resource.cpp \
+		tty_agent.cpp \
+		tty_handlers.cpp qrc_Resource.cpp \
 		moc_mainwindow.cpp \
 		moc_tty.cpp \
 		moc_dpp.cpp
@@ -85,8 +85,8 @@ OBJECTS       = main.o \
 		map_mouse.o \
 		map_online.o \
 		shm.o \
-		tty.o \
-		tty_device_t.o \
+		tty_agent.o \
+		tty_handlers.o \
 		qrc_Resource.o \
 		moc_mainwindow.o \
 		moc_tty.o \
@@ -273,8 +273,8 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		map_mouse.cpp \
 		map_online.cpp \
 		shm.cpp \
-		tty.cpp \
-		tty_device_t.cpp
+		tty_agent.cpp \
+		tty_handlers.cpp
 QMAKE_TARGET  = maXRF-app
 DESTDIR       = 
 TARGET        = maXRF-app
@@ -632,7 +632,7 @@ distdir: FORCE
 	$(COPY_FILE) --parents Resource.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib64/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents mainwindow.h tty.h dpp.h ../Header.h ../Shm.h ../qt_dependencies.h map.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp dpp_gui.cpp dpp_main.cpp mainwindow.cpp mainwindow_gui.cpp mainwindow_menu.cpp mainwindow_conns.cpp external_programs.cpp map_load.cpp map_pixels.cpp map_render.cpp map_mouse.cpp map_online.cpp shm.cpp tty.cpp tty_device_t.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp dpp_gui.cpp dpp_main.cpp mainwindow.cpp mainwindow_gui.cpp mainwindow_menu.cpp mainwindow_conns.cpp external_programs.cpp map_load.cpp map_pixels.cpp map_render.cpp map_mouse.cpp map_online.cpp shm.cpp tty_agent.cpp tty_handlers.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -661,6 +661,9 @@ compiler_rcc_clean:
 	-$(DEL_FILE) qrc_Resource.cpp
 qrc_Resource.cpp: Resource.qrc \
 		/usr/lib64/qt5/bin/rcc \
+		conf/M404_2PD.txt \
+		conf/user_conf.xml \
+		conf/M404_8PD.txt \
 		IMG/TT_CHNet_res1.png \
 		IMG/TT_CHNet_res0.png \
 		IMG/TT_CHNet_res2.png
@@ -802,11 +805,11 @@ shm.o: shm.cpp mainwindow.h \
 		../Header.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o shm.o shm.cpp
 
-tty.o: tty.cpp tty.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o tty.o tty.cpp
+tty_agent.o: tty_agent.cpp tty.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o tty_agent.o tty_agent.cpp
 
-tty_device_t.o: tty_device_t.cpp tty.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o tty_device_t.o tty_device_t.cpp
+tty_handlers.o: tty_handlers.cpp tty.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o tty_handlers.o tty_handlers.cpp
 
 qrc_Resource.o: qrc_Resource.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qrc_Resource.o qrc_Resource.cpp

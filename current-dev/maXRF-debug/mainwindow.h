@@ -14,11 +14,10 @@ public:
     static void sleep(unsigned long secs){QThread::sleep(secs);}
 };
 
-class tty;
+class tty_agent;
 
 
-
-
+using namespace std;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -42,7 +41,7 @@ public:
     QVector2D map(int pixX, int pixY);
     void LoadNewFileWithNoCorrection_SHM();
 
-    friend class tty;
+    friend class tty_agent;
 
     QTabWidget *tabWidget;
     QWidget *tab1;
@@ -57,7 +56,13 @@ public slots:
 
     void tab3_set_target();
 
+    void handle_device();
+
 signals:
+    void df_open(QString);
+
+
+
     void set_target(int, double);
     void keyence_reading(bool);
     void start_servo(bool);
