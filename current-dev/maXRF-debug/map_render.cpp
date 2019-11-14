@@ -28,7 +28,6 @@ void MainWindow::displayImage_SHM() {
     y_coord.clear(); y_coord.reserve(map_size);
     integral.clear(); integral.reserve(map_size);
 
-    if (!MapIsOpened) hideImage();
     MapIsOpened = true;
 
     bool ok=false;
@@ -63,7 +62,11 @@ void MainWindow::displayImage_SHM() {
 
         QColor myColor;
         for (size_t current = 0; current < map_size; current++ ) {
-            double intensity = static_cast<double>(integral[current]) / max_i;
+            double intensity = 0;
+            if (max_i)
+            {
+                intensity = static_cast<double>(integral[current]) / max_i;
+            }
 
 
             if (item == "Colors") {

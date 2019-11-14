@@ -3,7 +3,7 @@
 
 extern bool MapIsOpened;
 extern int *shared_memory, *shared_memory_cmd, *shared_memory3;
-extern int pixel_on_map(int *x,int *y);
+extern int pixel_on_map(int &x,int &y);
 
 
 bool mouseleft=false; bool found1=false;
@@ -17,7 +17,7 @@ void ImgLabel::mousePressEvent(QMouseEvent *event) {
 
         x_image = event->x();
         y_image = event->y();
-        int it = pixel_on_map(&x_image, &y_image);
+        int it = pixel_on_map(x_image, y_image);
 
         if (it == -1) qDebug()<<"[!] First point not found in map";
         else {
@@ -52,7 +52,7 @@ void ImgLabel::mouseReleaseEvent(QMouseEvent *event) { // Click and release in d
 
         int x_image2 = event->x();
         int y_image2 = event->y();
-        int it = pixel_on_map(&x_image2, &y_image2);
+        int it = pixel_on_map(x_image2, y_image2);
 
         if (it == -1) qDebug()<<"[!] Second point not found in map";
         else if (found1) {

@@ -25,7 +25,7 @@ DEPLIBS	=	-lCAENDigitizer -lCAENDPPLib -lm -lc -lrt -lpthread
 
 LIBS	=	-L.. -L/usr/lib
 
-INCLUDEDIR =	-I./include -I/usr/include
+INCLUDEDIR =	-I./include -I/usr/include -I../
 
 OBJS	=	src/ADCXRF.o src/keyb.o src/Functions.o 
 

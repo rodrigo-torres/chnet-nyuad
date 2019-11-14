@@ -10,14 +10,16 @@ QT += widgets\
       sql \
       xml \
       gui
-CONFIG += c++11
+CONFIG += c++14
 CONFIG += qt warn_on thread
 CONFIG += console
 
 # Input
 HEADERS += mainwindow.h tty.h dpp.h ../Header.h ../Shm.h \
     ../qt_dependencies.h \
-    map.h
+    enums_and_wrappers.h \
+    map.h \
+    enums_and_wrappers.h
 SOURCES += main.cpp \
            dpp_gui.cpp \
            dpp_main.cpp \
@@ -33,5 +35,5 @@ SOURCES += main.cpp \
            map_online.cpp \
            shm.cpp \
            tty_agent.cpp \
-           tty_handlers.cpp
+           tty_interface.cpp
 RESOURCES += Resource.qrc

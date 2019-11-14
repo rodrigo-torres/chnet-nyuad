@@ -4,8 +4,10 @@
 #include <unistd.h>
 #include <termios.h>
 #include <sys/types.h>
-#include <sys/stat.h>
+/* For synchronization with the DAQ */
 #include <fcntl.h>
+#include <sys/stat.h>
+#include <semaphore.h>
 
 #include <fstream>
 #include <sstream>
@@ -19,22 +21,25 @@
 #include <QSpinBox>
 #include <QSignalMapper>
 
+#include <QMutex>
+#include <QMutexLocker>
+
+
+
 extern int *shared_memory_cmd, *shared_memory, *shared_memory2;
 extern double *shared_memory5;
 
 using namespace std;
 
-class tty_handle : public QObject
+class tty_interface : public QObject
 {
     Q_OBJECT
 public:
-    tty_handle(string);
-    ~tty_handle() {}
+    tty_interface(string);
+    virtual ~tty_interface() {}
 
-    void tty_send(string);
-    string tty_read();
-    QString get_message() const;
-    string get_err_message() const;
+    QString get_message();
+    QString get_err_message();
     bool get_errflag() const;
 
 public:
@@ -48,12 +53,17 @@ public:
     string id_long;
     string df_path;
 
+//protected:
+public:
+    void sendtty(string);
+    string readtty();
+
 private:
     void set_id();
     void tty_conf();
 };
 
-class stage : public tty_handle
+class stage : public tty_interface
 {
     Q_OBJECT
     friend class keyence;
@@ -67,7 +77,7 @@ public:
     void init();
     bool wait();
     void load_conf();
-    int set_param(string);
+    void load_params();
 
     void stop();
     void check_ont();
@@ -104,20 +114,30 @@ private:
     vector<string> params;
 };
 
-class keyence : public tty_handle
+class servo
+{
+
+};
+
+class scanner
+{
+
+};
+
+class keyence : public tty_interface
 {
     Q_OBJECT
 public:
-    keyence(string s) : tty_handle(s)
+    keyence(string s) : tty_interface(s)
     {
-        monitor_message = id_short + ": " + df_path;
+        monitor_message = id_long + ": " + df_path;
     }
     ~keyence() {}
 
     void read_offset()
     {
-        tty_send("1");
-        string diff = tty_read();
+        sendtty("1");
+        string diff = readtty();
         offset = stod(diff);
     }
 private:
@@ -131,15 +151,18 @@ private:
 
 class tty_agent : public QObject {
     Q_OBJECT
-    friend class tty_handle;
-
 public:
     tty_agent();
 
 
 public slots:
-    void tty_init(QString);
-    void stage_init(int);
+    void relay_command(int, QString = "");
+
+
+
+
+public slots:
+
     void set_target(int, double);
     void set_velocity(double);
     void move_stage(int);
@@ -159,29 +182,25 @@ signals:
 private:
     QString style_green  = "QLineEdit {background-color: #2DC937; font-weight: bold; color: white;}";
     QString style_yellow = "QLineEdit {background-color: #E7B416; font-weight: bold; color: white;}";
+    sem_t* sem_reply;
+    sem_t* sem_probe;
 
 
-
-    bool scanning = false;
-    bool laser_active = false;
-    bool servo_active = false;
+    bool scanning = false, laser_active = false, servo_active = false;
+    double x_min = 100., x_max = 110., y_min = 100., y_max = 110., x_step = 1, y_step = 1, s_vel = 1;
 
     int servo_interval = 250;
     double servo_threshold = 200.0;
 
     bool next_line = false;
-    double x_min = 100., x_max = 110., y_min = 100., y_max = 110., x_step = 1, y_step = 1, s_vel = 1;
 
     void servo();
     void scan_loop();
     void timer_event();
 
-    struct {
-        class stage *stage[3] = { nullptr };
-        keyence *laser = nullptr;
-
-        bool assigned[4] = { 0 };
-    } devices;
+    keyence *p_laser = nullptr;
+    stage *p_stage [3] = { nullptr };
+    tty_interface *p_interface[4] = { nullptr };
 
     QTimer *update_timer;
     QTimer *servo_timer;

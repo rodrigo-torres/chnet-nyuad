@@ -80,8 +80,8 @@ int main(int argc, char *argv[]) {
 
     QApplication a(argc, argv);
     MainWindow w;
-    //w.resize(1320, 620);
-    w.setFixedSize(1320,680);
+    QSize size = w.sizeHint();
+    w.resize(size);
     w.show();
     return a.exec();
 }

@@ -16,7 +16,7 @@ CC            = gcc
 CXX           = g++
 DEFINES       = -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SQL_LIB -DQT_XML_LIB -DQT_CORE_LIB -DQT_QML_DEBUG
 CFLAGS        = -pipe -g -D_REENTRANT -Wall -W -fPIC $(DEFINES)
-CXXFLAGS      = -pipe -g -std=gnu++11 -D_REENTRANT -Wall -W -fPIC $(DEFINES)
+CXXFLAGS      = -pipe -g -std=gnu++1y -D_REENTRANT -Wall -W -fPIC $(DEFINES)
 INCPATH       = -I. -I. -isystem /usr/include/qt5 -isystem /usr/include/qt5/QtOpenGL -isystem /usr/include/qt5/QtWidgets -isystem /usr/include/qt5/QtGui -isystem /usr/include/qt5/QtSql -isystem /usr/include/qt5/QtXml -isystem /usr/include/qt5/QtCore -I. -isystem /usr/include/libdrm -I/usr/lib64/qt5/mkspecs/linux-g++
 QMAKE         = /usr/local/bin/qmake
 DEL_FILE      = rm -f
@@ -67,7 +67,7 @@ SOURCES       = main.cpp \
 		map_online.cpp \
 		shm.cpp \
 		tty_agent.cpp \
-		tty_handlers.cpp qrc_Resource.cpp \
+		tty_interface.cpp qrc_Resource.cpp \
 		moc_mainwindow.cpp \
 		moc_tty.cpp \
 		moc_dpp.cpp
@@ -86,7 +86,7 @@ OBJECTS       = main.o \
 		map_online.o \
 		shm.o \
 		tty_agent.o \
-		tty_handlers.o \
+		tty_interface.o \
 		qrc_Resource.o \
 		moc_mainwindow.o \
 		moc_tty.o \
@@ -259,7 +259,9 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		../Header.h \
 		../Shm.h \
 		../qt_dependencies.h \
-		map.h main.cpp \
+		enums_and_wrappers.h \
+		map.h \
+		enums_and_wrappers.h main.cpp \
 		dpp_gui.cpp \
 		dpp_main.cpp \
 		mainwindow.cpp \
@@ -274,7 +276,7 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		map_online.cpp \
 		shm.cpp \
 		tty_agent.cpp \
-		tty_handlers.cpp
+		tty_interface.cpp
 QMAKE_TARGET  = maXRF-app
 DESTDIR       = 
 TARGET        = maXRF-app
@@ -631,8 +633,8 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents Resource.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib64/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents mainwindow.h tty.h dpp.h ../Header.h ../Shm.h ../qt_dependencies.h map.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp dpp_gui.cpp dpp_main.cpp mainwindow.cpp mainwindow_gui.cpp mainwindow_menu.cpp mainwindow_conns.cpp external_programs.cpp map_load.cpp map_pixels.cpp map_render.cpp map_mouse.cpp map_online.cpp shm.cpp tty_agent.cpp tty_handlers.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents mainwindow.h tty.h dpp.h ../Header.h ../Shm.h ../qt_dependencies.h enums_and_wrappers.h map.h enums_and_wrappers.h $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp dpp_gui.cpp dpp_main.cpp mainwindow.cpp mainwindow_gui.cpp mainwindow_menu.cpp mainwindow_conns.cpp external_programs.cpp map_load.cpp map_pixels.cpp map_render.cpp map_mouse.cpp map_online.cpp shm.cpp tty_agent.cpp tty_interface.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -673,7 +675,7 @@ compiler_moc_predefs_make_all: moc_predefs.h
 compiler_moc_predefs_clean:
 	-$(DEL_FILE) moc_predefs.h
 moc_predefs.h: /usr/lib64/qt5/mkspecs/features/data/dummy.cpp
-	g++ -pipe -g -std=gnu++11 -D_REENTRANT -Wall -W -dM -E -o moc_predefs.h /usr/lib64/qt5/mkspecs/features/data/dummy.cpp
+	g++ -pipe -g -std=gnu++1y -D_REENTRANT -Wall -W -dM -E -o moc_predefs.h /usr/lib64/qt5/mkspecs/features/data/dummy.cpp
 
 compiler_moc_header_make_all: moc_mainwindow.cpp moc_tty.cpp moc_dpp.cpp
 compiler_moc_header_clean:
@@ -682,6 +684,7 @@ moc_mainwindow.cpp: mainwindow.h \
 		../qt_dependencies.h \
 		../Shm.h \
 		dpp.h \
+		enums_and_wrappers.h \
 		moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
 	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Desktop/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Desktop/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/home/frao/Desktop/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include mainwindow.h -o moc_mainwindow.cpp
@@ -716,6 +719,7 @@ main.o: main.cpp mainwindow.h \
 		../qt_dependencies.h \
 		../Shm.h \
 		dpp.h \
+		enums_and_wrappers.h \
 		../Header.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
@@ -726,6 +730,7 @@ dpp_main.o: dpp_main.cpp mainwindow.h \
 		../qt_dependencies.h \
 		../Shm.h \
 		dpp.h \
+		enums_and_wrappers.h \
 		../Header.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o dpp_main.o dpp_main.cpp
 
@@ -734,6 +739,7 @@ mainwindow.o: mainwindow.cpp ../Header.h \
 		../qt_dependencies.h \
 		../Shm.h \
 		dpp.h \
+		enums_and_wrappers.h \
 		../variables.h \
 		tty.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o mainwindow.cpp
@@ -742,19 +748,22 @@ mainwindow_gui.o: mainwindow_gui.cpp mainwindow.h \
 		../qt_dependencies.h \
 		../Shm.h \
 		dpp.h \
+		enums_and_wrappers.h \
 		../Header.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow_gui.o mainwindow_gui.cpp
 
 mainwindow_menu.o: mainwindow_menu.cpp mainwindow.h \
 		../qt_dependencies.h \
 		../Shm.h \
-		dpp.h
+		dpp.h \
+		enums_and_wrappers.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow_menu.o mainwindow_menu.cpp
 
 mainwindow_conns.o: mainwindow_conns.cpp mainwindow.h \
 		../qt_dependencies.h \
 		../Shm.h \
 		dpp.h \
+		enums_and_wrappers.h \
 		../Header.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow_conns.o mainwindow_conns.cpp
 
@@ -762,19 +771,22 @@ external_programs.o: external_programs.cpp mainwindow.h \
 		../qt_dependencies.h \
 		../Shm.h \
 		dpp.h \
+		enums_and_wrappers.h \
 		../Header.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o external_programs.o external_programs.cpp
 
 map_load.o: map_load.cpp mainwindow.h \
 		../qt_dependencies.h \
 		../Shm.h \
-		dpp.h
+		dpp.h \
+		enums_and_wrappers.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o map_load.o map_load.cpp
 
 map_pixels.o: map_pixels.cpp mainwindow.h \
 		../qt_dependencies.h \
 		../Shm.h \
 		dpp.h \
+		enums_and_wrappers.h \
 		map.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o map_pixels.o map_pixels.cpp
 
@@ -782,6 +794,7 @@ map_render.o: map_render.cpp mainwindow.h \
 		../qt_dependencies.h \
 		../Shm.h \
 		dpp.h \
+		enums_and_wrappers.h \
 		map.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o map_render.o map_render.cpp
 
@@ -789,27 +802,30 @@ map_mouse.o: map_mouse.cpp mainwindow.h \
 		../qt_dependencies.h \
 		../Shm.h \
 		dpp.h \
+		enums_and_wrappers.h \
 		map.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o map_mouse.o map_mouse.cpp
 
 map_online.o: map_online.cpp mainwindow.h \
 		../qt_dependencies.h \
 		../Shm.h \
-		dpp.h
+		dpp.h \
+		enums_and_wrappers.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o map_online.o map_online.cpp
 
 shm.o: shm.cpp mainwindow.h \
 		../qt_dependencies.h \
 		../Shm.h \
 		dpp.h \
+		enums_and_wrappers.h \
 		../Header.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o shm.o shm.cpp
 
 tty_agent.o: tty_agent.cpp tty.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o tty_agent.o tty_agent.cpp
 
-tty_handlers.o: tty_handlers.cpp tty.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o tty_handlers.o tty_handlers.cpp
+tty_interface.o: tty_interface.cpp tty.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o tty_interface.o tty_interface.cpp
 
 qrc_Resource.o: qrc_Resource.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qrc_Resource.o qrc_Resource.cpp

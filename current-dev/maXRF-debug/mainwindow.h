@@ -4,6 +4,7 @@
 #include "../qt_dependencies.h"
 #include <../Shm.h>
 #include <dpp.h>
+#include <cstdint>
 
 class QTextEdit;
 
@@ -16,6 +17,7 @@ public:
 
 class tty_agent;
 
+#include <enums_and_wrappers.h>
 
 using namespace std;
 class MainWindow : public QMainWindow
@@ -34,7 +36,7 @@ public:
     void MENU_CONNECTIONS_CREATOR();
     void handle_connections();
     void SHM_CREATOR();
-    void builder_Menu();
+    void create_menus();
     void start_thread_tty();
 
 
@@ -43,31 +45,25 @@ public:
 
     friend class tty_agent;
 
-    QTabWidget *tabWidget;
     QWidget *tab1;
     QWidget *tab2;
     QWidget *tab3;
-    QWidget *tab4;
 
 public slots:
     void toggle_tab1(bool);
     void toggle_widgets(int);
     void update_monitor(QString, QString, int);
-
     void tab3_set_target();
+    void handle_pushbuttons();
 
-    void handle_device();
+    /* Internal slots */
+    void time_monitor(double);
 
 signals:
-    void df_open(QString);
-
-
-
+    void request_tty_action(int, QString = "");
     void set_target(int, double);
     void keyence_reading(bool);
     void start_servo(bool);
-
-    void abort();
 
 private slots:
 
@@ -82,13 +78,12 @@ private slots:
     void GoOnLine();
     void displayImage_SHM();
     void displaySumImage_SHM();
-    void hideImage();
     void LoadNewFile_SHM();
     void LoadElementsMapSum();
     void writeCompMapLimits(int);
     void SelectChannels();
-    void StartVme();
-    void Stop_Vme();
+    void start_point_daq();
+    void stop_point_daq();
     void set_PMAcquisitionTime();
     void SelDigiCh0();
     void SelDigiCh1();
@@ -110,13 +105,12 @@ private slots:
     void VLC_interface();
     void caenoscilloscope();
 
-    void USB_DAQ();
+    void USB_DAQ(int);
     void OPTICAL_DAQ();
 
     void export_map();
 
     void set_abort_flag();
-    void tty_timer();
 
     void CheckSegFault();
     void SaveTxt();
@@ -128,103 +122,29 @@ public:
     QByteArray MapImage;
 
 private:
+    void openAct();
+    void create_menu_actions();
+
     MainWindowDPP  *d_guiDPP;
-
-    QComboBox *comboBox_XMotor;  ////// Motor Selection
-    QComboBox *comboBox_YMotor;
-    QComboBox *comboBox_ZMotor;
-    QComboBox *element1comboBox;
-    QComboBox *element2comboBox;
-    QComboBox *element3comboBox;
-
-
     QScrollArea *scrollArea;
     QLabel *imageLabel;
 
     QImage *MyImage;
-    double scaleFactor;
-
     QWidget *centralWidget;
-    QMenu *fileMenu;
-    QMenu *MapMenu;
-    QMenu *AcqMenu;
-    QMenu *SpectrumMenu;
 
-    QMenu *TreDMenu;
-    QMenu *TOOLMenu;
-    QMenu *RunMenu;
-    QMenu *HowToMenu;
-
-
-
-    QMenu* SoftWare;
-    QMenu* Kernel;
-    QMenu *ActiveChannel;
-
-    void openAct();
-    void createActions();
-
-
-    QGroupBox *groupBox;
-    QRadioButton *radioUSB;
     QDialog *elementsdlg;
-    QGroupBox *elementsgroupBox;
-    QRadioButton *radioOptical;
-    QVBoxLayout *vbox;
-    QVBoxLayout *elementsLayout;
 
-
-    //FileMenu
-    QAction *openAct1;
-    QAction *MergeTxtAct;
-    QAction *SaveTxtAct;
-    QAction *exitAct;
-    //MapMenu
-    QAction *ChSelAct;
-    QAction *PxAct;
-    QAction *FileReloadAct_SHM;
-    QAction *MapSumReloadAct_SHM;
-    QAction *MapShowAct_SHM;
-    QAction *MapHideAct;
-    QAction *ViewOnLineAct;
-    //QActionGroup *DisplayGroup;
-
-    //   QAction *RunDaq;
-    QAction *SelTime;
-    QAction *DigitizerChannel0;
-    QAction *DigitizerChannel1;
-    QAction *DigitizerChannel0and1;
-    QAction *Changemultidetcalpar;
-    QAction *RunVme;
-    QAction *StopVme;
-    QAction *RateAct;
-
-    //SpectrumMenu
-    QAction *HistoAct;
-    //3DMenu
-    QAction *DueDAct;
-    QAction *TreDAct;
-
-
-    QAction *actionOpen_settings;
-
-    //HOWTOMenu
-    QAction *actionOpen_Info1_1;
-    QAction *actionOpen_Info1_2;
-    QAction *actionOpen_Info2_1;
-
-    QCursor *Cursor;
-
-    QLineEdit *lineEdit_2_tab_4;
+    /* Menu Options */
+    wrapper<QMenu*, widgets::menus> w_menus;
+    wrapper<QAction*, widgets::actions> w_actions;
 
     /* Tab Widget - tab 1 & tab 2. Assign DFs and open FDs */
+    vector<QPushButton*> buttons;
+    wrapper<QSpinBox*, widgets::spinboxes> spinboxes;
+    wrapper<QDoubleSpinBox*, widgets::spinboxes> dspinboxes;
 
     QSpinBox *tab1_df_number[4];
-
-    QPushButton *tab1_df_open[4];
-    QPushButton *tab1_stage_init[3];
-
-    QCheckBox *AUTOFOCUS_ON_pushButton;
+    QCheckBox *laser_checkbox;
     QCheckBox *servo_checkbox;
 
     QPushButton *tab1_stop;
@@ -234,29 +154,22 @@ private:
     QDoubleSpinBox *spinboxTab3[3];
     QPushButton *buttonTab3[9];
 
-    QPushButton *tab3_stop;
     /* Tab Widget - tab 4. Set scan variables */
 
     QDoubleSpinBox *scan_params[7];
 
     QPushButton *tab4_start_scan;
-    QPushButton *SCAN_ABORT_pushButton;
 
     /* Below Tab Widget. Monitors and other scan variables */
 
-    QLineEdit *dev_monitor[4];
+    QLineEdit *dev_monitor[5];
 
-    /* Besides Tab Widget. Utility programs */
-
-    QPushButton *Digitizer_Button;
-    QPushButton *Export_Button;
-    QPushButton *VLC_Button;
-    QPushButton *XRAY_TABLE_Button;
 
 
     QTimer *timer;
     QStatusBar *status;
-
+    QPushButton *OKbutton;
+    QPushButton *CANCELbutton;
 
 public slots:
 
@@ -264,9 +177,7 @@ public slots:
     void enable_servo();
 
 
-private:
-    QPushButton *OKbutton;
-    QPushButton *CANCELbutton;
+
 
 };
 

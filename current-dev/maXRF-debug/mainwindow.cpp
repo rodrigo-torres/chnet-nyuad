@@ -27,8 +27,8 @@ char process[30];
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     SHM_CREATOR();                 /// CREATING SHARED MEMORY SEGMENT
-    createActions();
-    builder_Menu();            	    /// CREATING MENU from Menu.cpp
+    create_menu_actions();
+    create_menus();            	    /// CREATING MENU from Menu.cpp
     GUI_CREATOR();
     handle_connections();
 
@@ -41,11 +41,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     scrollArea->setWidget(imageLabel);
     scrollArea->setAlignment(Qt::AlignCenter);
 
-    timer = new QTimer(this);                                                // TIMER for program control
-    connect(timer, SIGNAL(timeout()), this, SLOT(tty_timer()));
-
     readmultidetcalpar();
-
     start_thread_tty();
 }
 
@@ -65,17 +61,12 @@ void MainWindow::start_thread_tty() {
     connect(this, &MainWindow::keyence_reading, tty_ptr, &tty_agent::enable_servo);
     connect(this, &MainWindow::start_servo, tty_ptr, &tty_agent::start_servo);
 
-    connect(this, &MainWindow::df_open, tty_ptr, &tty_agent::tty_init);
 
     connect(tab4_start_scan, &QPushButton::clicked, tty_ptr, &tty_agent::scan);
 
 
+    connect(this, &MainWindow::request_tty_action, tty_ptr, &tty_agent::relay_command);
 
-    QSignalMapper *mapper_init_stages = new QSignalMapper;
-    for (int i = 0; i < 3; i++) {
-        mapper_init_stages->setMapping(tab1_stage_init[i], i);
-        connect(tab1_stage_init[i], SIGNAL(released()), mapper_init_stages, SLOT(map()));
-    }   connect(mapper_init_stages, SIGNAL(mapped(int)), tty_ptr, SLOT(stage_init(int)));
 
     QSignalMapper *mapperMoveStages = new QSignalMapper();
     for (int i = 0; i < 9; i++) {
@@ -99,14 +90,19 @@ void MainWindow::enable_keyence_reading() {
     emit keyence_reading(active);
 }
 
-void MainWindow::enable_servo() {
+void MainWindow::enable_servo()
+{
     QCheckBox *tmp = static_cast<QCheckBox*>(this->sender());
     bool active = tmp->checkState();
 
-    buttonTab3[2]->setEnabled(active);
-    buttonTab3[7]->setEnabled(active);
-    buttonTab3[8]->setEnabled(active);
-    spinboxTab3[2]->setEnabled(active);
+    typedef widgets::spinboxes en_pb;
+
+    //buttonTab3[2]->setEnabled(active);
+    //buttonTab3[7]->setEnabled(active);
+    //buttonTab3[8]->setEnabled(active);
+
+    //dspinboxes.at(en_pb::targetz)->setEnabled(active);
+    //spinboxTab3[2]->setEnabled(active);
 
     emit start_servo(active);
 }
@@ -115,24 +111,21 @@ void MainWindow::enable_servo() {
 /* Public slots */
 
 
-void MainWindow::toggle_tab1(bool state) {
-    for (int i = 0; i < 3; i++) {
-        tab1_df_number[i]->setEnabled(state);
-        tab1_df_open[i]->setEnabled(state);
-        tab1_stage_init[i]->setEnabled(state);
-    }
+void MainWindow::toggle_tab1(bool state)
+{
+    tab1->setEnabled(state);
+
 }
 
 void MainWindow::toggle_widgets(int id) {
     switch (id) {
     case 0: case 1:
-        tab3->setEnabled(true);
-        break;
-    case 2:
         tab2->setEnabled(true);
         break;
+    case 2:
+        break;
     case 3:
-        AUTOFOCUS_ON_pushButton->setEnabled(true);
+        laser_checkbox->setEnabled(true);
     }
 }
 
@@ -145,8 +138,9 @@ void MainWindow::tab3_set_target() {
     QDoubleSpinBox *tmp = static_cast<QDoubleSpinBox*>(this->sender());
     double number = tmp->value();
 
+    ulong base = widgets::index_of<widgets::spinboxes>(widgets::spinboxes::targetx);
     for (int id = 0; id < 3; id++) {
-        if (tmp == spinboxTab3[id]) emit set_target(id, number);
+        if (tmp == dspinboxes.at(base + id)) emit set_target(id, number);
     }
 }
 
@@ -206,26 +200,6 @@ void MainWindow::readmultidetcalpar() {
     if ((calpar1 != 0 || calpar2 != 0) && scalefactor != 0) printf("... Multidetector parameters found\n");
 }
 
-void MainWindow::hideImage() {
-    if (MapIsOpened) {
-        //QImage startimage("IMG/TT_CHNet_extended_395_395_3.png");
-        //imageLabel->setPixmap(QPixmap::fromImage(startimage));
-        MapIsOpened=false;
-    }
-}
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//                                MAINWINDOW MAIN COMMAND CYCLE --> TIMER_EVENT
-//                                
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-void MainWindow::tty_timer() {
-
-    //if (XYscanning)ScanXY();
-    CheckSegFault();
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //                                MOTOR SETTINGS
@@ -257,9 +231,10 @@ void MainWindow::scan_parameters(double val) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void MainWindow::USB_DAQ()                                  // DAQ VIA USB
+void MainWindow::USB_DAQ(int val)                                  // DAQ VIA USB
 {
-    {DAQ_TYPE=1; qDebug()<<"USB link active..."<<"DAQ_TYPE: "<<DAQ_TYPE;}
+    DAQ_TYPE = val;
+    qDebug()<<"DAQ mode updated";
 }
 
 void MainWindow::OPTICAL_DAQ()                              // DAQ VIA OPTICAL LINK
@@ -277,36 +252,29 @@ void MainWindow::set_PMAcquisitionTime() {
 
 void MainWindow::SelDigiCh0()
 {
-
-    if(DigitizerChannel0->isChecked())
-    {
-
-        *(shared_memory_cmd+100)=0;
-        DigitizerChannel1->setChecked(false); DigitizerChannel0and1->setChecked(false);
-    }
-
+    typedef widgets::actions ac;
+    w_actions.at(ac::daq_channel0)->setChecked(true);
+    w_actions.at(ac::daq_channel1)->setChecked(false);
+    w_actions.at(ac::daq_channel0and1)->setChecked(false);
+    *(shared_memory_cmd+100)=0;
 }
 
 void MainWindow::SelDigiCh1()
 {
-
-    if(DigitizerChannel1->isChecked())
-    {
-        *(shared_memory_cmd+100)=1;
-        DigitizerChannel0->setChecked(false); DigitizerChannel0and1->setChecked(false);
-    }
-
+    typedef widgets::actions ac;
+    w_actions.at(ac::daq_channel0)->setChecked(false);
+    w_actions.at(ac::daq_channel1)->setChecked(true);
+    w_actions.at(ac::daq_channel0and1)->setChecked(false);
+    *(shared_memory_cmd+100)=1;
 }
 
 void MainWindow::SelDigiCh0and1()
 {
-
-    if(DigitizerChannel0and1->isChecked())
-    {
-        *(shared_memory_cmd+100)=2;
-        DigitizerChannel0->setChecked(false); DigitizerChannel1->setChecked(false);
-    }
-
+    typedef widgets::actions ac;
+    w_actions.at(ac::daq_channel0)->setChecked(false);
+    w_actions.at(ac::daq_channel1)->setChecked(false);
+    w_actions.at(ac::daq_channel0and1)->setChecked(true);
+    *(shared_memory_cmd+100)=2;
 }
 
 void MainWindow::CheckSegFault()                           // DAQ: MEMORY CONTROL FOR SEGMENTATION FAULT
@@ -354,7 +322,6 @@ void MainWindow::open_MAP()                                      // MAP: OPEN MA
             return;
         }
         imageLabel->setPixmap(QPixmap::fromImage(image));
-        scaleFactor = 1.0;
     }
 }
 
@@ -748,24 +715,23 @@ void MainWindow::SaveTxt() {
     QFile file2(percorso);
     file2.open(QIODevice::ReadWrite);
     QTextStream out2(&file2);
-    int Ntot = *(shared_memory2+4);
-    out2<<"ver.001"<<'\n';
-    out2<<*(shared_memory_cmd+50)<<'\n';//writes Xmin
-    out2<<*(shared_memory_cmd+51)<<'\n';//writes Xmax
-    out2<<*(shared_memory_cmd+52)<<'\n';//writes Ymin
-    out2<<*(shared_memory_cmd+53)<<'\n';//writes Ymax
-    out2<<*(shared_memory_cmd+60)<<'\n';//writes Xstep
-    out2<<*(shared_memory_cmd+61)<<'\n';//writes Ystep
-    out2<<*(shared_memory_cmd+67)<<'\n';//writes the scan velocity
-    for (int i = 1; i <= Ntot; i++) {
+    out2<<"ver.002"<<'\n';
+    for (auto i : {0, 1, 2, 3, 4, 5, 6})
+    {
+        // Writes the scan parameters to file
+        out2<<(int)(shared_memory5[i]*1000)<<'\n';
+    }
+
+    for (int i = 1; i <= shared_memory2[4]; i++)
+    {
         out2<<*(shared_memory2+10+i)<<'\n';
     }
     file2.close();
 
 
-    string str = percorso.toStdString();
-    char *cstr = &str[0u];
-    printf("[!] File saved in: %s", cstr);
+    //string str = percorso.toStdString();
+    //char *cstr = &str[0u];
+    printf("[!] File saved in: %s", percorso.toStdString().c_str());
 }
 
 
@@ -781,12 +747,15 @@ MainWindow::~MainWindow() {
     int processIDs[7][2] = { { 0 }, { 0 } };
 
     printf("\n... Terminating data acquisition session\n");
-    if (*(shared_memory_cmd+70)) *(shared_memory_cmd+70) = 0;
+    if (shared_memory_cmd[300]) shared_memory_cmd[300] = 0;
 
     for (int i = 0; i < 7; i++) {
         processIDs[i][0] = *(shared_memory_cmd+i+71);
         processIDs[i][1] = *(shared_memory_cmd+i+81);
     }
+
+    test_thread.quit();
+    test_thread.wait();
 
     printf("... Dettaching shared memory segments\n");
     for (int i = 0; i < 8; i++) if (shmid[i] != -1) shmctl(shmid[i], IPC_RMID, 0);
@@ -807,8 +776,7 @@ MainWindow::~MainWindow() {
         }
     }
 
-    test_thread.quit();
-    test_thread.wait();
+
 
 }
 

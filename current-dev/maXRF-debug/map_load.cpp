@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include <fstream>
 #include <time.h>           // For seeding the random distributing function
 using namespace std;
 
@@ -85,7 +86,6 @@ void MainWindow::LoadNewFileWithNoCorrection_SHM() {
 
     printf("Lower bound:\t%.0f\nUpper bound:\t%.0f\n", *(shared_memory5+100), *(shared_memory5+101));
 
-    if (MapIsOpened == true) hideImage();
     printf("... Records in memory:\t%d\n", *(shared_memory2+4));
 
     int j = 0, numdati = 0, casenumber;
@@ -192,6 +192,25 @@ void MainWindow::LoadNewFileWithNoCorrection_SHM() {
     *(shared_memory3+numdati) = -1;
     numdati++;
     *(shared_memory3+numdati) = -2;
+
+    if (false)
+    {
+        //Dump file onto tmp
+        string line;
+        std::ofstream ofile("tmp.txt");
+        if (ofile.is_open())
+        {
+            for (int i = 0; i < numdati + 1; i++)
+            {
+                ofile<<shared_memory3[i]<<'\n';
+            }
+        }
+        else {
+            printf("[!] Unsuccesful dump\n");
+        }
+        ofile.close();
+    }
+
     printf("... Map correctly loaded\n... No pixel correction applied\n");
 }
 
@@ -210,7 +229,6 @@ void MainWindow::LoadSHM_SumMap() {
     int dataread = 0, vectorMap[20000]= { 0 };
     int numdati = 0;
 
-    if (MapIsOpened) hideImage();
 
     int j = 0, casenumber = 10;
     while (j < *(shared_memory2+4)) {

@@ -20,25 +20,25 @@
 QT_BEGIN_MOC_NAMESPACE
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
-struct qt_meta_stringdata_tty_handle_t {
+struct qt_meta_stringdata_tty_interface_t {
     QByteArrayData data[1];
-    char stringdata0[11];
+    char stringdata0[14];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
-    qptrdiff(offsetof(qt_meta_stringdata_tty_handle_t, stringdata0) + ofs \
+    qptrdiff(offsetof(qt_meta_stringdata_tty_interface_t, stringdata0) + ofs \
         - idx * sizeof(QByteArrayData)) \
     )
-static const qt_meta_stringdata_tty_handle_t qt_meta_stringdata_tty_handle = {
+static const qt_meta_stringdata_tty_interface_t qt_meta_stringdata_tty_interface = {
     {
-QT_MOC_LITERAL(0, 0, 10) // "tty_handle"
+QT_MOC_LITERAL(0, 0, 13) // "tty_interface"
 
     },
-    "tty_handle"
+    "tty_interface"
 };
 #undef QT_MOC_LITERAL
 
-static const uint qt_meta_data_tty_handle[] = {
+static const uint qt_meta_data_tty_interface[] = {
 
  // content:
        8,       // revision
@@ -54,7 +54,7 @@ static const uint qt_meta_data_tty_handle[] = {
        0        // eod
 };
 
-void tty_handle::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+void tty_interface::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
     Q_UNUSED(_o);
     Q_UNUSED(_id);
@@ -62,30 +62,30 @@ void tty_handle::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
     Q_UNUSED(_a);
 }
 
-QT_INIT_METAOBJECT const QMetaObject tty_handle::staticMetaObject = { {
+QT_INIT_METAOBJECT const QMetaObject tty_interface::staticMetaObject = { {
     &QObject::staticMetaObject,
-    qt_meta_stringdata_tty_handle.data,
-    qt_meta_data_tty_handle,
+    qt_meta_stringdata_tty_interface.data,
+    qt_meta_data_tty_interface,
     qt_static_metacall,
     nullptr,
     nullptr
 } };
 
 
-const QMetaObject *tty_handle::metaObject() const
+const QMetaObject *tty_interface::metaObject() const
 {
     return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
 
-void *tty_handle::qt_metacast(const char *_clname)
+void *tty_interface::qt_metacast(const char *_clname)
 {
     if (!_clname) return nullptr;
-    if (!strcmp(_clname, qt_meta_stringdata_tty_handle.stringdata0))
+    if (!strcmp(_clname, qt_meta_stringdata_tty_interface.stringdata0))
         return static_cast<void*>(this);
     return QObject::qt_metacast(_clname);
 }
 
-int tty_handle::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+int tty_interface::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
     _id = QObject::qt_metacall(_c, _id, _a);
     return _id;
@@ -133,7 +133,7 @@ void stage::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void 
 }
 
 QT_INIT_METAOBJECT const QMetaObject stage::staticMetaObject = { {
-    &tty_handle::staticMetaObject,
+    &tty_interface::staticMetaObject,
     qt_meta_stringdata_stage.data,
     qt_meta_data_stage,
     qt_static_metacall,
@@ -152,12 +152,12 @@ void *stage::qt_metacast(const char *_clname)
     if (!_clname) return nullptr;
     if (!strcmp(_clname, qt_meta_stringdata_stage.stringdata0))
         return static_cast<void*>(this);
-    return tty_handle::qt_metacast(_clname);
+    return tty_interface::qt_metacast(_clname);
 }
 
 int stage::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
-    _id = tty_handle::qt_metacall(_c, _id, _a);
+    _id = tty_interface::qt_metacall(_c, _id, _a);
     return _id;
 }
 struct qt_meta_stringdata_keyence_t {
@@ -203,7 +203,7 @@ void keyence::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, voi
 }
 
 QT_INIT_METAOBJECT const QMetaObject keyence::staticMetaObject = { {
-    &tty_handle::staticMetaObject,
+    &tty_interface::staticMetaObject,
     qt_meta_stringdata_keyence.data,
     qt_meta_data_keyence,
     qt_static_metacall,
@@ -222,17 +222,17 @@ void *keyence::qt_metacast(const char *_clname)
     if (!_clname) return nullptr;
     if (!strcmp(_clname, qt_meta_stringdata_keyence.stringdata0))
         return static_cast<void*>(this);
-    return tty_handle::qt_metacast(_clname);
+    return tty_interface::qt_metacast(_clname);
 }
 
 int keyence::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
-    _id = tty_handle::qt_metacall(_c, _id, _a);
+    _id = tty_interface::qt_metacall(_c, _id, _a);
     return _id;
 }
 struct qt_meta_stringdata_tty_agent_t {
-    QByteArrayData data[17];
-    char stringdata0[187];
+    QByteArrayData data[16];
+    char stringdata0[181];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -248,23 +248,22 @@ QT_MOC_LITERAL(3, 23, 14), // "update_statbar"
 QT_MOC_LITERAL(4, 38, 14), // "update_monitor"
 QT_MOC_LITERAL(5, 53, 14), // "toggle_widgets"
 QT_MOC_LITERAL(6, 68, 9), // "save_file"
-QT_MOC_LITERAL(7, 78, 8), // "tty_init"
-QT_MOC_LITERAL(8, 87, 10), // "stage_init"
-QT_MOC_LITERAL(9, 98, 10), // "set_target"
-QT_MOC_LITERAL(10, 109, 12), // "set_velocity"
-QT_MOC_LITERAL(11, 122, 10), // "move_stage"
-QT_MOC_LITERAL(12, 133, 17), // "move_double_click"
-QT_MOC_LITERAL(13, 151, 12), // "enable_servo"
-QT_MOC_LITERAL(14, 164, 11), // "start_servo"
-QT_MOC_LITERAL(15, 176, 4), // "scan"
-QT_MOC_LITERAL(16, 181, 5) // "abort"
+QT_MOC_LITERAL(7, 78, 13), // "relay_command"
+QT_MOC_LITERAL(8, 92, 10), // "set_target"
+QT_MOC_LITERAL(9, 103, 12), // "set_velocity"
+QT_MOC_LITERAL(10, 116, 10), // "move_stage"
+QT_MOC_LITERAL(11, 127, 17), // "move_double_click"
+QT_MOC_LITERAL(12, 145, 12), // "enable_servo"
+QT_MOC_LITERAL(13, 158, 11), // "start_servo"
+QT_MOC_LITERAL(14, 170, 4), // "scan"
+QT_MOC_LITERAL(15, 175, 5) // "abort"
 
     },
     "tty_agent\0toggle_tab1\0\0update_statbar\0"
     "update_monitor\0toggle_widgets\0save_file\0"
-    "tty_init\0stage_init\0set_target\0"
-    "set_velocity\0move_stage\0move_double_click\0"
-    "enable_servo\0start_servo\0scan\0abort"
+    "relay_command\0set_target\0set_velocity\0"
+    "move_stage\0move_double_click\0enable_servo\0"
+    "start_servo\0scan\0abort"
 };
 #undef QT_MOC_LITERAL
 
@@ -289,16 +288,16 @@ static const uint qt_meta_data_tty_agent[] = {
        6,    0,  105,    2, 0x06 /* Public */,
 
  // slots: name, argc, parameters, tag, flags
-       7,    1,  106,    2, 0x0a /* Public */,
-       8,    1,  109,    2, 0x0a /* Public */,
-       9,    2,  112,    2, 0x0a /* Public */,
-      10,    1,  117,    2, 0x0a /* Public */,
-      11,    1,  120,    2, 0x0a /* Public */,
-      12,    0,  123,    2, 0x0a /* Public */,
-      13,    1,  124,    2, 0x0a /* Public */,
-      14,    1,  127,    2, 0x0a /* Public */,
-      15,    0,  130,    2, 0x0a /* Public */,
-      16,    0,  131,    2, 0x0a /* Public */,
+       7,    2,  106,    2, 0x0a /* Public */,
+       7,    1,  111,    2, 0x2a /* Public | MethodCloned */,
+       8,    2,  114,    2, 0x0a /* Public */,
+       9,    1,  119,    2, 0x0a /* Public */,
+      10,    1,  122,    2, 0x0a /* Public */,
+      11,    0,  125,    2, 0x0a /* Public */,
+      12,    1,  126,    2, 0x0a /* Public */,
+      13,    1,  129,    2, 0x0a /* Public */,
+      14,    0,  132,    2, 0x0a /* Public */,
+      15,    0,  133,    2, 0x0a /* Public */,
 
  // signals: parameters
     QMetaType::Void, QMetaType::Bool,    2,
@@ -308,7 +307,7 @@ static const uint qt_meta_data_tty_agent[] = {
     QMetaType::Void,
 
  // slots: parameters
-    QMetaType::Void, QMetaType::QString,    2,
+    QMetaType::Void, QMetaType::Int, QMetaType::QString,    2,    2,
     QMetaType::Void, QMetaType::Int,    2,
     QMetaType::Void, QMetaType::Int, QMetaType::Double,    2,    2,
     QMetaType::Void, QMetaType::Double,    2,
@@ -333,8 +332,8 @@ void tty_agent::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, v
         case 2: _t->update_monitor((*reinterpret_cast< QString(*)>(_a[1])),(*reinterpret_cast< QString(*)>(_a[2])),(*reinterpret_cast< int(*)>(_a[3]))); break;
         case 3: _t->toggle_widgets((*reinterpret_cast< int(*)>(_a[1]))); break;
         case 4: _t->save_file(); break;
-        case 5: _t->tty_init((*reinterpret_cast< QString(*)>(_a[1]))); break;
-        case 6: _t->stage_init((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 5: _t->relay_command((*reinterpret_cast< int(*)>(_a[1])),(*reinterpret_cast< QString(*)>(_a[2]))); break;
+        case 6: _t->relay_command((*reinterpret_cast< int(*)>(_a[1]))); break;
         case 7: _t->set_target((*reinterpret_cast< int(*)>(_a[1])),(*reinterpret_cast< double(*)>(_a[2]))); break;
         case 8: _t->set_velocity((*reinterpret_cast< double(*)>(_a[1]))); break;
         case 9: _t->move_stage((*reinterpret_cast< int(*)>(_a[1]))); break;

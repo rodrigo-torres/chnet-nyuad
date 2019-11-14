@@ -55,7 +55,7 @@ void MainWindow::SHM_CREATOR() {
     *(shared_memory_cmd+66)=0;                   /// Z movement (default=0)
     *(shared_memory_cmd+67)=1000;                   /// Scan velocity (default=1 mm/s)
 
-    *(shared_memory_cmd+70)=0;                   /// VME/ADCXRF STATUS (default=0)
+//    *(shared_memory_cmd+70)=0;                   /// VME/ADCXRF STATUS (default=0)
     *(shared_memory_cmd+71)=0;                   /// XRF SPECTRUM STATUS (default=0)
     *(shared_memory_cmd+72)=0;                   /// Digitiser_interface STATUS (default=0)
     *(shared_memory_cmd+73)=0;                   /// Rate mater STATUS (default=0)
@@ -77,10 +77,42 @@ void MainWindow::SHM_CREATOR() {
     *(shared_memory_cmd+101)=1;                  /// Multidetector angular (A) calibration parameter (for sum mode)
     *(shared_memory_cmd+102)=0;                  /// Multidetector linear (B) calibration parameter (for sum mode)
     *(shared_memory_cmd+103)=1;                  /// Multidetector scale factor calibration parameter (number to which parameters A and B parameters must be divided since shared memory does not accept double values)
-    *(shared_memory_cmd+105)=0;
 
     /* Variables for communication between threads, when modifying these always need to be locked */
     *(shared_memory_cmd+200) = 0;
+
+    /* DIGITIZER flags and variables */
+    shared_memory_cmd[300] = 0; // DAQ on AND DAQ mode
+    shared_memory_cmd[301] = 0; // DAQ duration in point mode
+    // Scan parameters
+    shared_memory_cmd[302] = 100000;    // X minimum
+    shared_memory_cmd[303] = 100000;    // X maximum
+    shared_memory_cmd[304] = 100000;    // Y minimum
+    shared_memory_cmd[305] = 110000;    // Y maximum
+    shared_memory_cmd[306] = 1000;  // X step size
+    shared_memory_cmd[307] = 1000;  // Y step size
+    shared_memory_cmd[308] = 1000;  // Scan motors speed
+    shared_memory_cmd[309] = 1;     // Dwell time
+    // Event count rate
+    shared_memory_cmd[310] = 0;
+    // Passing parameters from DPP-PHA interface
+    shared_memory_cmd[320]=0;       // Enable importing parameters
+    shared_memory_cmd[321]=0;       // Input range digitalizzatore (0 -> 0.6V // 1 -> 1.4V
+    shared_memory_cmd[322]=10000;   // Trapezoid Rise Time (ns]
+    shared_memory_cmd[323]=2000;    // Trapezoid Flat Top  (ns]
+    shared_memory_cmd[324]=300000;  // Decay Time Constant (ns] HACK-FPEP the one expected from fitting algorithm?
+    shared_memory_cmd[325]=2000;    // Peaking delay  (ns]
+    shared_memory_cmd[326]=2;       // Trigger Filter smoothing factor
+    shared_memory_cmd[327]=0;       // OFFSET
+    shared_memory_cmd[328]=3000;    // Trigger Hold Off
+    shared_memory_cmd[329]=256;     // BaseLine Mean - ?? 3 = bx10 = 64 samples (baseline mean del trapezio] (...?? 3]
+    shared_memory_cmd[330]=1;       // peak mean (numero punti su cui mediare per peaking del trapezio]
+    shared_memory_cmd[331]=3000;    // peak holdoff (min intervallo tra 2 trapezi...minimo=k[m]
+    shared_memory_cmd[332]=1;       // Trapezoid Gain
+    shared_memory_cmd[333]=100;     // NOT USED: Delay(b] Input Signal Rise time (ns]...sarebbe delay (b]
+    shared_memory_cmd[334]=10;      // NOT USED: Energy Normalization Factor
+    shared_memory_cmd[335]=10;      // Trigger threshold
+
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -106,17 +138,13 @@ void MainWindow::SHM_CREATOR() {
     *(shared_memory+99)=0;           //...News per show pixel histo
     *(shared_memory+100)=0;          //Da questo punto inizia il vettore da plottare per mostrare lo spettro
 
+    /* SHARED MEMORY 2*/
+    shared_memory2[4] = 0;  // Total data per map
+    shared_memory2[5] = 0;  // Total events per map
+    shared_memory2[8] = 0;  // Timer stop flag for change of line
+    shared_memory2[10] = 0; // And onwwards, the mapa data array
 
 
-    *(shared_memory2+1)=0;    // Posiz X
-    *(shared_memory2+2)=0;    // Posiz Y
-
-    *(shared_memory2+4)=0;    // NEvents totali ADC per mappa online
-
-
-    *(shared_memory2+8)=0; //usato per indicare timer stop prime di cambiare righa
-    *(shared_memory2+9)=0; //usato quando l'acquisizione viene chiamata senza scanzione
-    *(shared_memory2+10)=0;	//From this position onwards, starts the map data array from
     ////////////////////////////////////////////// DIGITISER PARAMETERS
 
 
