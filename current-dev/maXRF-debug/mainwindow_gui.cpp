@@ -223,11 +223,11 @@ void MainWindow::GUI_CREATOR() {
     scanLabel3->setText("<b>Speed of scanning stages</b");
 
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++)
+    {
         scan_params[i] = new QDoubleSpinBox(tab3);
         scan_params[i]->setDecimals(2);
-        if (i == 1) scan_params[i]->setMaximum(140);
-        else scan_params[i]->setMaximum(200);
+        scan_params[i]->setMaximum(200);
         scan_params[i]->setSingleStep(0.5);
         scan_params[i]->setValue(100);
         scan_params[i]->setSuffix(" mm");

@@ -21,7 +21,7 @@ void setseed() {
     double seconds;
 
     y2k.tm_hour = 0;	y2k.tm_min = 0; y2k.tm_sec = 0;
-    y2k.tm_year = 15;	y2k.tm_mon = 0; y2k.tm_mday = 1;
+    y2k.tm_year = 30;	y2k.tm_mon = 0; y2k.tm_mday = 1;
 
     time(&timer);
 

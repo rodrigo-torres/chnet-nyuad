@@ -34,6 +34,7 @@ void MainWindow::displayImage_SHM() {
     QStringList items;
     items << tr("Colors") << tr("Gray Scale");
     QString item = QInputDialog::getItem(this, tr("QInputDialog::getItem()"),tr("Using:"), items, 0, false, &ok);
+    double scale = QInputDialog::getDouble(this, "Count Normalization", "Normalization Constant", 1, 0, 1000, 2);
 
     if (ok && !item.isEmpty()) {
         int pos = 0;
@@ -66,10 +67,12 @@ void MainWindow::displayImage_SHM() {
             if (max_i)
             {
                 intensity = static_cast<double>(integral[current]) / max_i;
+                intensity *= scale;
             }
 
 
-            if (item == "Colors") {
+            if (item == "Colors")
+            {
                 int temp = int(intensity * 255);
 
                 int color_r = viridis[temp][0];
