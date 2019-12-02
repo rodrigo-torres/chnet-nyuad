@@ -34,7 +34,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
     imageLabel = new ImgLabel;
 
-    QImage image1("IMG/TT_CHNet_res1.png");
+    QImage image1("IMG/TT_CHNet_res2.png");
     imageLabel->setPixmap(QPixmap::fromImage(image1));
     imageLabel->setBackgroundRole(QPalette::Base);
 
