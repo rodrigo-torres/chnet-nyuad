@@ -387,7 +387,7 @@ void MainWindow::GUI_CREATOR() {
 
     scrollArea = new QScrollArea(dock_tab1);
     scrollArea->setBackgroundRole(QPalette::Dark);
-    scrollArea->setMinimumSize(600, 600);
+    scrollArea->setMinimumSize(450, 450);
 
     dlayout_tab1->addWidget(scrollArea);
     dlayout_tab2->addWidget(dock_label, Qt::AlignCenter);
