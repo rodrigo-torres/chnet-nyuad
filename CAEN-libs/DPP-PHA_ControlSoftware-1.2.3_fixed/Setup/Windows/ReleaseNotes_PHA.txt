@@ -1,0 +1,105 @@
+  -----------------------------------------------------------------------------
+
+                   --- CAEN SpA - Computing Systems Division --- 
+
+  -----------------------------------------------------------------------------
+
+  DPP-PHA Control Software Release Notes
+
+  -----------------------------------------------------------------------------
+
+  Rel. 1.2.3  -  May 2013
+
+  -----------------------------------------------------------------------------
+ 
+
+  Description
+  -----------
+
+  This document is updated for every official release of the CAEN digitizer tool 
+  and it contains various information specific to this software which can not
+  be found in the User's Manual, available together with the software or on 
+  the CAEN web site: www.caen.it.
+
+
+  System Requirements
+  -------------------
+
+  - Java Runtime Environment
+  - Windows 2000/XP/Vista/7
+  - Linux kernel >= 2.4.x
+  
+  What's New in v. 1.2.3
+  --------------------------
+  - Automatic PreTrigger management in Histogram mode.
+  - Bugfix for Data Flush when using Stop Time Function
+  - Bugfix for Channel parameters values when connecting with active channel!=0
+  
+  What's New in v. 1.2.2
+  --------------------------
+  - New Features:
+    - Added confirm on exit if acquisition is Running
+    - For DT5780 boards, added the option to keep High Voltage Channels on
+      when exitig DPP-PHA Control Software
+	- For DT5780 boards, added two leds showing the HV Channels status
+	- New fonts
+  - BugFixes:
+    - Shown traces when copying channels configuration
+	- Software status on sudden board disconnect
+	- Crash when trying to dump in a write-protected path
+  
+  What's New in v. 1.2.1
+  --------------------------
+  - New Features:
+	- Added Log scale for Histogram Mode
+	- Added Time Management system for low trigger rate applications
+	- Added Data Flush at the End of Run
+	- Added Self Trigger Enabled/Disabled
+	- Improved connection speed
+	- Configuration Import/Reset now does't require program restart
+  - BugFixes:
+    - Output files management
+	- Broken Banner for jre > 6
+	- Histogram visualization in case of no trigger
+	- Traces gain and offset
+	- Y Axis range in oscilloscope mode
+	- Selected Traces/Histograms now matches the plot
+	- Traces names shown on the Legend
+	- Switch from VME to Desktop form factor with channels > 3 enabled
+	- Configuration Files standard location now works for all systems
+	- Fixed some x780 Stability and Usability issues
+  
+  What's New in v. 1.2.0
+  --------------------------
+  - Rewritten list dump system, new features:
+	- More performant
+	- More stable
+	- Binary dump of events with format:
+		FILE = |Event|Event|...|Event|Event|
+		Event = (unsigned 64 bit int)TimeTag|(unsigned 16 bit)Energy
+	  See the manual for more details
+  - Some bugfixes related to configuration parsing and parameters initialization
+  - Fixed Acquisition Time issues
+  
+  What's New in v. 1.1.0
+  --------------------------
+  - Added compatibility with CAEN USB Driver >= 3.4.7
+  - Removed compatibility with CAEN USB Driver < 3.4.7
+  
+  What's New in v. 1.0.1
+  --------------------------
+  - Fixed digitizer connection issues on 32 bit systems
+  - Fixed signal visualization issues on 64 bit systems
+
+  What's New in v. 1.0.0
+  --------------------------
+  - first version
+                                            
+
+  How to get support
+  ------------------
+
+  Our Software Support Group is available for questions, support and any other 
+  software related issue concerning CAEN products; for software support
+  visit the page www.caen.it/computing/support.php.
+

@@ -443,7 +443,7 @@ int digitizer::program_digitizer(int handle, DigitizerParams_t Params, CAEN_DGTZ
 	ret |= CAEN_DGTZ_SetDPPParameters(handle, Params.ChannelMask, &DPPParams);
 
 	uint32_t off[2];
-	int32_t p_off[2] = { 37 , 44 };
+	int32_t p_off[2] = { 44 , 44 };
 	if ( abs(p_off[0]) > 50 || abs(p_off[1]) > 50)
 	{
 		printf("[!] Invalid DC offset value\n");

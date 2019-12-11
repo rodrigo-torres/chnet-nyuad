@@ -658,6 +658,76 @@ void xrf_image::prototype_load_map() {
 
 }
 
+namespace img
+{
+
+struct {
+    string str;
+    ifstream input;
+    ofstream output;
+    vector<uint> deta;
+    vector<uint> detb;
+
+    long datum;
+} var;
+
+
+
+}
+
+void MainWindow::load_optimized()
+{
+//    QString text = QFileDialog::getOpenFileName(this, "Open file...",
+//                                                "/home/frao/Desktop/XRFData");
+//    img::var.str = text.toStdString();
+//    img::var.input.open(img::var.str);
+//    img::var.output.open(img::var.str + "_optimized");
+//    img::var.deta = vector<uint>(16384, 0);
+//    img::var.detb = vector<uint>(16384, 0);
+
+//    // Get the header version
+//    getline(img::var.input, img::var.str);
+//    // if string does not contain ver -> legacy load (assuming one detector)
+//            // optimize assuming one det
+//            // deduce and update scan variables
+//    // if ver.001 -> parse header and optimize before loading
+//            // update scan variables
+//            // estimate size of conversion and post to qDebug
+//            // test first energy for detector
+//            // if not multi should default to appropriate case for energies (legacy)
+//            // optimize whilst loading to shm
+//    // if ver.002 -> parse header and directly load optimized
+//            // update scan variables
+//            // load multidetector optimized
+//    // as loading onto shm -> populate pixels
+
+
+
+//    // Parse the header
+//    img::var.datum = -1;
+//    do
+//    {
+//        getline(img::var.input, img::var.str);
+//        img::var.datum = stol(img::var.str);
+//    } while (img::var.datum < masks_pos[0]);
+//    parse_positions();
+
+//    while (getline(img::var.input, img::var.str))
+//    {
+//        img::var.datum = stol(img::var.str);
+//        if (img::var.datum > masks_pos[0])
+//        {
+//            write_preceding();
+//            parse_positions();
+//        }
+//        else
+//            parse_energies();
+//    }
+//    write_preceding();
+//    img::var.input.close();
+//    img::var.output.close();
+}
+
 void MainWindow::LoadTxt()  { // Writes values of binary file into shared memory
     QString loadDir = "/home/frao/Desktop/XRFData";
     QString text = QFileDialog::getOpenFileName(this, "Open file..", loadDir);
@@ -715,7 +785,7 @@ void MainWindow::SaveTxt() {
     QFile file2(percorso);
     file2.open(QIODevice::ReadWrite);
     QTextStream out2(&file2);
-    out2<<"ver.002"<<'\n';
+    out2<<"ver.001"<<'\n';
     for (auto i : {0, 1, 2, 3, 4, 5, 6})
     {
         // Writes the scan parameters to file

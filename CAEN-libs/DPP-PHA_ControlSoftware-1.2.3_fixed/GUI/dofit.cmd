@@ -1,0 +1,1 @@
+fit [xmin:xmax] f(x) PlotData using 1:($$2 > 0 ? $$2 : 1/0):(sqrt($$2)) $0

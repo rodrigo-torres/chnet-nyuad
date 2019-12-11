@@ -1,0 +1,465 @@
+[SETUP_COMMON]
+time_hist_trace_labels		Time Histogram
+energy_hist_trace_labels	Energy Histogram, Energy Histogram Corrected, Pulse Rejection Histogram
+acquisition_modes		Oscilloscope, Histogram
+number_of_channels	8
+list_parameters		Energy, Energy and Time
+list_parameters_runner	ENERGY_ONLY, ENERGY_AND_TIME
+acquisition_modes_runner	OSCILLOSCOPE, LIST
+digitizer_family    _x724
+AMC_FPGA_release    _AMCREL24
+list_out_modes		ASCII, BINARY
+
+[SETUP_PHA_COMMON]
+decimation_options	0:0, 2:1, 4:2, 8:3
+digital_gain_options	1:0, 2:1, 4:2, 8:3
+trigger_mean_options	1:1, 2:2, 4:4, 8:8, 16:16, 32:32
+peakmean_options	1:0, 4:1, 16:2, 64:3
+baselinemean_options		0:0, 16:1, 256:2, 2048:3
+baselinemean_options_tfnew	0:0, 16:1, 64:2, 256:3, 1024:4, 4096:5, 16384:6
+basic_mov_avg		16
+basic_rise_time		0.1
+basic_holdoff		1.3
+basic_peak_delay	-1
+basic_peak_mean		1
+basic_baseline_holdoff	0.1
+basic_peak_holdoff	-1
+input_range_options		9.5:0, 3.7:0, 1.4:0, 0.6:0
+
+[SETUP_PHA_x724]
+trace1_variables		Input, RC-CR, RC-CR2, Trapezoid
+trace1_registryValue	0    , 1        , 2           , 3
+trace1_paramName		VIRTUAL_PROBE_A1
+trace2_variables		Input, Threshold, Trapezoid-BL, Baseline
+trace2_registryValue	0    , 1        , 2           , 3
+trace2_paramName 		VIRTUAL_PROBE_A2
+trace3_variables_tfnew	Trg Window, Armed, Peak Run, Peak Abort, Peaking, Trg Validation Win, Bsl HoldOff, Trg HoldOff, Trg Validation, Acq Veto
+trace3_registryValue	0         ,1     , 2       , 3         , 4      , 5                 , 6          , 7          , 8             , 9
+trace3_paramName 		VIRTUAL_PROBE_D
+trace4_variables		Trigger
+trace4_registryValue	0
+trace4_paramName		NONE
+trace5_variables		NULL
+trace5_registryValue	0
+trace5_paramName		NONE
+trace6_variables		NULL
+trace6_registryValue	0
+trace6_paramName		NONE
+tsamplePha              10
+
+[SETUP_PHA_x780]
+trace1_variables		Input, RC-CR, RC-CR2, Trapezoid
+trace1_registryValue	0    , 1        , 2           , 3
+trace1_paramName		VIRTUAL_PROBE_A1
+trace2_variables		Input, Threshold, Trapezoid-BL, Baseline
+trace2_registryValue	0    , 1        , 2           , 3
+trace2_paramName 		VIRTUAL_PROBE_A2
+trace3_variables_tfnew	Trg Window, Armed, Peak Run, Peak Abort, Peaking, Trg Validation Win, Bsl HoldOff, Trg HoldOff, Trg Validation, Acq Veto
+trace3_registryValue	0         ,1     , 2       , 3         , 4      , 5                 , 6          , 7          , 8             , 9
+trace3_paramName 		VIRTUAL_PROBE_D
+trace4_variables		Trigger
+trace4_registryValue	0
+trace4_paramName		NONE
+trace5_variables		NULL
+trace5_registryValue	0
+trace5_paramName		NONE
+trace6_variables		NULL
+trace6_registryValue	0
+trace6_paramName		NONE
+tsamplePha              10
+
+[SETUP_PSD_COMMON]
+trigger_config_options	PEAK, THRESHOLD
+trigger_mode_options	NORMAL, COINCIDENCE
+dcOffsetFieldPsd_range	      -50,   50, 1
+recordLengthFieldPsd_range	0,16000, 1
+triggerThresholdFieldPsd_range   0, 2000, 1
+tvawFieldPsd_range		0, 1000, 4
+baselineThreshFieldPsd_range	0, 4095, 1
+baselineTimeoutFieldPsd_range	0, 1000, 4
+purGapFieldPsd_range		0, 1000, 4
+
+[SETUP_PSD_x720]
+# The following keys are organized as follows:
+# trace<i>_variables specifies the possible tracks to be shown in the Oscilloscope tab for probe <i>
+# trace<i>_registryValue specifies the values to be passed to CAENDigitizer library function ...SetVirtualProbes...
+# the values MUST be specified in the same order of track names.
+# note that those values are specified as integer, but are related to an enum declared inside CAENDigitizerType.h
+trace1_variables		Input
+trace1_registryValue	0
+trace1_paramName		NONE
+trace2_variables		Baseline, Threshold, to do 1, to do 2
+trace2_registryValue	0       ,1            , 2      , 3
+trace2_paramName		VIRTUAL_PROBE_A
+trace3_variables		Short Gate
+trace3_registryValue	0
+trace3_paramName 		NONE
+trace4_variables		Long Gate
+trace4_registryValue	0
+trace4_paramName		NONE
+trace5_variables		Armed, Trigger, Charge Ready, Pile Up, Bl Out Safe Band, Coincidence Met, Time Val Acq Win
+trace5_registryValue	0    ,1       , 2           , 3      , 4               , 6              , 7
+trace5_paramName		VIRTUAL_PROBE_D1
+trace6_variables		Armed, Trigger, Charge Ready, Pile Up, Bl Out Safe Band, Coincidence Met, Time Val Acq Win
+trace6_registryValue	0    ,1       , 2           , 3      , 4               , 6              , 7
+trace6_paramName		VIRTUAL_PROBE_D2
+charge_sens_options		40:0, 160:1, 640:2, 2560:3
+baselinemean_options	Abs:0, 4:1, 8:2, 16:3, 32:4, 64:5, 128:6
+shortGateFieldPsd_range		4, 4096, 4
+longGateFieldPsd_range		4, 4096, 4
+preGateFieldPsd_range		4, 1000, 4
+preTriggerFieldPsd_range	4, 1000, 4
+triggerThresholdFieldPsd_range   1, 4095, 1
+tsamplePsd					4
+lGate_sGate_minDiffUnitsPsd    1
+sGate_pGate_minDiffUnitsPsd    1
+preTrg_pGate_minDiffUnitsPsd   7
+
+[SETUP_PSD_x790]
+# The following keys are organized as follows:
+# trace<i>_variables specifies the possible tracks to be shown in the Oscilloscope tab for probe <i>
+# trace<i>_registryValue specifies the values to be passed to CAENDigitizer library function ...SetVirtualProbes...
+# the values MUST be specified in the same order of track names.
+# note that those values are specified as integer, but are related to an enum declared inside CAENDigitizerType.h
+charge_sens_options		40:0, 160:1, 640:2, 2560:3
+baselinemean_options	Fixed:0, 8:1, 32:2, 128:3
+shortGateFieldPsd_range		4, 4092, 4
+longGateFieldPsd_range		8, 65532, 4
+preGateFieldPsd_range		4, 1020, 4
+preTriggerFieldPsd_range	4, 2044, 4
+triggerThresholdFieldPsd_range   1, 4095, 1
+tsamplePsd					4
+lGate_sGate_minDiffUnitsPsd    1
+sGate_pGate_minDiffUnitsPsd    1
+preTrg_pGate_minDiffUnitsPsd   7
+trace1_paramName		NONE
+trace2_paramName		VIRTUAL_PROBE_A
+trace3_paramName 		NONE
+trace4_paramName		NONE
+trace5_paramName		VIRTUAL_PROBE_D1
+trace6_paramName		VIRTUAL_PROBE_D2
+
+[SETUP_PSD_x790_AMCREL0]
+trace1_variables		Input
+trace1_registryValue	0
+trace2_variables		Baseline, Threshold
+trace2_registryValue	0       , 1
+trace3_variables		Short Gate
+trace3_registryValue	0
+trace4_variables		Long Gate
+trace4_registryValue	0
+trace5_variables		Armed, Trigger, Charge Ready, Pile Up, Bl Out Safe Band, Coincidence Met, Time Val Acq Win
+trace5_registryValue	0    ,1       , 2           , 3      , 4               , 6              , 7
+trace6_variables		Armed, Trigger, Charge Ready, Pile Up, Bl Out Safe Band, Coincidence Met, Time Val Acq Win
+trace6_registryValue	0    ,1       , 2           , 3      , 4               , 6              , 7
+
+[SETUP_PSD_x790_AMCREL6]
+trace1_variables		Input
+trace1_registryValue	0
+#trace2_variables		Baseline, Threshold
+#trace2_registryValue	0       ,1
+trace2_variables		Baseline
+trace2_registryValue	0
+trace3_variables		Trigger
+trace3_registryValue	0
+trace4_variables		Long Gate
+trace4_registryValue	0
+trace5_variables		External TRG, Over Threshold, Shaped TRG, TRG Val. Acceptance Win., PileUp, Coincidence
+trace5_registryValue	11          , 12            , 13        , 14                      , 15    , 16
+trace6_variables		Short Gate, Over Threshold, TRG Validation, TRG HoldOff, PileUp, Coincidence
+trace6_registryValue	11        , 12            , 13            , 14         , 15    , 16
+
+[SETUP_PSD_x751]
+# The following keys are organized as follows:
+# trace<i>_variables specifies the possible tracks to be shown in the Oscilloscope tab for probe <i>
+# trace<i>_registryValue specifies the values to be passed to CAENDigitizer library function ...SetVirtualProbes...
+# the values MUST be specified in the same order of track names.
+# note that those values are specified as integer, but are related to an enum declared inside CAENDigitizerType.h
+trace1_variables		Input
+trace1_registryValue	0
+trace1_paramName		NONE
+trace2_variables		Baseline
+trace2_registryValue	0
+trace2_paramName		VIRTUAL_PROBE_A
+trace3_variables		Trigger
+trace3_registryValue	0
+trace3_paramName 		NONE
+#trace4_variables		None, OverThreshold, Short Gate
+#trace4_registryValue	10  , 8      , 9
+#trace4_paramName		VIRTUAL_PROBE_D1
+#trace5_variables		None, Short Gate, Long Gate
+#trace5_registryValue	10  , 8         , 9
+#trace5_paramName		VIRTUAL_PROBE_D2
+trace4_variables		Short Gate
+trace4_registryValue	9
+trace4_paramName		VIRTUAL_PROBE_D1
+trace5_variables		Long Gate
+trace5_registryValue	9
+trace5_paramName		VIRTUAL_PROBE_D2
+trace6_variables		NULL
+trace6_registryValue	0
+trace6_paramName		NONE
+charge_sens_options		20:0, 40:1, 80:2, 160:3, 320:4, 640:5
+baselinemean_options	Abs:0, 8:1, 16:2, 32:3, 64:4, 128:5, 256:6, 512:7
+shortGateFieldPsd_range		1, 1023, 1
+longGateFieldPsd_range		1, 1023, 1
+preGateFieldPsd_range		1, 255, 1
+preTriggerFieldPsd_range	1, 8184, 1
+triggerThresholdFieldPsd_range   1, 1023, 1
+tsamplePsd					1
+lGate_sGate_minDiffUnitsPsd    1
+sGate_pGate_minDiffUnitsPsd    1
+preTrg_pGate_minDiffUnitsPsd   4
+
+[SETUP_CI_COMMON]
+baselinemean_options	Fixed:0, 8:1, 32:2, 128:3
+trigger_config_options	PEAK, THRESHOLD
+trigger_mode_options	NORMAL, COINCIDENCE
+charge_sens_options	    40:0, 160:1, 640:2, 2560:3
+dcOffsetFieldCi_range	-50,   50, 1
+recordLengthFieldCi_range	8,32760, 8
+triggerThresholdFieldCi_range   0, 4095, 1
+gateFieldCi_range		8, 16380, 4
+preGateFieldCi_range		4, 1020, 4
+tvawFieldCi_range		0, 2040, 8
+baselineThreshFieldCi_range	0, 16383, 1
+baselineTimeoutFieldCi_range	0, 1000, 4
+preTriggerFieldCi_range		32, 2044, 4
+purGapFieldCi_range		0, 1000, 4
+trghoFieldCi_range      0, 1920, 128
+
+[SETUP_CI_x720]
+trace1_variables		Input
+trace1_registryValue	0
+trace1_paramName		NONE
+trace2_variables		Baseline
+trace2_registryValue	0
+trace2_paramName		VIRTUAL_PROBE_A
+trace3_variables		Trigger
+trace3_registryValue	0
+trace3_paramName 		NONE
+trace4_variables		Gate
+trace4_registryValue	0
+trace4_paramName		NONE
+trace5_variables		Bl Out Safe Band, Bl Timeout, Coincidence Met, Time Val Acq Win
+trace5_registryValue	0               ,1          , 2              , 3
+trace5_paramName		VIRTUAL_PROBE_D1
+trace6_variables		Bl Out Safe Band, Bl Timeout, Coincidence Met, Time Val Acq Win
+trace6_registryValue	0               , 1         , 2              , 3
+trace6_paramName		VIRTUAL_PROBE_D2
+charge_sens_options		40:0, 160:1, 640:2, 2560:3
+gate_pGate_minDiffUnitsCi      1
+preTrg_pGate_minDiffUnitsCi    7
+tsampleCi				4
+
+[GUI_COMMON]
+user_config_directory		%HOME%/.DPP-PHA_ControlSoftware
+runner_exec_file_name		DppRunner_PHA.bin
+runner_config_file_name		DppRunnerConfig.txt
+plot_type			osc
+oscilloscope_plot_mode		wave
+histogram_plot_mode		    energy
+oscilloscope_plot_channel	0
+histogram_plot_channels		2
+logScaleToggle				0
+debugTabEnabled				0
+
+[GUI_PHA]
+show_advanced_settings yes
+
+trace_0_gain	1
+trace_1_gain	1
+trace_2_gain	1
+trace_3_gain	1
+
+trace_10_gain	1
+trace_11_gain	1
+trace_12_gain	1
+trace_13_gain	1
+
+trace_20_gain	100
+trace_21_gain	100
+trace_22_gain	100
+trace_23_gain	100
+trace_24_gain	1000
+trace_25_gain	100
+trace_26_gain	100
+trace_27_gain	100
+trace_28_gain	100
+trace_29_gain	100
+
+trace_30_gain	1000
+
+trace_0_offset	0
+trace_1_offset	0
+trace_2_offset	0
+trace_3_offset	0
+
+trace_10_offset	0
+trace_11_offset	0
+trace_12_offset	0
+trace_13_offset	0
+
+trace_20_offset	0
+trace_21_offset	0
+trace_22_offset	0
+trace_23_offset	0
+trace_24_offset	0
+trace_25_offset	0
+trace_26_offset	0
+trace_27_offset	0
+trace_28_offset	0
+trace_29_offset	0
+
+trace_30_offset	6000
+
+
+[GUI_PSD]
+
+trace_0_gain	1
+
+trace_10_gain	1
+trace_11_gain	1
+trace_12_gain	1
+trace_13_gain	1
+
+trace_20_gain	500
+
+# For x720 DPP-PSD
+trace_30_gain	300
+trace_31_gain	150
+trace_32_gain	300
+trace_33_gain	300
+
+# For x751 DPP-PSD
+trace_38_gain	300
+trace_39_gain	300
+trace_310_gain	300
+
+# For x720 DPP-PSD
+trace_40_gain	200
+trace_41_gain	150
+trace_42_gain	180
+trace_43_gain	1
+trace_44_gain	1
+trace_45_gain	1
+trace_46_gain	1
+trace_47_gain	1
+
+# For x751 DPP-PSD
+trace_48_gain	300
+trace_49_gain	300
+trace_410_gain	300
+
+trace_50_gain	100
+trace_51_gain	100
+trace_52_gain	1
+trace_53_gain	1
+trace_54_gain	1
+trace_55_gain	1
+trace_56_gain	1
+trace_57_gain	1
+
+trace_0_offset	0
+
+trace_10_offset	0
+trace_11_offset	0
+trace_12_offset	0
+trace_13_offset	0
+
+trace_20_offset	0
+
+trace_30_offset	0
+trace_31_offset	0
+trace_32_offset	0
+trace_33_offset	0
+
+# For x751 DPP-PSD
+trace_38_offset	0
+trace_39_offset	0
+trace_310_offset	0
+
+# For x720 DPP-PSD
+trace_40_offset	0
+trace_41_offset	0
+trace_42_offset	0
+trace_43_offset	0
+trace_44_offset	0
+trace_45_offset	0
+trace_46_offset	0
+trace_47_offset	0
+
+# For x751 DPP-PSD
+trace_48_offset	0
+trace_49_offset	0
+trace_410_offset	0
+
+trace_50_offset	0
+trace_51_offset	0
+trace_52_offset	0
+trace_53_offset	0
+trace_54_offset	0
+trace_55_offset	0
+trace_56_offset	0
+trace_57_offset	0
+
+
+[GUI_CI]
+
+trace_0_gain	1
+
+trace_10_gain	1
+trace_11_gain	1
+trace_12_gain	1
+trace_13_gain	1
+
+trace_20_gain	500
+
+trace_30_gain	1000
+
+trace_40_gain	1
+trace_41_gain	1
+trace_42_gain	1
+trace_43_gain	1
+trace_44_gain	1
+trace_45_gain	1
+trace_46_gain	1
+trace_47_gain	1
+
+trace_50_gain	100
+trace_51_gain	100
+trace_52_gain	1
+trace_53_gain	1
+trace_54_gain	1
+trace_55_gain	1
+trace_56_gain	1
+trace_57_gain	1
+
+trace_0_offset	0
+
+trace_10_offset	0
+trace_11_offset	0
+trace_12_offset	0
+trace_13_offset	0
+
+trace_20_offset	0
+
+trace_30_offset	0
+
+trace_40_offset	0
+trace_41_offset	0
+trace_42_offset	0
+trace_43_offset	0
+trace_44_offset	0
+trace_45_offset	0
+trace_46_offset	0
+trace_47_offset	0
+
+trace_50_offset	0
+trace_51_offset	0
+trace_52_offset	0
+trace_53_offset	0
+trace_54_offset	0
+trace_55_offset	0
+trace_56_offset	0
+trace_57_offset	0

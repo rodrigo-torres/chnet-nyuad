@@ -94,6 +94,7 @@ private slots:
     void Pixels();
     void ShowHistogram();
     void RateMeter();
+    void load_optimized();
     void LoadTxt();
     void readmultidetcalpar();
     void Changeparameters();

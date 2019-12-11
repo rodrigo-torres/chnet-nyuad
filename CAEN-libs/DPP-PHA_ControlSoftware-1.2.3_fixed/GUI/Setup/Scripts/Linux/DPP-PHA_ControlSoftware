@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -e
+APPNAME="DPP-PHA_ControlSoftware"
+MAIN_DIR="/etc/$APPNAME/"
+
+# Manage TEMPORARY directory (where log and temp files are written) 
+TMP_VARNAME="TEMP"
+TMP_DIRNAME="/tmp"
+export $TMP_VARNAME=$TMP_DIRNAME
+
+DUMP_VARNAME="DPPCS_DEFDUMPDIR"
+export $DUMP_VARNAME=$HOME
+
+cd $MAIN_DIR
+java -jar $MAIN_DIR/$APPNAME.jar
+
