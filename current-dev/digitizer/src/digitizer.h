@@ -27,9 +27,39 @@
 #include <sys/shm.h>
 #include "../../Shm.h"
 
+#include <vector>
+#include <deque>
+#include <fstream>
+
 #define MAXNB   1
 #define MAXNBITS 14
 #define MaxNChannels 2
+#define NBins 16384
+
+struct params_t
+{
+	params_t(double* ptr) :
+		x_start(ptr[0]), x_end(ptr[1]), x_step(ptr[4]),
+		y_start(ptr[2]), y_end(ptr[3]), y_step(ptr[5]), speed(ptr[6]),
+		x_dim((x_end - x_start) / x_step), y_dim(1 + (y_end - y_start) / y_dim),
+		pixels(x_dim * y_dim), dwell(x_step / speed) {}
+	params_t(const params_t &par2) :
+		x_start(par2.x_start), x_end(par2.x_end), x_step(par2.x_step),
+		y_start(par2.y_start), y_end(par2.y_end), y_step(par2.y_step),
+		x_dim(par2.x_dim), y_dim(par2.y_dim), speed(par2.speed), dwell(par2.dwell),
+		pixels(par2.pixels) {}
+	const uint x_dim;
+	const uint y_dim;
+	const uint pixels;
+	const float x_end;
+	const float y_end;
+	const float x_start;
+	const float y_start;
+	const float x_step;
+	const float y_step;
+	const float speed;
+	const float dwell;
+};
 
 class digitizer
 {
@@ -65,6 +95,10 @@ private:
 	int* shared_memory;
 	int* shared_memory2;
 	double* shared_memory5;
+
+	/* Buffer to write to file */
+	std::vector<std::vector<uint>> buff;
+
 	/* Other variables */
 	struct itimerval it_val;
 	int mask;
@@ -84,6 +118,32 @@ private:
 	CAEN_DGTZ_DPP_PHA_Event_t *Events[MaxNChannels];
 	CAEN_DGTZ_DPP_PHA_Waveforms_t *Waveform;
 
+};
+
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <functional>
+#include <memory>
+#include <list>
+
+
+
+class worker
+{
+public:
+	worker(const params_t&);
+	~worker();
+	void set_buff(std::vector<std::vector<uint>>&&);
+	void create_thread(uint);
+private:
+	void write_pixel(uint);
+
+	params_t params;
+	std::ofstream file;
+	std::vector<std::string> line_buff;
+	std::vector<std::thread> threads;
+	std::vector<std::vector<uint>> buff;
 };
 
 #endif /* SRC_DIGITIZER_H_ */

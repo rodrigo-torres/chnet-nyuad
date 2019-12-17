@@ -10,7 +10,7 @@
 #
 #########################################################################
 OUTDIR  =    	.
-OUTNAME =    	ADCXRF_USB
+OUTNAME =    	digitizer
 OUT     =    	$(OUTDIR)/$(OUTNAME)
 
 CXX =	g++

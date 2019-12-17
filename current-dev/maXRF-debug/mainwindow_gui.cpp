@@ -317,6 +317,7 @@ void MainWindow::GUI_CREATOR() {
     QGroupBox *monitorsBox = new QGroupBox("Status Monitors");
     QVBoxLayout *monitorsLayout = new QVBoxLayout(monitorsBox);
     //monitorsBox->setAlignment(Qt::AlignCenter);
+    //monitorsBox->setFlat(false);
 
 
     QString temp_msg[] = { "Stage X: ", "Stage Y: ", "Stage Z: ", "Servo: " };
@@ -417,5 +418,5 @@ void MainWindow::time_monitor(double val)
     auto total = static_cast<int>(number_lines * time_per_line);
     QString stotal(QString::fromStdString(to_string(total)));
 
-    dev_monitor[0]->setText(stotal);
+    dev_monitor[4]->setText(stotal);
 }

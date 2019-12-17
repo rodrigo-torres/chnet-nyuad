@@ -201,7 +201,7 @@ void image_xrf::optimize()
     datum2 = 0;
     prev_y = map_var.y_min;
     p_in->get_line(line);
-    datum1 = stoul(line);
+     datum1 = stoul(line);
     parse_positions();
 
 
@@ -289,15 +289,15 @@ void image_xrf::parse_energies()
 {
     if (datum1 < masks_det[1] && datum1 >= masks_det[0]) // detA
     {
-//        datum1 -= masks_det[0];
-//        hist.at(datum1) += 1;
+        datum1 -= masks_det[0];
+        hist.at(datum1) += 1;
     }
     else if (datum1 >= masks_det[1])
     {
-        datum1 -= masks_det[1];
-        datum2 = datum1;
-        p_multi->distribute(datum1);
-        hist.at(datum1) += 1;
+//        datum1 -= masks_det[1];
+//        datum2 = datum1;
+//        p_multi->distribute(datum1);
+//        hist.at(datum1) += 1;
     }
 }
 

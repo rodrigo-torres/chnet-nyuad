@@ -7,9 +7,89 @@ using namespace std;
 #define ic 1283
 #define im 6075
 
-/****************************************************
- *  Look into SelectChannels() and OnLine behavior  *
- ****************************************************/
+extern int *shared_memory_cmd, *shared_memory2;
+extern double *shared_memory5;
+
+void MainWindow::SaveTxt() {
+    QString saveDir = "/home/frao/Desktop/XRFData";
+    QString percorso = QFileDialog::getSaveFileName(this,tr("Save as"), saveDir);
+
+    QFile file2(percorso);
+    file2.open(QIODevice::ReadWrite);
+    QTextStream out2(&file2);
+    out2<<"ver.001"<<'\n';
+    for (auto i : {0, 1, 2, 3, 4, 5, 6})
+    {
+        // Writes the scan parameters to file
+        out2<<(int)(shared_memory5[i]*1000)<<'\n';
+    }
+
+    for (int i = 1; i <= shared_memory2[4]; i++)
+    {
+        out2<<*(shared_memory2+10+i)<<'\n';
+    }
+    file2.close();
+
+
+    //string str = percorso.toStdString();
+    //char *cstr = &str[0u];
+    printf("[!] File saved in: %s", percorso.toStdString().c_str());
+}
+
+
+
+
+void MainWindow::load_optimized()
+{
+
+}
+
+void MainWindow::LoadTxt()  { // Writes values of binary file into shared memory
+    QString loadDir = "/home/frao/Desktop/XRFData";
+    QString text = QFileDialog::getOpenFileName(this, "Open file..", loadDir);
+
+    if (!text.isEmpty()) {
+        QFile file(text);
+        if (file.exists()) {
+            file.open(QIODevice::ReadOnly);
+            QString line = file.readLine();
+
+            int i = 0;
+            if (line.startsWith("v")) { // Data with new header protocol
+                line = file.readLine();
+                *(shared_memory_cmd+50) = line.toInt(); // X start
+                line = file.readLine();
+                *(shared_memory_cmd+51) = line.toInt(); // X end
+                line = file.readLine();
+                *(shared_memory_cmd+52) = line.toInt(); // Y start
+                line = file.readLine();
+                *(shared_memory_cmd+53) = line.toInt(); // Y end
+                line = file.readLine();
+                *(shared_memory_cmd+60) = line.toInt(); // X step
+                line = file.readLine();
+                *(shared_memory_cmd+61) = line.toInt(); // Y step
+                line = file.readLine();
+                *(shared_memory_cmd+67) = line.toInt(); // Velocity
+            }
+            else {
+                //*(shared_memory_cmd+60) = QInputDialog::getInt(this, "Set X pixel step", "X step (um):", 500, 1, 2000, 1, nullptr);
+                //*(shared_memory_cmd+61) = QInputDialog::getInt(this, "Set Y pixel step", "Y step (um):", 500, 1, 2000, 1, nullptr);
+
+                *(shared_memory2+10+(++i)) = line.toInt();
+            }
+
+            while (!file.atEnd()) {
+                line = file.readLine();
+                *(shared_memory2+10+(++i)) = line.toInt();
+                if (i == 1) printf("[!] First position: %d\n", *(shared_memory2+10+i));
+            }
+            file.close();
+            *(shared_memory2+4) = i;
+        }
+        else printf("[!] File not found\n");
+    }
+    LoadNewFile_SHM();
+}
 
 long *idum, seed;
 int callstorandom = 0;
