@@ -4,70 +4,89 @@
  *  Created on: Oct 23, 2019
  *      Author: Rodrigo Torres
  */
-#include <src/digitizer.h>
-#include <src/namespaces.h>
+#include "src/namespaces.h"
+#include "src/digitizer.h"
+
+namespace conf
+{
+void set_params_channel1(CAEN_DGTZ_DPP_PHA_Params_t& DPPParams)
+{
+	DPPParams.thr[0]		= 880;	// Trigger Threshold
+	DPPParams.k[0]			= 1100; // Trapezoid Rise Time (ns)
+	DPPParams.m[0]			= 1000;	// Trapezoid Flat Top  (ns)
+	DPPParams.M[0]			= 3100;	// Decay Time Constant (ns)
+	DPPParams.ftd[0]		= 670;	// Peaking delay  (ns)
+	DPPParams.a[0]			= 4; 	// Trigger Filter smoothing factor
+	DPPParams.b[0]			= 200;	// Delay(b)
+	DPPParams.trgho[0]		= 1300;	// Trigger Hold Off
+	DPPParams.nsbl[0]		= 4;	// Baseline mean del trapezio (ordine di comparsa nel menu)
+	DPPParams.nspk[0]		= 2;	// Peak mean (ordine di comparsa nel menu)
+	DPPParams.pkho[0]		= 770;	// Peak holdoff
+	DPPParams.blho[0]		= 100;	// Baseline holdoff del trapezio
+	DPPParams.enf[0]		= 0.3;	// Energy Normalization Factor
+	DPPParams.dgain[0]		= 0;	// Digital Gain (ordine di comparsa nel menu)
+	DPPParams.decimation[0]	= 0;	// Decimation
+}
+void set_params_channel2(CAEN_DGTZ_DPP_PHA_Params_t& DPPParams)
+{
+	DPPParams.thr[1]		= 85;	// Trigger Threshold
+	DPPParams.k[1]			= 810;// Trapezoid Rise Time (ns)
+	DPPParams.m[1]			= 1000;	// Trapezoid Flat Top  (ns)
+	DPPParams.M[1]			= 8000;	// Decay Time Constant (ns)
+	DPPParams.ftd[1]		= 670;	// Peaking delay  (ns)
+	DPPParams.a[1]			= 4; 	// Trigger Filter smoothing factor
+	DPPParams.b[1]			= 100;	// Delay(b)
+	DPPParams.trgho[1]		= 1300;	// Trigger Hold Off
+	DPPParams.nsbl[1]		= 5;	// Baseline mean del trapezio (ordine di comparsa nel menu)
+	DPPParams.nspk[1]		= 3;	// Peak mean (ordine di comparsa nel menu)
+	DPPParams.pkho[1]		= 770;	// Peak holdoff
+	DPPParams.blho[1]		= 100;	// Baseline holdoff del trapezio
+	DPPParams.enf[1]		= 5;	// Energy Normalization Factor
+	DPPParams.dgain[1]		= 0;	// Digital Gain (ordine di comparsa nel menu)
+	DPPParams.decimation[1]	= 0;	// Decimation
+}
+} // namespace conf
+
+// -------------------------------------------------------------------------- //
+// -------------------------------------------------------------------------- //
+// -------------------- CLASS METHODS: Digitizer ---------------------------- //
+// -------------------------------------------------------------------------- //
+// -------------------------------------------------------------------------- //
 
 digitizer::digitizer()
 {
-	shared_memory_cmd = assign_shm<int>(6900, SHMSZ_CMD_STATUS);
-	shared_memory = assign_shm<int>(7000, SHMSZ);
+	set_signals();
 
-	datum_total = 1;
-	flag_newpix = false;
-	flag_sync = true;
+	common::SharedMemory<int> shared_memory_cmd{};
+	if (shared_memory_cmd.open(6900, SHMSZ_CMD_STATUS))
+	{
+		daq_mode = shared_memory_cmd[300];
+		//DEBUG
+		daq_mode = 2;
+		daq_mode == 0 ?
+				daq_enable = false :
+				daq_enable = true;
+		// TODO Maybe assign this to a different variable
+		timer_interval = shared_memory_cmd[301] * 1000;
 
-	mask = 0x3FFF;
-	buffer = NULL;
-	Waveform = NULL;
+		shared_memory_cmd[80] = getpid();
+	}
 
 	memset(&Params, 0, MAXNB * sizeof(DigitizerParams_t));
 	memset(&DPPParams, 0, MAXNB * sizeof(CAEN_DGTZ_DPP_PHA_Params_t));
-
-	shared_memory_cmd[80] = getpid();
 	printf("... DAQ started with process ID: %d\n", getpid());
 }
 
-digitizer::~digitizer()
-{
-	if (handle[0])
-	{
-		close_digitizer();
-	}
+digitizer::~digitizer() {
+	cleanup();
 }
 
 void digitizer::open_digitizer()
 {
 	set_params();
 	start_mca();
-	clear_buffers();
 }
 
-void digitizer::close_digitizer()
-{
-	stop_daq();
-	stop_mca(0);
-}
-
-void digitizer::start_daq()
-{
-	switch (shared_memory_cmd[300])
-	{
-	case 0:
-		printf("[!] DAQ not yet started\n");
-		close_digitizer();
-		break;
-	case 1:
-		daq_point_mode();
-		break;
-	case 2:
-		daq_scan_mode();
-		break;
-	default:
-		printf("[!] Invalid DAQ mode\n");
-		close_digitizer();
-		break;
-	}
-}
 
 void digitizer::set_params()
 {
@@ -107,14 +126,14 @@ void digitizer::start_mca()
 		if (ret)
 		{
 			printf("[!] Can't open digitizer\n");
-			stop_mca(1);
+			exitWithCleanup();
 		}
 
 		ret = CAEN_DGTZ_GetInfo(handle[b], &BoardInfo);
 		if (ret)
 		{
 			printf("[!] Can't read board info\n");
-			stop_mca(1);
+			exitWithCleanup();
 		}
 		printf("\nConnected to CAEN Digitizer Model %s, recognized as board %d\n", BoardInfo.ModelName, b);
 		printf("ROC FPGA Release is %s\n", BoardInfo.ROC_FirmwareRel);
@@ -125,324 +144,151 @@ void digitizer::start_mca()
 		if (MajorNumber != 128)
 		{
 			printf("[!] This digitizer has not a DPP-PHA firmware\n");
-			stop_mca(1);
+			exitWithCleanup();
 		}
 	}
 
-	uint32_t AllocatedSize;
 	for (int b = 0; b < MAXNB; b++)
 	{
 		ret = program_digitizer(handle[b], Params[b], DPPParams[b]);
 		if (ret)
 		{
 			printf("[!] Failed to program the digitizer\n");
-			stop_mca(1);
+			exitWithCleanup();
 		}
 	}
 
+	uint32_t AllocatedSize;
 	ret = CAEN_DGTZ_MallocReadoutBuffer(handle[0], &buffer, &AllocatedSize);
 	ret |= CAEN_DGTZ_MallocDPPEvents(handle[0], (void**)Events, &AllocatedSize);        /* Allocate memory for the events */
 	ret |= CAEN_DGTZ_MallocDPPWaveforms(handle[0], (void**)&Waveform, &AllocatedSize);  /* Allocate memory for the waveforms */
 	if (ret)
 	{
 		printf("[!] Can't allocate memory buffers\n");
-		stop_mca(1);
+		exitWithCleanup();
 	}
 }
 
-void digitizer::clear_buffers()
+
+
+void digitizer::readDataFromDGTZ()
 {
-	/* Clean histogram buffers */
-	int mask = 0x3FFF;
-	for (int ch = 0; ch < mask; ch++)
+	for (int b = 0; b < MAXNB; b++)
 	{
-		shared_memory[100 + ch] = 0;
-		shared_memory[20000 + ch] = 0;
-		shared_memory[40000 + ch] = 0;
-	}
-}
+		ret = CAEN_DGTZ_ReadData(handle[b], CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, buffer, &BufferSize);
+		if (ret)
+			printf("[!] Readout error, code: %d\n", ret);
 
-void digitizer::daq_point_mode()
-{
-	int data = 0x3FFF, caso = 10, eventi = 0;
-	double jlo = 0, jhi = 0;
-	double calGrad = (double)shared_memory_cmd[101] / (double)shared_memory_cmd[103];
-	double calOffs = (double)shared_memory_cmd[102] / (double)shared_memory_cmd[103];
-	calGrad = 1.19815;
-	calOffs = -17.2263;
-
-	multidet multi(calGrad, calOffs);
-	printf("Multidetector parameters: %5.3f %5.3f\n", calGrad, calOffs);
-	//printf("Acquisition debug: %d\n", shared_memory_cmd[300]);
-
-	config_timer();
-	ret = CAEN_DGTZ_SWStartAcquisition(handle[0]);
-	if (ret || !shared_memory_cmd[300])
-		printf("[!] Problem starting acquisition, error code: %d\n", ret);
-	else
-		printf("[!] Acquisition started\n");
-
-	//while (shared_memory_cmd[100]) { // for debug only
-	while (shared_memory_cmd[300])
-	{
-		for (int b = 0; b < MAXNB; b++)
+		if (BufferSize != 0)
 		{
-			ret = CAEN_DGTZ_ReadData(handle[b], CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, buffer, &BufferSize);
+			ret |= CAEN_DGTZ_GetDPPEvents(handle[b], buffer, BufferSize, (void**)Events, NumEvents);
 			if (ret)
-				printf("[!] Readout error, code: %d\n", ret);
+				printf("[!] Data error, code: %d\n", ret);
+		}
+		else {
+			continue;
+		}
 
-			if (BufferSize != 0)
+		for (int ch = 0; ch < MaxNChannels; ch++)
+		{
+			for (int ev = 0; ev < NumEvents[ch]; ev++)
 			{
-				ret |= CAEN_DGTZ_GetDPPEvents(handle[b], buffer, BufferSize, (void**)Events, NumEvents);
-				if (ret)
-					printf("[!] Data error, code: %d\n", ret);
-			}
-
-			for (int ch = 0; ch < MaxNChannels; ch++)
-			{
-				for (int ev = 0; ev < NumEvents[ch]; ev++)
+				if (flag_newpix)
 				{
-					if (BufferSize != 0) data = Events[ch][ev].Energy;
-					else continue;
+					printf("[!] Event writing interrupted\n");
+					break;
+				}
 
-					//if (!(data&(~mask))) caso = 4;
+				int flag = (bool)(data&(0xFFFFC000));
+				data = Events[ch][ev].Energy;
 
-					switch (data&(~mask))
-					{
-					case 0:
-						if (ch == 0)
-						{
-							shared_memory[100 + data] += 1;
-							shared_memory[40000 + data] += 1;
-						}
-						if (ch == 1)
-						{
-							shared_memory[20000 + data] += 1;
-							data = multi.distribute(data);
-							shared_memory[40000 + data] += 1;
-						}
-						eventi++;
-						caso = -1;
-						break;
-					default:
-						ev = NumEvents[ch];
-						break;
-					}
+				switch (data&(~mask))
+				{
+				case 0:
+					data_packet->m_buffer.at(ch).at(data) += 1;
+					eventi++;
+					break;
+				case 1:
+					// TODO a method for reject spectra ??
+					break;
+				default:
+					ev = NumEvents[ch];
+					break;
 				}
 			}
 		}
 	}
-	stop_mca(0);
 }
 
-void digitizer::daq_scan_mode()
+void digitizer::start_daq()
 {
-	key_t key2 = 7200, key5 = 8000;
-	shared_memory2 = assign_shm<int>(key2, SHMSZBIG);
-	shared_memory5 = assign_shm<double>(key5, 4096);
+	// DEBUG only
+	daq_mode = 2;
 
-	/* Set the scan variables */
-	params_t params(shared_memory5);
-//	float x_start = shared_memory5[0];
-//	float y_start = shared_memory5[2];
-//	const float x_step = shared_memory5[4];
-//	const float y_step = shared_memory5[5];
-//	const float speed = shared_memory5[6];
-//	const uint x_pixels = (shared_memory5[1] - x_start) / x_step;
-//	const uint y_pixels = 1 + (shared_memory5[3] - y_start) / y_step;
-	uint current_x = 0;
-	uint current_y = 0;
-	uint current_pix = 0;
+	using daq_writer::DataPacket;
+	using daq_writer::FileWriter;
 
-	worker fwriter(params);
+	if (daq_mode == 2)
+	{
+		writer = std::make_unique<FileWriter>();
+		// Check for valid status from FileWriter
+//		if () {
+//
+//		}
+		data_packet = writer->getEmptyBufferForPixel(current_pix);
+		timer_interval = writer->params_.getDwellTime() * 1000;
 
-	shared_memory_cmd[309] = params.dwell * 1000;
-//	shared_memory_cmd[309] = static_cast<float>(x_step / speed) * 1000;
-//	printf("... Setting %d X steps and %d Y steps and %ds interval\n", x_pixels, y_pixels, shared_memory_cmd[309]);
+		/* Initialize semaphore for process synchronization */
+		sem_probe = sem_open("/daq_probe", 0);
+		sem_reply = sem_open("/daq_reply", 0);
+	}
 
-	/* Set other related variables */
-	int data = 0x3FFF, eventi = 0;
-	double calGrad = (double)shared_memory_cmd[101] / (double)shared_memory_cmd[103];
-	double calOffs = (double)shared_memory_cmd[102] / (double)shared_memory_cmd[103];
-	calGrad = 1.19815;
-	calOffs = -17.2263;
 
-	multidet multi(calGrad, calOffs);
-//	printf("Multidetector parameters: %5.3f %5.3f\n", calGrad, calOffs);
-
-	/* Initialize semaphore for process synchronization */
-	sem_probe = sem_open("/daq_probe", 0);
-	sem_reply = sem_open("/daq_reply", 0);
-//	if (false)
-//	{
-//		stop_mca(0);
-//		sem_post(sem_reply);
-//		sem_close(sem_reply);
-//		sem_close(sem_probe);
-//		return;
-//	}
-	// Construct data buffer
-	typedef std::vector<std::vector<uint>> hist;
-	buff.push_back(std::vector<uint>(16384, 0));
-	buff.push_back(std::vector<uint>(16384, 0));
-
-	scan_sync();
+	configTimer();
 	ret = CAEN_DGTZ_SWStartAcquisition(handle[0]);
-	if (ret || !shared_memory_cmd[300])
+	if (ret || !daq_mode) {
 		printf("[!] Problem starting acquisition, error code: %d\n", ret);
-	else
+	}
+	else {
 		printf("[!] Acquisition started\n");
+	}
 
-//	int x_mask = 0x2FAF080, y_mask = 0x3938700;
-//	int deta_mask = 0x1312D00, detb_mask = 0x1C9C380;
-
-	while (shared_memory_cmd[300])
+	while (daq_enable)
 	{
 		if (flag_newpix)
 		{
-			fwriter.set_buff(std::move(buff));
-			fwriter.create_thread(current_pix++);
-			buff.at(0).clear();
-			buff.at(1).clear();
+			// Cost of calling these two functions is ~ 10ms
+			writer->pushToQueue(std::move(data_packet));
+			data_packet = writer->getEmptyBufferForPixel(++current_pix);
 
-			if (++current_x / params.x_dim)
-			{
-				stop_timer();
-				CAEN_DGTZ_SWStopAcquisition(handle[0]);
-
-				current_x = 0;
-				if (++current_y == params.y_dim)
-				{
-					close_digitizer();
-					sem_post(sem_reply);
-					sem_close(sem_reply);
-					sem_close(sem_probe);
-					printf("[!] End of scan\n");
-					return;
-				}
-				scan_sync();
-				ret = CAEN_DGTZ_SWStartAcquisition(handle[0]);
-				if (ret)
-					printf("[!] Problem starting acquisition, error code: %d\n", ret);
+			if (current_pix / writer->params_.getPixels()) {
+				printf("[!] End of scan\n");
+				sem_post(sem_reply);
+				sem_close(sem_reply);
+				sem_close(sem_probe);
+				daq_enable = false;
+				continue;
 			}
-//			uint opt = (current_x / (x_pixels - 1)) << 1 | (current_y % 2);
-//			switch (opt)
-//			{
-//			case 0:	// Writes positions left to right
-//				x_start += x_step;
-//				current_x++;
-//				shared_memory2[10 + (datum_total++)] = x_start * 1000 + x_mask;
-//				shared_memory2[10 + (datum_total++)] = y_start * 1000 + y_mask;
-//				shared_memory2[4] = datum_total;
-//				break;
-//			case 1:	// Writes positions right to left
-//				x_start -= x_step;
-//				current_x++;
-//				shared_memory2[10 + (datum_total++)] = x_start * 1000 + x_mask;
-//				shared_memory2[10 + (datum_total++)] = y_start * 1000 + y_mask;
-//				shared_memory2[4] = datum_total;
-//				break;
-//			case 2:
-//			case 3:	// Handles change of line
-//				stop_timer();
-//				flag_sync = true;
-//				if (++current_y == y_pixels)
-//				{
-//					close_digitizer();
-//					sem_post(sem_reply);
-//					sem_close(sem_reply);
-//					sem_close(sem_probe);
-//					printf("[!] End of scan\n");
-//					return;
-//				}
-//				y_start += y_step;
-//				current_x = 0;
-//				break;
-//			default:
-//				break;
-//			}
-//			shared_memory[42] = 1; // Informs the Online Map of a new pixel available
+
+			if ( !(current_pix % writer->params_.getXDim()) )
+			{
+				// Sync new line
+				stopTimer();
+				CAEN_DGTZ_SWStopAcquisition(handle[0]);
+				configTimer();
+				ret = CAEN_DGTZ_SWStartAcquisition(handle[0]);
+				if (ret) {
+					printf("[!] Can't start acquisition, error: %d\n", ret);
+				}
+
+			}
 			flag_newpix = false;
 		}
-
-
-// 		if (flag_sync)	// New scan line
-//		{
-// 			//printf("Current x %d and y %d\n", current_x, current_y);
-// 			CAEN_DGTZ_SWStopAcquisition(handle[0]);
-// 			shared_memory2[10 + (datum_total++)] = x_start * 1000 + x_mask;
-// 			shared_memory2[10 + (datum_total++)] = y_start * 1000 + y_mask;
-//			scan_sync();
-//
-//			ret = CAEN_DGTZ_SWStartAcquisition(handle[0]);
-//			if (ret)
-//				printf("[!] Problem starting acquisition, error code: %d\n", ret);
-//		}
-
-		for (int b = 0; b < MAXNB; b++)
-		{
-			ret = CAEN_DGTZ_ReadData(handle[b], CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, buffer, &BufferSize);
-			if (ret)
-				printf("[!] Readout error, code: %d\n", ret);
-
-			if (BufferSize != 0)
-			{
-				ret |= CAEN_DGTZ_GetDPPEvents(handle[b], buffer, BufferSize, (void**)Events, NumEvents);
-				if (ret)
-					printf("[!] Data error, code: %d\n", ret);
-			}
-			else
-				continue;
-
-			for (int ch = 0; ch < MaxNChannels; ch++)
-			{
-				for (int ev = 0; ev < NumEvents[ch]; ev++)
-				{
-					if (flag_newpix)
-					{
-						printf("[!] Event writing interrupted\n");
-						break;
-					}
-
-					data = Events[ch][ev].Energy;
-					int flag = (bool)(data&(0xFFFFC000));
-
-					// Discard events when:
-					// flag_sync evaluates to true, i.e.:
-					// - a new line just started
-					// - a new scan just started
-					// data&(~mask) evaluates to true, i.e.:
-					// - data is larger than 2^14 bits (data&(~mask))
-					switch (flag)
-					{
-					case 0:
-						buff.at(ch).at(data) += 1;
-						shared_memory2[5] = ++eventi;
-//						if (ch == 0)
-//						{
-//							//shared_memory[100 + data] += 1;
-//							//shared_memory[40000 + data] += 1;
-//							//shared_memory2[10 + (datum_total++)] = data + deta_mask;
-//						}
-//						if (ch == 1)
-//						{
-//
-//							shared_memory[20000 + data] += 1;
-//							shared_memory2[10 + (datum_total++)] = data + detb_mask;
-//							data = multi.distribute(data);
-//							shared_memory[40000 + data] += 1;
-//						}
-						break;
-					case 1:
-						// A method for reject spectra ??
-						break;
-					default:
-						break;
-					}
-				}
-			}
-		}
+		readDataFromDGTZ();
 	}
+
+	daq_stopped = true;
+	cleanup();
 }
 
 
@@ -525,70 +371,73 @@ int digitizer::program_digitizer(int handle, DigitizerParams_t Params, CAEN_DGTZ
 	CAEN_DGTZ_WriteRegister(handle, 0x11B4, 0xA);
 }
 
-int digitizer::stop_mca(int raise_flag = 0)
+void digitizer::cleanup()
 {
-	stop_timer();
-	for (int b = 0; b < MAXNB; b++)
-	{
-		CAEN_DGTZ_SWStopAcquisition(handle[b]);
-	}
-	CAEN_DGTZ_FreeReadoutBuffer(&buffer);
-	CAEN_DGTZ_FreeDPPEvents(handle[0], (void**)Events);
-	CAEN_DGTZ_ClearData(handle[0]);
-	CAEN_DGTZ_FreeDPPWaveforms(handle[0], Waveform);
-	int b = 0;
-	printf("[!] Closing digitizer\n");
-	CAEN_DGTZ_CloseDigitizer(handle[b]);
-	shared_memory2[4] = datum_total;
-	printf("[!] %d records in map memory.\n", shared_memory2[4]);
-	if (raise_flag)
-	{
-		exit(1);
+	// Thread-safe clean-up routine
+	// TODO ignore timer?
+	stopTimer();
+
+	// Stop DAQ
+	daq_enable = false;
+
+	// Wait for DAQ to finish last reading
+	int timeout {5};
+	while (!daq_stopped && timeout) {
+		// TODO sleep_for not thread-safe
+		std::this_thread::sleep_for(std::chrono::milliseconds(200));
+		--timeout;
 	}
 
-	return ret;
-}
-
-
-inline void digitizer::scan_sync()
-{
-	/* Synchronization block */
-	// Wait for the motors in position, ready for new line
-	flag_sync = 0;
-	sem_post(sem_reply);
-	sem_wait(sem_probe);
-	config_timer();
-}
-
-void digitizer::stop_daq()
-{	/* Signal DAQ end*/
-	stop_timer();
-	shared_memory_cmd[300] = 0;
-}
-
-inline void digitizer::config_timer()
-{
-	int seconds = 0;
-	switch (shared_memory_cmd[300])
+	if (handle[0])
 	{
-	case 0:
-		printf("[!] DAQ is not active\n");
-		break;
-	case 1:
-		// Sets interval to the DAQ duration
-		seconds = shared_memory_cmd[301] * 1000;
-		break;
+		// TODO this works for 1 board, it'll have to be revisited
+		// when we add more boards
+		for (int b = 0; b < MAXNB; b++)
+		{
+			printf("[!] Closing digitizer board %d\n", b);
+			CAEN_DGTZ_SWStopAcquisition(handle[b]);
+			CAEN_DGTZ_FreeReadoutBuffer(&buffer);
+			CAEN_DGTZ_FreeDPPEvents(handle[b], (void**)Events);
+			CAEN_DGTZ_FreeDPPWaveforms(handle[b], Waveform);
+			CAEN_DGTZ_ClearData(handle[b]);
+			CAEN_DGTZ_CloseDigitizer(handle[b]);
+		}
+	}
+
+	if (writer == nullptr)
+	{
+		daq_writer::FileWriter* ptr = writer.release();
+		delete ptr;
+	}
+
+}
+
+void digitizer::exitWithCleanup()
+{
+	cleanup();
+	exit(1);
+}
+
+
+
+
+
+void digitizer::configTimer()
+{
+	switch (daq_mode)
+	{
 	case 2:
-		// Sets the interval to the scan dwell time
-		seconds = shared_memory_cmd[309];
+		// Wait for the motors in position, ready for new line
+		sem_post(sem_reply);
+		sem_wait(sem_probe);
 		break;
 	default:
-		printf("[!] Unknown DAQ mode in timer");
+		printf("[!] Invalid DAQ mode\n");
 		break;
 	}
 
-	it_val.it_value.tv_sec = seconds / 1000;
-	it_val.it_value.tv_usec = (seconds * 1000) % 1000000;
+	it_val.it_value.tv_sec = timer_interval / 1000;
+	it_val.it_value.tv_usec = (timer_interval * 1000) % 1000000;
 	it_val.it_interval = it_val.it_value;
 	if (setitimer(ITIMER_REAL, &it_val, NULL) == -1)
 	{
@@ -597,7 +446,7 @@ inline void digitizer::config_timer()
 	}
 }
 
-void digitizer::stop_timer()
+void digitizer::stopTimer()
 {
 	it_val.it_value.tv_sec = 0;
 	it_val.it_value.tv_usec = 0;
@@ -605,19 +454,21 @@ void digitizer::stop_timer()
 	if (setitimer(ITIMER_REAL, &it_val, NULL) == -1)
 	{
 		perror("[!] Error setting interval timer");
-		exit(1);
+		exit(1);8
 	}
 }
 
 void digitizer::handle_alarm()
 {
-	switch (shared_memory_cmd[300])
+	daq_mode = 2;
+	switch (daq_mode)
 	{
 	case 0:
 		printf("[!] DAQ is not active\n");
 		break;
 	case 1:
-		stop_daq();
+		stopTimer();
+		daq_enable = false;
 		break;
 	case 2:
 		if (flag_newpix)
@@ -629,97 +480,4 @@ void digitizer::handle_alarm()
 	}
 }
 
-void digitizer::handle_termination(int signal)
-{
-	switch (signal)
-	{
-	case SIGINT:
-	case SIGTERM:
-	case SIGQUIT:
-		printf("[!] Exiting on termination\n");
-		close_digitizer();
-		exit(2);
-		break;
-	default:
-		printf("[!] Unknown signal");
-		break;
-	}
-}
-
-
-template <typename T>
-T* digitizer::assign_shm(key_t key, size_t size)
-{
-	int shm_id = shmget(key, size, IPC_CREAT | 0666);
-	if (shm_id == -1)
-	{
-		printf("[!] Can't obtain an SHM segment ID for key\t%d\n", key);
-		printf("%s\n", strerror(errno));
-		return nullptr;
-	}
-	else
-		return (T*)shmat(shm_id, nullptr, 0);
-}
-
-worker::worker(const params_t& _par) : params(_par)
-{
-	file.open("scan_temp.raw");
-	// Error checking for output file
-	do {
-		line_buff.push_back("");
-	} while (line_buff.size() != params.x_dim);
-}
-
-void worker::set_buff(std::vector<std::vector<uint>>&& other)
-{
-	buff = std::move(other);
-}
-
-void worker::create_thread(uint pix)
-{
-//	std::thread t(&worker::write_pixel, this, pix);
-//	t.detach();
-}
-
-void worker::write_pixel(uint pix)
-{
-	uint index = 0;
-	uint y_coord = pix / params.x_dim;
-	uint x_coord = pix % params.x_dim;
-	if (y_coord % 2)
-		x_coord = (params.x_dim - 1) - x_coord;
-
-	// We need to guard with a mutex
-
-	std::string& str  = line_buff.at(x_coord);
-	str.append("P\t" + std::to_string(x_coord));
-	str.append("\t"  + std::to_string(y_coord) + "\n");
-	for (auto arr : buff)
-	{
-		for (auto i: arr)
-		{
-			if (i)
-			{
-				i |= (index << 14);
-				str.append(std::to_string(i) + "\n");
-			}
-			index++;
-		}
-		index = 0;
-	}
-
-	if (x_coord == params.x_dim - 1)
-	{
-		for (auto& str: line_buff)
-		{
-			file<<str;
-			str.clear();
-		}
-	}
-}
-
-worker::~worker()
-{
-	file.close();
-}
 

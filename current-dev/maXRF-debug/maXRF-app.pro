@@ -17,10 +17,12 @@ CONFIG += console
 # Input
 HEADERS += mainwindow.h tty.h dpp.h ../Header.h ../Shm.h \
     ../qt_dependencies.h \
+    daq_header.h \
     enums_and_wrappers.h \
     map.h \
     enums_and_wrappers.h
 SOURCES += main.cpp \
+           daq_header.cpp \
            dpp_gui.cpp \
            dpp_main.cpp \
            mainwindow.cpp \

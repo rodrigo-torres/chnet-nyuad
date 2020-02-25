@@ -68,6 +68,7 @@ data = np.ndarray((image_xdim, n_channels), dtype=np.float32)
 #ddict = {"Mca a": a, "Mca b": b, "Mca c": c}
 for i in range(image_ydim):
     for j in range(image_xdim):
+       print("%d %d"  % (i, j))
        data[j, :] = map_data[i][j]
     edf = EdfFile.EdfFile("dmedf/%s_%05d.edf" % (sys.argv[1],i), access="wb")
     edf.WriteImage({},data)

@@ -19,7 +19,8 @@ COPTS	=	-fPIC -DLINUX -O2 -g -std=gnu++14
 DEPLIBS	=	-lCAENDigitizer -lm -lc -lrt -lpthread
 INCLUDEDIR = -I./ -I../
 
-OBJS = src/digitizer.o src/main.o
+OBJS = src/digitizer.o src/main.o src/buffer.o
+HEADERS = src/digitizer.h src/Functions.h src/keyb.h src/namespaces.h src/buffer.h
 
 #########################################################################
 
@@ -38,7 +39,7 @@ $(OUT)	:	$(OBJS)
 		if [ ! -d $(OUTDIR) ]; then mkdir -p $(OUTDIR); fi
 		$(CXX) $(FLAGS) -o $(OUT) $(OBJS) $(DEPLIBS)
 
-$(OBJS)	: Makefile
+$(OBJS)	: Makefile $(HEADERS)
 
 %.o	:	%.cpp
 		$(CXX) $(COPTS) $(INCLUDEDIR) -c -o $@ $<

@@ -4,52 +4,42 @@
  *  Created on: Oct 23, 2019
  *      Author: frao
  */
-#include <src/digitizer.h>
+#include "src/digitizer.h"
 
-namespace daq_signals
-{
-static digitizer* mca_handle = nullptr;
 
-static void relay_signal(int signal)
-{
-	if (mca_handle)
-		mca_handle->handle_termination(signal);
-	else
-		printf("[!] CAEN MCA not opened yet");
-}
+static std::unique_ptr<digitizer> mca{nullptr};
 
-static void relay_alarm(int signal)
+extern "C" void relay_signal(int sig)
 {
-	if (mca_handle)
-		mca_handle->handle_alarm();
-	else
-		printf("[!] CAEN MCA not opened yet");
-}
-
-void set_signals()
-{
-	/* Signals */
-	__sighandler_t ret;
-	signal(SIGINT, relay_signal);
-	signal(SIGTERM, relay_signal);
-	signal(SIGQUIT, relay_signal);
-	ret = signal(SIGALRM, relay_alarm);
-	if (ret == SIG_ERR)
-	{
-		perror("[!] Unable to catch SIGALRM");
-		exit(1);
+	if (sig == SIGALRM && mca) {
+		mca->handle_alarm();
+	}
+	else {
+		printf("[!] Exiting on termination\n");
+		mca->exitWithCleanup();
 	}
 }
+
+void digitizer::set_signals()
+{
+	auto f = [](int sig){
+		auto ret = signal(sig, relay_signal);
+		if (ret == SIG_ERR) {
+			printf("[!] Unable to catch signal\n");
+			exit(1);
+		}
+	};
+
+	f(SIGINT);
+	f(SIGTERM);
+	f(SIGQUIT);
+	f(SIGALRM);
 }
 
 int main(int argc, char* argv[])
 {
-	using namespace daq_signals;
-	set_signals();
-	mca_handle = new digitizer;
-	mca_handle->open_digitizer();
-	mca_handle->start_daq();
-	/* Data saving protocol goes here */
-	delete mca_handle;
+	mca = std::make_unique<digitizer>();
+	mca->open_digitizer();
+	mca->start_daq();
 	return 0;
 }
