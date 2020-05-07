@@ -15,27 +15,35 @@ CONFIG += qt warn_on thread
 CONFIG += console
 
 # Input
-HEADERS += mainwindow.h tty.h dpp.h ../Header.h ../Shm.h \
+HEADERS += ../Header.h ../Shm.h \
     ../qt_dependencies.h \
-    daq_header.h \
-    enums_and_wrappers.h \
-    map.h \
-    enums_and_wrappers.h
-SOURCES += main.cpp \
-           daq_header.cpp \
-           dpp_gui.cpp \
-           dpp_main.cpp \
-           mainwindow.cpp \
-           mainwindow_gui.cpp \
-           mainwindow_menu.cpp \
-           mainwindow_conns.cpp \
-           external_programs.cpp \
-           map_load.cpp \
-           map_pixels.cpp \
-           map_render.cpp \
-           map_mouse.cpp \
-           map_online.cpp \
-           shm.cpp \
-           tty_agent.cpp \
-           tty_interface.cpp
+    h/daq_header.h \
+    h/dpp.h \
+    h/enums_and_wrappers.h \
+    h/mainwindow.h \
+    h/map.h \
+    h/tty.h \
+    h/utility_c.h \
+    h/viridis.h \
+    h/xrfimage.h
+SOURCES += \
+           src/daq_header.cpp \
+           src/dpp_gui.cpp \
+           src/dpp_main.cpp \
+           src/external_programs.cpp \
+           src/main.cpp \
+           src/mainwindow.cpp \
+           src/mainwindow_conns.cpp \
+           src/mainwindow_gui.cpp \
+           src/mainwindow_menu.cpp \
+           src/map_load.cpp \
+           src/map_mouse.cpp \
+           src/map_online.cpp \
+           src/map_pixels.cpp \
+           src/map_render.cpp \
+           src/shm.cpp \
+           src/tty_agent.cpp \
+           src/tty_interface.cpp \
+           src/utility_c.c \
+           src/xrf_image.cpp
 RESOURCES += Resource.qrc

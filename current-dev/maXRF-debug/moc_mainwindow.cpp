@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'mainwindow.h'
 **
-** Created by: The Qt Meta Object Compiler version 67 (Qt 5.12.4)
+** Created by: The Qt Meta Object Compiler version 67 (Qt 5.12.5)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
@@ -12,7 +12,7 @@
 #if !defined(Q_MOC_OUTPUT_REVISION)
 #error "The header file 'mainwindow.h' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 67
-#error "This file was generated using the moc from 5.12.4. It"
+#error "This file was generated using the moc from 5.12.5. It"
 #error "cannot be used with the include files from this version of Qt."
 #error "(The moc has changed too much.)"
 #endif
@@ -22,7 +22,7 @@ QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_MainWindow_t {
     QByteArrayData data[54];
-    char stringdata0[713];
+    char stringdata0[722];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -81,10 +81,10 @@ QT_MOC_LITERAL(46, 615, 11), // "OPTICAL_DAQ"
 QT_MOC_LITERAL(47, 627, 10), // "export_map"
 QT_MOC_LITERAL(48, 638, 14), // "set_abort_flag"
 QT_MOC_LITERAL(49, 653, 13), // "CheckSegFault"
-QT_MOC_LITERAL(50, 667, 7), // "SaveTxt"
-QT_MOC_LITERAL(51, 675, 9), // "XrayTable"
-QT_MOC_LITERAL(52, 685, 14), // "LoadSHM_SumMap"
-QT_MOC_LITERAL(53, 700, 12) // "enable_servo"
+QT_MOC_LITERAL(50, 667, 16), // "saveImageXRFData"
+QT_MOC_LITERAL(51, 684, 9), // "XrayTable"
+QT_MOC_LITERAL(52, 694, 14), // "LoadSHM_SumMap"
+QT_MOC_LITERAL(53, 709, 12) // "enable_servo"
 
     },
     "MainWindow\0request_tty_action\0\0"
@@ -105,7 +105,7 @@ QT_MOC_LITERAL(53, 700, 12) // "enable_servo"
     "openDPPInter\0Detector\0Helium_interface\0"
     "VLC_interface\0caenoscilloscope\0USB_DAQ\0"
     "OPTICAL_DAQ\0export_map\0set_abort_flag\0"
-    "CheckSegFault\0SaveTxt\0XrayTable\0"
+    "CheckSegFault\0saveImageXRFData\0XrayTable\0"
     "LoadSHM_SumMap\0enable_servo"
 };
 #undef QT_MOC_LITERAL
@@ -295,7 +295,7 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 46: _t->export_map(); break;
         case 47: _t->set_abort_flag(); break;
         case 48: _t->CheckSegFault(); break;
-        case 49: _t->SaveTxt(); break;
+        case 49: _t->saveImageXRFData(); break;
         case 50: _t->XrayTable(); break;
         case 51: _t->LoadSHM_SumMap(); break;
         case 52: _t->enable_servo(); break;

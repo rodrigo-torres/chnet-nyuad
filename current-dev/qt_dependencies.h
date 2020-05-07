@@ -1,6 +1,14 @@
 #ifndef QT_DEPENDENCIES_H
 #define QT_DEPENDENCIES_H
 
+// From main.cpp
+#include <QSizePolicy>
+#include <QScreen>
+#include <QWidget>
+#include <QThread>
+#include <QDesktopWidget>
+
+
 #include <QMainWindow>
 #include <QLabel>
 #include <QSpinBox>

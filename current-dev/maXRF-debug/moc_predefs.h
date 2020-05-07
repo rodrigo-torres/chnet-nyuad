@@ -175,7 +175,7 @@
 #define __NO_INLINE__ 1
 #define __FLT_MANT_DIG__ 24
 #define __LDBL_DECIMAL_DIG__ 21
-#define __VERSION__ "9.2.1 20190827 (Red Hat 9.2.1-1)"
+#define __VERSION__ "9.3.1 20200408 (Red Hat 9.3.1-2)"
 #define __UINT64_C(c) c ## UL
 #define __cpp_unicode_characters 200704
 #define _STDC_PREDEF_H 1
@@ -211,7 +211,7 @@
 #define __INT_LEAST16_TYPE__ short int
 #define __LDBL_EPSILON__ 1.08420217248550443400745280086994171e-19L
 #define __UINTMAX_C(c) c ## UL
-#define __GNUC_RH_RELEASE__ 1
+#define __GNUC_RH_RELEASE__ 2
 #define __GLIBCXX_BITSIZE_INT_N_0 128
 #define __k8 1
 #define __SIG_ATOMIC_MAX__ 0x7fffffff
@@ -347,7 +347,7 @@
 #define __DEC128_MAX_EXP__ 6145
 #define __FLT32X_HAS_QUIET_NAN__ 1
 #define __ATOMIC_CONSUME 1
-#define __GNUC_MINOR__ 2
+#define __GNUC_MINOR__ 3
 #define __GLIBCXX_TYPE_INT_N_0 __int128
 #define __INT_FAST16_WIDTH__ 64
 #define __UINTMAX_MAX__ 0xffffffffffffffffUL
