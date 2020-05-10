@@ -22,56 +22,63 @@ std::string XRFImage::err_msg()
   return err_msg_;
 }
 
+bool XRFImage::FindPixelWithCoordinates(uint x, uint y, uint * pixel)
+{
+  if ( x >= x_length_ || y >= y_length_)
+  {
+    return false;
+  }
+  *pixel = y * x_length_;
+  // Is the line odd or even?
+  y % 2 == 0 ?
+        *pixel += x :
+      *pixel += (x_length_ - x - 1);
+
+  return true;
+}
+
 void XRFImage::UpdateROIIntegrals()
 {
-  if (roi_low != shared_memory5[100] || roi_high != shared_memory5[101])
+  if (roi_low == shared_memory5[100]  && roi_high == shared_memory5[101])
   {
-    roi_low = shared_memory5[100];
-    roi_high = shared_memory5[101];
-
-    int i_line = 0, channel = 0, count = 0;
-    std::string line;
-    for (auto & p: image_data_)
-    {
-      p->integral = 0;
-
-      file_.seekg(p->first_datum_pos);
-      getline(file_, line);
-      while (line.front() != 'P' && !file_.eof())
-      {
-        i_line = stoi(line);
-        channel = (i_line & 0xFFFC000) >> 14;
-        count = (i_line & 0x3FFF);
-        if (channel > roi_low && channel < roi_high)
-        {
-          p->integral += count;
-        }
-        getline(file_, line);
-        if (file_.eof())
-        {
-          printf("hey");
-        }
-      }
-    }
-
-  }
-  else
-  {
+    // ROI limits haven't changed
     return;
+  }
+
+  roi_low = shared_memory5[100];
+  roi_high = shared_memory5[101];
+
+  int i_line = 0, channel = 0, count = 0;
+  std::string line;
+  for (auto & p: image_data_)
+  {
+    p->integral = 0;
+
+    file_.seekg(p->first_datum_pos);
+    getline(file_, line);
+    while (line.front() != 'P' && !file_.eof())
+    {
+      i_line = stoi(line);
+      channel = (i_line & 0xFFFC000) >> 14;
+      count = (i_line & 0x3FFF);
+      if (channel > roi_low && channel < roi_high)
+      {
+        p->integral += count;
+      }
+      getline(file_, line);
+    }
   }
 }
 
 QImage XRFImage::ConstructQImage(QString mode, int Pixeldim)
 {
-  auto x_len = ComputeXLength();
-  auto y_len = ComputeYLength();
 
   UpdateROIIntegrals();
   auto max_i = ComputeMaxIntegral();
-  auto map_size = x_len * y_len;
-  QImage image(x_len * Pixeldim, y_len * Pixeldim, QImage::Format_RGB32);
+  QImage image(x_length_ * Pixeldim, y_length_ * Pixeldim, QImage::Format_RGB32);
 
   QColor myColor;
+  auto map_size = pixels_in_image_ * Pixeldim * Pixeldim;
   for (long i = 0; i < map_size; ++i)
   {
     double intensity = 0;
@@ -82,7 +89,7 @@ QImage XRFImage::ConstructQImage(QString mode, int Pixeldim)
     }
 
 
-    if (mode == "Colors")
+    if (mode == "Viridis")
     {
       int temp = int(intensity * 255);
 
@@ -92,7 +99,7 @@ QImage XRFImage::ConstructQImage(QString mode, int Pixeldim)
       myColor.setRgb(color_r, color_g, color_b, 255);
     }
 
-    else if ( mode == "Gray Scale" ) {
+    else if ( mode == "Grayscale" ) {
       intensity *= 255;
       myColor.setRgb(int(intensity),int(intensity),int(intensity),255);
     }
@@ -109,24 +116,25 @@ QImage XRFImage::ConstructQImage(QString mode, int Pixeldim)
   return image;
 }
 
-long XRFImage::ComputeXLength()
+void XRFImage::ComputeXLength()
 {
   // TODO error checking
+  x_length_ = 0;
   for (uint i = 1; i <image_data_.size(); ++i)
   {
     // We start the loop from index 1, as index 0 should already have x_coord  = 0
     if (image_data_.at(i)->x_coord == 0)
     {
-      return i; // implicit integer promotion
+      x_length_ = i;
+      break;
     }
   }
-  return 0;
 }
 
-long XRFImage::ComputeYLength()
+void XRFImage::ComputeYLength()
 {
   // TODO error checking
-  return image_data_.back()->y_coord + 1;
+  y_length_ = image_data_.back()->y_coord + 1;
 }
 
 int XRFImage::ComputeMaxIntegral()
@@ -223,6 +231,10 @@ void XRFImage::LoadDataFile(std::string filename)
 
     sum_spectrum_.assign(sum_spectrum.begin(), sum_spectrum.end());
     valid_ = true;
+
+    ComputeXLength();
+    ComputeYLength();
+    pixels_in_image_ = x_length_ * y_length_;
     //sum_spectrum_.shrink_to_fit();
   }
 

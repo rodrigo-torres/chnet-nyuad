@@ -273,7 +273,17 @@ void image_xrf::parse_positions()
     pixels = datum2 * map_var.x_dim + datum1;
     counter++;
 
-    line = "P\x09" + to_string(pixels) + "\x09" + to_string(datum1) + "\x09" + to_string(datum2) + "\x0A";
+    line.clear();
+    line.push_back('P');
+    line.push_back('\t');
+    line.append(to_string(pixels));
+    line.push_back('\t');
+    line.append(to_string(datum1));
+    line.push_back('\t');
+    line.append(to_string(datum2));
+    line.push_back('\n');
+
+    //line = "P\x09" + to_string(pixels) + "\x09" + to_string(datum1) + "\x09" + to_string(datum2) + "\x0A";
     if (datum2 % 2)
     {
         flag_odd = true;

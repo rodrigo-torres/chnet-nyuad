@@ -1,293 +1,135 @@
 #include "h/mainwindow.h"
+#include "h/image_display.h"
 #include "h/xrfimage.h"
-#include "h/map.h"
-#include "h/viridis.h"
 
-extern bool MapIsOpened;
-extern int Pixeldim;
-extern int *shared_memory_cmd, *shared_memory3;
+XRFImage xrf_image {};
+extern double *shared_memory5;
 
-using namespace std;
-vector<int> x_coord;
-vector<int> y_coord;
-vector<int> integral;
-size_t map_size;
-int x_len, y_len, x_step, y_step, min_x, min_y;
+// TODO variable below must be implemented as a user preference variable
+static QString data_directory = "/home/frao/Documents/Workspaces/MAXRF/Data";
+
+void adjust_map_limits() {
+    // Called if energy calibration is active in the spectrum visualization program.
+    QString dir = QDir::currentPath();
+    dir += "/conf/Calibration.txt";
+    QFile file(dir);
+    file.open(QIODevice::ReadOnly);
+    QString a,b;
+    a = file.readLine();
+    b = file.readLine();
+    double const_a = a.toDouble();
+    double const_b = b.toDouble();
+    file.close();
+
+    for (int i = 0; i < 8; i ++) {
+    *(shared_memory5+100+i) -= const_b;
+    *(shared_memory5+100+i) /= const_a;
+    }
+}
+
+void MainWindow::LoadTxt()  {
+    QString filename =
+        QFileDialog::getOpenFileName(this, "Open XRF Image Data File",
+                                     data_directory);
+    if (filename.isEmpty())
+    {
+        QMessageBox msg_box;
+        msg_box.warning(this, "Warning!", "You have chosen an empty filename.\n"
+                         "No image data has been loaded onto memory.");
+        return;
+    }
+
+    xrf_image.LoadDataFile(filename.toStdString());
+    if (xrf_image.is_valid())
+    {
+      // The function below provided the functionality to pass a spectrum
+      //  onto shared memory. With the XRFImage class we can pass straight to
+      //  the DisplayImageSHM
+      // LoadNewFile_SHM();
+      imageLabel->set_image_data(&xrf_image);
+      displayImage_SHM();
+    }
+    else
+    {
+      QMessageBox msg_box;
+      msg_box.critical(this, "Error!",
+                       QString::fromStdString(xrf_image.err_msg()));
+    }
+}
 
 void MainWindow::displayImage_SHM()
 {
-  bool ok=false;
-  QStringList items;
-  items << tr("Colors") << tr("Gray Scale");
-  QString item = QInputDialog::getItem(this, tr("QInputDialog::getItem()"),tr("Using:"), items, 0, false, &ok);
-  //double scale = QInputDialog::getDouble(this, "Count Normalization", "Normalization Constant", 1, 0, 1000, 2);
+  bool valid { false };
+  QString item =
+      QInputDialog::getItem(this, tr("Color Palette"),
+                            tr("Using color palette:"),
+                            { tr("Viridis"), tr("Grayscale") },
+                            0, false, &valid);
 
-
-  QImage image;
-  bool prev_deprecated = true;
-  if (prev_deprecated)
+  if (valid)
   {
-    image = xrf_image.ConstructQImage(item, Pixeldim);
-  }
-  else
-  {
-    int codePosX = 50000000, codePosY = 60000000;
-
-    x_len  = *(shared_memory_cmd+51) - *(shared_memory_cmd+50);
-    y_len  = *(shared_memory_cmd+53) - *(shared_memory_cmd+52);
-    x_step = *(shared_memory_cmd+60);
-    y_step = *(shared_memory_cmd+61);
-    x_len /= x_step;
-    y_len /= y_step;
-
-    map_size = static_cast<size_t>(x_len * y_len + x_len);
-
-    x_coord.clear(); x_coord.reserve(map_size);
-    y_coord.clear(); y_coord.reserve(map_size);
-    integral.clear(); integral.reserve(map_size);
-
-
-    int pos = 0;
-    while (shared_memory3[pos] != -2) {
-      if (shared_memory3[pos] > codePosX) {
-        x_coord.push_back(shared_memory3[pos] - codePosX); pos++;
-        y_coord.push_back(shared_memory3[pos] - codePosY); pos++;
-        integral.push_back(shared_memory3[pos]); pos++;
-      }
-      else pos++;
-    }
-
-    min_x = *min_element(begin(x_coord), end(x_coord));
-    min_y = *min_element(begin(y_coord), end(y_coord));
-    int max_i = *max_element(begin(integral), end(integral));
-
-
-    for (size_t s = 0; s < map_size; s++) {
-      x_coord[s] = (x_coord[s] - min_x) / x_step;
-      y_coord[s] = (y_coord[s] - min_y) / y_step;
-    }
-
-    x_len = x_len * Pixeldim;
-    y_len = (y_len + 1) * Pixeldim;
-
-
-
-    MapIsOpened = true;
-    image = QImage(x_len, y_len, QImage::Format_RGB32);
-
-    QColor myColor;
-    for (size_t current = 0; current < map_size; current++ ) {
-      double intensity = 0;
-      if (max_i)
-      {
-        intensity = static_cast<double>(integral[current]) / max_i;
-        //intensity *= scale;
-      }
-
-
-      if (item == "Colors")
-      {
-        int temp = int(intensity * 255);
-
-        int color_r = viridis[temp][0];
-        int color_g = viridis[temp][1];
-        int color_b = viridis[temp][2];
-        myColor.setRgb(color_r, color_g, color_b, 255);
-      }
-
-      else if ( item == "Gray Scale" ) {
-        intensity *= 255;
-        myColor.setRgb(int(intensity),int(intensity),int(intensity),255);
-      }
-
-      int x_corner = x_coord[current] * Pixeldim;
-      int y_corner = y_coord[current] * Pixeldim;
-
-      for (int j = 0; j < Pixeldim; j++) {
-        for (int i = 0; i < Pixeldim; i++){
-          image.setPixel(x_corner + i, y_corner + j, myColor.rgb());
-        }
-      }
-    }
-  }
-
-  if (ok && !item.isEmpty())
-  {
-    QCursor cursor(QPixmap::fromImage(image));
-    cursor.setShape(Qt::PointingHandCursor);
-
-    delete imageLabel;
-    imageLabel = new ImgLabel;
-    imageLabel->setPixmap(QPixmap::fromImage(image));
-    imageLabel->setCursor(cursor);
+    //QImage image = xrf_image.ConstructQImage(item, Pixeldim);
+    imageLabel->DisplayImage(item);
 
     scrollArea->setWidget(imageLabel);
     scrollArea->setBackgroundRole(QPalette::Dark);
-
-    QBuffer buffer(&MapImage);
-    buffer.open(QIODevice::WriteOnly);
-    image.save(&buffer, "PNG");
-
   }
 }
 
-void MainWindow::displaySumImage_SHM() { // Displays a composed map (sum of up to 3 different energy peaks)
+void MainWindow::export_map()
+{
+  QImage image = imageLabel->qimage();
+  if (!image.isNull())
+  {
+    QString filename =
+        QFileDialog::getSaveFileName(this, "Save image as PNG", data_directory,
+                                     tr("Images (*.png)"));
 
-
-  //    QString l;
-
-  //    pixel_Xstep = *(shared_memory_cmd+60);
-  //    pixel_Ystep = *(shared_memory_cmd+61);
-
-  //    int MaxX=-1, MaxY=-1, MinX=10000000, MinY=10000000;
-  //    int MaxIntegral1 = 0, MaxIntegral2 = 0, MaxIntegral3 = 0;
-  //    double Integral1[50000] = {0}, Integral2[50000] = {0}, Integral3[50000] = {0};
-  //    point=0;
-  //    int k=0;
-  //    int s=0;
-
-  //    if (!MapIsOpened) {
-  //        int histopos = 0;
-  //        MapIsOpened = true;
-  //        bool ok = false;
-  //        QStringList items;
-  //        QString itemLabel;
-  //        items << tr("Colors") << tr("Gray Scale");
-  //        QString item = QInputDialog::getItem(this, tr("QInputDialog::getItem()"),tr("Using:"), items, 0, false, &ok);
-  //        if (ok && !item.isEmpty()) {
-  //            itemLabel=item;
-  //            int data_number=0;
-  //            printf("MaxIntegral1:%d, MaxIntegral2:%d, MaxIntegral3:%d\n", MaxIntegral1, MaxIntegral2, MaxIntegral3);
-  //            while(*(shared_memory3+histopos)!=-2)  // "-2" is written at the end of the file
-  //            { //qDebug()<<*(shared_memory3+histopos); sleep(1);
-  //                data_number++;
-  //                if(k<5)
-  //                {
-  //                    X[point]=*(shared_memory3+histopos);
-
-
-  //                    k++;
-  //                    histopos++;
-  //                    if(X[point]>MaxX) MaxX=X[point];
-  //                    if(X[point]<MinX) MinX=X[point];
-
-
-  //                    Y[point]=*(shared_memory3+histopos);
-
-  //                    k++;
-  //                    histopos++;
-  //                    if(Y[point]>MaxY) MaxY=Y[point];
-  //                    if(Y[point]<MinY) MinY=Y[point];
-
-  //                    Integral1[point]=*(shared_memory3+histopos);
-  //                    k++;
-  //                    histopos++;
-  //                    Integral2[point]=*(shared_memory3+histopos);
-  //                    k++;
-  //                    histopos++;
-  //                    Integral3[point]=*(shared_memory3+histopos);
-  //                    k++;
-  //                    histopos++;
-  //                    if(Integral1[point]>MaxIntegral1) {MaxIntegral1=Integral1[point];}//printf("Integral1:%f\n", Integral1[point]);
-  //                    if(Integral2[point]>MaxIntegral2) {MaxIntegral2=Integral2[point];}//printf("Integral2:%f\n", Integral2[point]);
-  //                    if(Integral3[point]>MaxIntegral3) {MaxIntegral3=Integral3[point];}//printf("Integral3:%f\n", Integral3[point]);
-
-  //                    //	  qDebug()<<"X[point]="<<X[point]<<"Y[point]="<<Y[point]<<"Integral="<<Integral[point]<<"\n";
-  //                }
-
-  //                else
-  //                {
-  //                    histopos++;
-  //                }
-
-  //                if(*(shared_memory3+histopos)==-1)
-  //                {
-  //                    point++;
-  //                    k=0;
-  //                    histopos++;
-
-
-  //                }
-  //                //qDebug()<<data_number;
-  //            }
-  //            printf("MaxIntegral1:%d, MaxIntegral2:%d, MaxIntegral3:%d\n", MaxIntegral1, MaxIntegral2, MaxIntegral3);
-  //            for (s=0; s<point; s++)
-  //            {
-  //                Xmap[s]=(X[s]-MinX)/pixel_Xstep;
-  //                Ymap[s]=(Y[s]-MinY)/pixel_Ystep;
-  //            }
-  //            MaxX=(MaxX-MinX)/pixel_Xstep;
-  //            MinX=0;
-  //            MaxY=(MaxY-MinY)/pixel_Ystep;
-  //            MinY=0;
-
-  //            Define_Pixels(); //definisce quelli che dovranno essere colorati in base a Pixeldim...ci si accede con Pointer
-
-  //            if(Pixeldim>1)
-  //            {
-  //                MinX=MinX-int(Pixeldim/2);
-  //                MaxX=MaxX+int(Pixeldim/2);
-  //                MinY=MinY-int(Pixeldim/2);
-  //                MaxY=MaxY+int(Pixeldim/2);
-  //            }
-  //            OffsetX=int((PixelX-(MaxX+MinX))/2);  //per centrare la mappa nella finestra
-  //            OffsetY=int((PixelY-(MaxY+MinY))/2);
-
-  //            qDebug()<<"MaxX"<<MaxX<<"MinX"<<MinX<<"MaxY"<<MaxY<<"MinY"<<MinY<<'\n';
-  //            qDebug()<<"OFFSET x "<<OffsetX<<" OFFSET y "<<OffsetY<<'\n';
-  //            qDebug()<<"pixel x:"<<PixelX<<"pixel y:"<<PixelY<<"points:"<<point<<"PixelDim:"<<Pixeldim<<'\n';
-
-
-  //            MyImage = new QImage(PixelX, PixelY, QImage::Format_RGB32);
-  //            MyImage->fill(QColor(Qt::black).rgb());
-
-
-  //            QColor myColor;
-  //            for(int current=0; current<point; current++)
-  //            {
-  //                    double intensity1=(Integral1[current]/MaxIntegral1)*255;if(MaxIntegral1==0)intensity1=0;
-  //                    double intensity2=(Integral2[current]/MaxIntegral2)*255;if(MaxIntegral2==0)intensity2=0;
-  //                    double intensity3=(Integral3[current]/MaxIntegral3)*255;if(MaxIntegral3==0)intensity3=0;
-
-  //                    if(itemLabel=="Colors")
-  //                    {
-  //                        myColor.setRgb(int(intensity1),int(intensity2),int(intensity3),255);
-
-  //                    }
-  //                    else
-  //                        if(itemLabel=="Gray Scale")
-  //                        {
-  //                            //intensity=intensity*255;
-  //                            myColor.setRgb(0,0,0,255);
-  //                        }
-
-  //                    for(int c=0;c<(Pixeldim*Pixeldim);c++)
-  //                        MyImage->setPixel(PixelX-Pointer[current].total[c].point_x-OffsetX,PixelY-Pointer[current].total[c].point_y-OffsetY, myColor.rgb());
-
-
-
-  //            }  //chiude for
-
-  //            qDebug()<<"loop ended";
-
-  //            imageLabel->setPixmap(QPixmap::fromImage(*MyImage));
-  //            scaleFactor = 1.0;
-  //            Cursor= new QCursor (QPixmap::fromImage(*MyImage),-1,-1 );
-  //            Cursor->setShape(Qt::PointingHandCursor);
-  //            imageLabel->setCursor(*Cursor);
-
-
-  //            QBuffer buffer(&MapImage);
-  //            buffer.open(QIODevice::WriteOnly);
-  //            MyImage->save(&buffer, "PNG"); // writes image into QByteArray MapImage in PNG format
-
-
-  //        } //chiude if(ok...)
-  //        else
-  //            hideImage();
-
-  //    } //chiude if(MapIsOpened)
-
-
+    if (!filename.isEmpty())
+    {
+      if (!filename.endsWith(".png"))
+      {
+        filename.append(".png");
+      }
+      QFile file {filename};
+      file.open(QIODevice::WriteOnly);
+      if (image.save(&file))
+      {
+        file.close();
+        filename.prepend("... File saved in: ");
+        // TODO add indication
+        //status->showMessage(fileName, 30);
+      }
+    }
+  }
+  //else status->showMessage("[!] No image loaded", 30000);
 }
+
+
+// TODO
+// Functionality to be implemented through the XRFImage class
+[[deprecated]] void MainWindow::displaySumImage_SHM() { }
+
+// Data saving is now handled by the DAQ protocol
+[[deprecated]] void MainWindow::saveImageXRFData() {}
+
+// Originally introduced to load the new data format. Now the new data format
+//  is loaded by default. And should the format be different, the program
+//  triggers a file conversion. A new file with the optimized data format is
+//  created while leaving the previous untouched.
+[[deprecated]] void MainWindow::load_optimized() {}
+
+// It originally copied the contents of a file onto a shared memory segment
+//  in this case, shared_memory2. It also populated the correct scan parameters
+// With the new data format this is no longer needed, and load times are
+//  optimized. We should only trigger a file conversion from the old format
+//  to the new format when the header version is not recognized.
+[[deprecated]] void MainWindow::LoadNewFileWithNoCorrection_SHM() { }
+
+// It took the values on shared_memory2 to create an optimized parse
+//  of the data in a different shared memory segment, shared_memory3
+// It also computed the ROI integrals. This functionality is all replicated
+//  in the new xrf_image object through the roi_integrals member of the
+//  Pixel structure.
+[[deprecated]] void MainWindow::LoadSHM_SumMap() { }
 

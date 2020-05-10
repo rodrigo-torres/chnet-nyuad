@@ -1,4 +1,5 @@
 ﻿#include "h/mainwindow.h"
+#include <QTextEdit>
 #include <QToolBox>
 #include <QStackedWidget>
 #include <QDockWidget>
@@ -296,7 +297,7 @@ void MainWindow::GUI_CREATOR() {
     /* ################################################################# */
 
 
-    QGroupBox *groupBox = new QGroupBox("DAQ && Scan Settings");
+    QGroupBox *groupBox = new QGroupBox("DAQ && Scan Settings", this);
 
     QComboBox *daq_combo = new QComboBox(groupBox);
     daq_combo->insertItems(0, QStringList()<<"Optical"<<"USB");
@@ -305,6 +306,7 @@ void MainWindow::GUI_CREATOR() {
     QVBoxLayout *daq_layout = new QVBoxLayout(groupBox);
     daq_layout->addWidget(daq_combo);
 
+    groupBox->setFlat(true);
     groupBox->adjustSize();
     groupBox->setFixedSize(groupBox->size());
 
@@ -352,6 +354,7 @@ void MainWindow::GUI_CREATOR() {
     tab1_stop->setStyleSheet("QPushButton {background-color: #7C0A02; font-weight: bold; color: white;}");
 
     monitorsLayout->addWidget(tab1_stop);
+    monitorsBox->setFlat(true);
     monitorsBox->adjustSize();
     monitorsBox->setFixedSize(monitorsBox->size());
 
@@ -400,12 +403,22 @@ void MainWindow::GUI_CREATOR() {
     dock ->setAllowedAreas(Qt::AllDockWidgetAreas);
 
 
+    // Debug console
+    auto debug_console_groupbox = new QGroupBox{ tr("Debug Console") };
+    auto debug_console_layout = new QVBoxLayout{};
+
+    debug_console_ = new QTextEdit{};
+    debug_console_layout->addWidget(debug_console_);
+    //debug_console_layout->addStretch(1);
+    debug_console_groupbox->setLayout(debug_console_layout);
+    debug_console_groupbox->setFlat(true);
 
     //layoutMaster->addWidget(dock_map, 0, 4, 4, 1, Qt::AlignTop);
-    layoutMaster->addWidget(tabWidget, 0, 2, 3, 2, Qt::AlignTop);
+    layoutMaster->addWidget(tabWidget, 0, 1, 3, 2, Qt::AlignTop);
     layoutMaster->addWidget(monitorsBox, 0, 0, 2, 1);
     layoutMaster->addWidget(groupBox, 2, 0, Qt::AlignTop);
-    addDockWidget(Qt::RightDockWidgetArea, dock );
+    layoutMaster->addWidget(debug_console_groupbox, 3, 0, 1, 3);
+    addDockWidget(Qt::RightDockWidgetArea, dock);
 
 
     size = centralWidget->sizeHint();

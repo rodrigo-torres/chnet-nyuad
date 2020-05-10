@@ -56,15 +56,12 @@ SOURCES       = src/daq_header.cpp \
 		src/dpp_gui.cpp \
 		src/dpp_main.cpp \
 		src/external_programs.cpp \
+		src/image_label.cpp \
 		src/main.cpp \
 		src/mainwindow.cpp \
 		src/mainwindow_conns.cpp \
 		src/mainwindow_gui.cpp \
 		src/mainwindow_menu.cpp \
-		src/map_load.cpp \
-		src/map_mouse.cpp \
-		src/map_online.cpp \
-		src/map_pixels.cpp \
 		src/map_render.cpp \
 		src/shm.cpp \
 		src/tty_agent.cpp \
@@ -79,15 +76,12 @@ OBJECTS       = daq_header.o \
 		dpp_gui.o \
 		dpp_main.o \
 		external_programs.o \
+		image_label.o \
 		main.o \
 		mainwindow.o \
 		mainwindow_conns.o \
 		mainwindow_gui.o \
 		mainwindow_menu.o \
-		map_load.o \
-		map_mouse.o \
-		map_online.o \
-		map_pixels.o \
 		map_render.o \
 		shm.o \
 		tty_agent.o \
@@ -267,8 +261,8 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		h/daq_header.h \
 		h/dpp.h \
 		h/enums_and_wrappers.h \
+		h/image_display.h \
 		h/mainwindow.h \
-		h/map.h \
 		h/tty.h \
 		h/utility_c.h \
 		h/viridis.h \
@@ -276,15 +270,12 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		src/dpp_gui.cpp \
 		src/dpp_main.cpp \
 		src/external_programs.cpp \
+		src/image_label.cpp \
 		src/main.cpp \
 		src/mainwindow.cpp \
 		src/mainwindow_conns.cpp \
 		src/mainwindow_gui.cpp \
 		src/mainwindow_menu.cpp \
-		src/map_load.cpp \
-		src/map_mouse.cpp \
-		src/map_online.cpp \
-		src/map_pixels.cpp \
 		src/map_render.cpp \
 		src/shm.cpp \
 		src/tty_agent.cpp \
@@ -647,8 +638,8 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents Resource.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib64/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../Header.h ../Shm.h ../qt_dependencies.h h/daq_header.h h/dpp.h h/enums_and_wrappers.h h/mainwindow.h h/map.h h/tty.h h/utility_c.h h/viridis.h h/xrfimage.h $(DISTDIR)/
-	$(COPY_FILE) --parents src/daq_header.cpp src/dpp_gui.cpp src/dpp_main.cpp src/external_programs.cpp src/main.cpp src/mainwindow.cpp src/mainwindow_conns.cpp src/mainwindow_gui.cpp src/mainwindow_menu.cpp src/map_load.cpp src/map_mouse.cpp src/map_online.cpp src/map_pixels.cpp src/map_render.cpp src/shm.cpp src/tty_agent.cpp src/tty_interface.cpp src/utility_c.c src/xrf_image.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../Header.h ../Shm.h ../qt_dependencies.h h/daq_header.h h/dpp.h h/enums_and_wrappers.h h/image_display.h h/mainwindow.h h/tty.h h/utility_c.h h/viridis.h h/xrfimage.h $(DISTDIR)/
+	$(COPY_FILE) --parents src/daq_header.cpp src/dpp_gui.cpp src/dpp_main.cpp src/external_programs.cpp src/image_label.cpp src/main.cpp src/mainwindow.cpp src/mainwindow_conns.cpp src/mainwindow_gui.cpp src/mainwindow_menu.cpp src/map_render.cpp src/shm.cpp src/tty_agent.cpp src/tty_interface.cpp src/utility_c.c src/xrf_image.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -705,10 +696,10 @@ moc_dpp.cpp: h/dpp.h \
 	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include h/dpp.h -o moc_dpp.cpp
 
 moc_mainwindow.cpp: h/mainwindow.h \
-		../qt_dependencies.h \
-		../Shm.h \
 		h/dpp.h \
 		h/enums_and_wrappers.h \
+		../Shm.h \
+		../qt_dependencies.h \
 		moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
 	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include h/mainwindow.h -o moc_mainwindow.cpp
@@ -741,109 +732,90 @@ dpp_gui.o: src/dpp_gui.cpp h/dpp.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o dpp_gui.o src/dpp_gui.cpp
 
 dpp_main.o: src/dpp_main.cpp h/mainwindow.h \
-		../qt_dependencies.h \
-		../Shm.h \
 		h/dpp.h \
 		h/enums_and_wrappers.h \
+		../Shm.h \
+		../qt_dependencies.h \
 		../Header.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o dpp_main.o src/dpp_main.cpp
 
 external_programs.o: src/external_programs.cpp h/mainwindow.h \
-		../qt_dependencies.h \
-		../Shm.h \
 		h/dpp.h \
 		h/enums_and_wrappers.h \
+		../Shm.h \
+		../qt_dependencies.h \
 		../Header.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o external_programs.o src/external_programs.cpp
 
-main.o: src/main.cpp h/mainwindow.h \
-		../qt_dependencies.h \
-		../Shm.h \
+image_label.o: src/image_label.cpp h/image_display.h \
+		h/xrfimage.h \
+		h/viridis.h \
+		h/mainwindow.h \
 		h/dpp.h \
 		h/enums_and_wrappers.h \
+		../Shm.h \
+		../qt_dependencies.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o image_label.o src/image_label.cpp
+
+main.o: src/main.cpp h/mainwindow.h \
+		h/dpp.h \
+		h/enums_and_wrappers.h \
+		../Shm.h \
+		../qt_dependencies.h \
 		../Header.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o src/main.cpp
 
-mainwindow.o: src/mainwindow.cpp ../Header.h \
-		h/mainwindow.h \
-		../qt_dependencies.h \
-		../Shm.h \
+mainwindow.o: src/mainwindow.cpp h/mainwindow.h \
 		h/dpp.h \
 		h/enums_and_wrappers.h \
-		../variables.h \
-		h/tty.h
+		../Shm.h \
+		../qt_dependencies.h \
+		h/image_display.h \
+		h/xrfimage.h \
+		h/viridis.h \
+		h/tty.h \
+		../Header.h \
+		../variables.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o src/mainwindow.cpp
 
 mainwindow_conns.o: src/mainwindow_conns.cpp h/mainwindow.h \
-		../qt_dependencies.h \
-		../Shm.h \
 		h/dpp.h \
 		h/enums_and_wrappers.h \
+		../Shm.h \
+		../qt_dependencies.h \
 		../Header.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow_conns.o src/mainwindow_conns.cpp
 
 mainwindow_gui.o: src/mainwindow_gui.cpp h/mainwindow.h \
-		../qt_dependencies.h \
-		../Shm.h \
 		h/dpp.h \
 		h/enums_and_wrappers.h \
+		../Shm.h \
+		../qt_dependencies.h \
 		../Header.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow_gui.o src/mainwindow_gui.cpp
 
 mainwindow_menu.o: src/mainwindow_menu.cpp h/mainwindow.h \
-		../qt_dependencies.h \
-		../Shm.h \
 		h/dpp.h \
-		h/enums_and_wrappers.h
+		h/enums_and_wrappers.h \
+		../Shm.h \
+		../qt_dependencies.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow_menu.o src/mainwindow_menu.cpp
 
-map_load.o: src/map_load.cpp h/mainwindow.h \
-		../qt_dependencies.h \
-		../Shm.h \
+map_render.o: src/map_render.cpp h/mainwindow.h \
 		h/dpp.h \
 		h/enums_and_wrappers.h \
+		../Shm.h \
+		../qt_dependencies.h \
+		h/image_display.h \
 		h/xrfimage.h \
 		h/viridis.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o map_load.o src/map_load.cpp
-
-map_mouse.o: src/map_mouse.cpp h/mainwindow.h \
-		../qt_dependencies.h \
-		../Shm.h \
-		h/dpp.h \
-		h/enums_and_wrappers.h \
-		h/map.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o map_mouse.o src/map_mouse.cpp
-
-map_online.o: src/map_online.cpp h/mainwindow.h \
-		../qt_dependencies.h \
-		../Shm.h \
-		h/dpp.h \
-		h/enums_and_wrappers.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o map_online.o src/map_online.cpp
-
-map_pixels.o: src/map_pixels.cpp h/mainwindow.h \
-		../qt_dependencies.h \
-		../Shm.h \
-		h/dpp.h \
-		h/enums_and_wrappers.h \
-		h/map.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o map_pixels.o src/map_pixels.cpp
-
-map_render.o: src/map_render.cpp h/mainwindow.h \
-		../qt_dependencies.h \
-		../Shm.h \
-		h/dpp.h \
-		h/enums_and_wrappers.h \
-		h/xrfimage.h \
-		h/viridis.h \
-		h/map.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o map_render.o src/map_render.cpp
 
 shm.o: src/shm.cpp h/mainwindow.h \
-		../qt_dependencies.h \
-		../Shm.h \
 		h/dpp.h \
 		h/enums_and_wrappers.h \
+		../Shm.h \
+		../qt_dependencies.h \
 		../Header.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o shm.o src/shm.cpp
 

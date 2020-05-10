@@ -20,8 +20,8 @@ HEADERS += ../Header.h ../Shm.h \
     h/daq_header.h \
     h/dpp.h \
     h/enums_and_wrappers.h \
+    h/image_display.h \
     h/mainwindow.h \
-    h/map.h \
     h/tty.h \
     h/utility_c.h \
     h/viridis.h \
@@ -31,15 +31,12 @@ SOURCES += \
            src/dpp_gui.cpp \
            src/dpp_main.cpp \
            src/external_programs.cpp \
+           src/image_label.cpp \
            src/main.cpp \
            src/mainwindow.cpp \
            src/mainwindow_conns.cpp \
            src/mainwindow_gui.cpp \
            src/mainwindow_menu.cpp \
-           src/map_load.cpp \
-           src/map_mouse.cpp \
-           src/map_online.cpp \
-           src/map_pixels.cpp \
            src/map_render.cpp \
            src/shm.cpp \
            src/tty_agent.cpp \

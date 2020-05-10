@@ -4,7 +4,7 @@
 
 int shmid[8] = { 0 };
 int *shared_memory_cmd, *shared_memory_rate;
-int *shared_memory, *shared_memory2, *shared_memory3, *shared_memory4;
+int *shared_memory, *shared_memory4;
 double*shared_memory5;
 
 template <typename T> T* assignSHM(key_t key, size_t size, int id) {
@@ -25,8 +25,6 @@ void MainWindow::SHM_CREATOR() {
 
     shared_memory_cmd = assignSHM<int>(key_cmd, SHMSZ_CMD_STATUS, 0);
     shared_memory = assignSHM<int>(key, SHMSZ, 1);
-    shared_memory2 = assignSHM<int>(key2, SHMSZBIG, 2);
-    shared_memory3 = assignSHM<int>(key3, SHMSZHISTO, 3);
     shared_memory4 = assignSHM<int>(key4, SHMSZDIGI, 4);
     shared_memory5 = assignSHM<double>(key5, 4096, 5);
     shared_memory_rate = assignSHM<int>(key_rate, SHMSZRATE, 6);
@@ -137,12 +135,6 @@ void MainWindow::SHM_CREATOR() {
 
     *(shared_memory+99)=0;           //...News per show pixel histo
     *(shared_memory+100)=0;          //Da questo punto inizia il vettore da plottare per mostrare lo spettro
-
-    /* SHARED MEMORY 2*/
-    shared_memory2[4] = 0;  // Total data per map
-    shared_memory2[5] = 0;  // Total events per map
-    shared_memory2[8] = 0;  // Timer stop flag for change of line
-    shared_memory2[10] = 0; // And onwwards, the mapa data array
 
 
     ////////////////////////////////////////////// DIGITISER PARAMETERS

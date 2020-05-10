@@ -1,27 +1,22 @@
-#include "../Header.h"
 #include "h/mainwindow.h"
+#include "h/image_display.h"
+#include "h/tty.h"
+#include "../Header.h"
 #include "../variables.h"
-#include <unistd.h>
-#include <QThread>
-#include <h/tty.h>
-#include <algorithm>
 
 extern int shmid[8];
 extern key_t key, key2, key3, key4, key5, key_cmd, key_rate;
-extern int *shared_memory, *shared_memory2, *shared_memory3, *shared_memory4;
+extern int *shared_memory, *shared_memory4;
 extern double *shared_memory5;
 extern int *shared_memory_cmd, *shared_memory_rate;
 
 tty_agent *tty_ptr;
 
-bool MapIsOpened = false;
 bool CameraOn = false;
 
 
 int DAQ_TYPE = 1;
 int measuring_time = 300; // for single-spectrum DAQ
-int Pixeldim = 1; // for XRF map display
-
 char process[30];
 
 
@@ -338,7 +333,7 @@ void MainWindow::Pixels() { // Change pixel dimension
     int px = QInputDialog::getInt(this, "Set Pixel Size", "Pixel side dimension:", 1, 1, 30, 1, &ok1);
 
     if (ok1) {
-        Pixeldim = px;
+      imageLabel->set_pixel_dim(px);
         printf("[!] New pixel dimension: %d\n", px);
     }
     else printf("[!] Couldn't obtain new pixel dimensions\n");
@@ -478,8 +473,6 @@ MainWindow::~MainWindow() {
     printf("... Dettaching shared memory segments\n");
     for (int i = 0; i < 8; i++) if (shmid[i] != -1) shmctl(shmid[i], IPC_RMID, 0);
     shmdt(shared_memory);
-    shmdt(shared_memory2);
-    shmdt(shared_memory3);
     shmdt(shared_memory4);
     shmdt(shared_memory5);
     shmdt(shared_memory_rate);
