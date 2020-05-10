@@ -158,29 +158,29 @@ void image_xrf::make_header()
     header.push_back('\n');
 
     std::stringstream ss(std::string{});
-    ss << std::fixed << std::setprecision(3) << static_cast<float>(map_var.x_min / 1000);
+    ss << std::fixed << std::setprecision(3) << static_cast<float>(map_var.x_min) / 1000;
     header.append("Motor_start_x = " + ss.str());
     header.push_back('\n');
     ss.str(std::string{});
-    ss << std::fixed << std::setprecision(3) << static_cast<float>(map_var.y_min / 1000);
+    ss << std::fixed << std::setprecision(3) << static_cast<float>(map_var.y_min) / 1000;
     header.append("Motor_start_y = " + ss.str());
     header.push_back('\n');
     ss.str(std::string{});
-    ss << std::fixed << std::setprecision(3) << static_cast<float>(map_var.step_x / 1000);
+    ss << std::fixed << std::setprecision(3) << static_cast<float>(map_var.step_x) / 1000;
     header.append("Motor_step_x = " + ss.str());
     header.push_back('\n');
     ss.str(std::string{});
-    ss << std::fixed << std::setprecision(3) << static_cast<float>(map_var.step_y / 1000);
+    ss << std::fixed << std::setprecision(3) << static_cast<float>(map_var.step_y) / 1000;
     header.append("Motor_step_y = " + ss.str());
     header.push_back('\n');
     ss.str(std::string{});
-    ss << std::fixed << std::setprecision(3) << static_cast<float>(map_var.dwell / 1000);
+    ss << std::fixed << std::setprecision(3) << static_cast<float>(map_var.dwell) / 1000;
     header.append("Motor_speed = " + ss.str());
     header.push_back('\n');
 
     //Calculate actual dwell time
     ss.str(std::string{});
-    ss << std::fixed << std::setprecision(3) << static_cast<float>(map_var.step_x / map_var.dwell);
+    ss << std::fixed << std::setprecision(3) << static_cast<float>(map_var.step_x) / map_var.dwell;
     header.append("Dwell_time = " + ss.str());
     header.push_back('\n');
     header.push_back('}');
