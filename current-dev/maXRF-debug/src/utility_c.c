@@ -14,7 +14,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include "h/utility_c.h"
+#include "include/utility_c.h"
 
 bool check_CAEN_USB_driver()
 {

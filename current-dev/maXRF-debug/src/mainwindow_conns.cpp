@@ -1,4 +1,4 @@
-#include "h/mainwindow.h"
+#include "include/mainwindow.h"
 #include <../Header.h>
 #include <../Shm.h>
 

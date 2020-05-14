@@ -1,6 +1,6 @@
-#include "h/mainwindow.h"
-#include "h/image_display.h"
-#include "h/tty.h"
+#include "include/mainwindow.h"
+#include "include/image_display.h"
+#include "include/tty.h"
 #include "../Header.h"
 #include "../variables.h"
 
@@ -20,21 +20,13 @@ int measuring_time = 300; // for single-spectrum DAQ
 char process[30];
 
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
+{
     SHM_CREATOR();                 /// CREATING SHARED MEMORY SEGMENT
     create_menu_actions();
     create_menus();            	    /// CREATING MENU from Menu.cpp
     GUI_CREATOR();
     handle_connections();
-
-    imageLabel = new ImgLabel;
-
-    QImage image1("IMG/TT_CHNet_res2.png");
-    imageLabel->setPixmap(QPixmap::fromImage(image1));
-    imageLabel->setBackgroundRole(QPalette::Base);
-
-    scrollArea->setWidget(imageLabel);
-    scrollArea->setAlignment(Qt::AlignCenter);
 
     readmultidetcalpar();
     start_thread_tty();
@@ -279,70 +271,12 @@ void MainWindow::SelDigiCh0and1()
 // Segmentation fault errors are handled by the DAQ protocol
 [[deprecated]] void MainWindow::CheckSegFault() {}
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//                                MAP - PIXEL AND SPECTRUM MANAGEMENT
-//                                
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// ////////////////////////////////////////////////////////////////////////// //
+// //////////////////// COMPOSED ELEMENTAL MAP //////////////////// //
+// ////////////////////////////////////////////////////////////////////////// //
 
 
-void MainWindow::open_MAP()                                      // MAP: OPEN MAP
-{
-    QString fileName = QFileDialog::getOpenFileName(this,
-                                                    tr("Open File"), QDir::currentPath());
-    if (!fileName.isEmpty())
-    {
-        QImage image(fileName);
-        if (image.isNull())
-        {
-            QMessageBox::information(this, tr("Image Viewer"),
-                                     tr("Cannot load %1.").arg(fileName));
-            return;
-        }
-        imageLabel->setPixmap(QPixmap::fromImage(image));
-    }
-}
-
-void MainWindow::SelectChannels()                             // MAP: CHANNEL SELECTION
-{
-    bool ok1, ok2;
-    if(*(shared_memory+24)==0)
-    {
-        double chan1 = QInputDialog::getInt(this, tr("Lower Channel"),tr("ChLow:"), 0, 0, 16384, 1, &ok1);
-        if (ok1)
-        {qDebug()<<"New lower channel "<<chan1<<'\n'; *(shared_memory5+100)=chan1;}
-        double  chan2 = QInputDialog::getInt(this, tr("Upper Channel"),tr("ChHigh:"), 16384, 0, 16384, 1, &ok2);
-        if (ok2)
-        {qDebug()<<"New upper channel "<<chan2<<'\n'; *(shared_memory5+101)=chan2;}
-    }
-    else if (*(shared_memory+24) == 1) {
-            double chan1 = QInputDialog::getDouble(this, tr("Lower Energy"), tr("ELow:"), 0, 0, 60, 2, &ok1);
-            if (ok1)
-            {qDebug()<<"New lower energy "<<chan1<<'\n'; *(shared_memory5+100)=chan1;}
-            double chan2 = QInputDialog::getDouble(this, tr("Upper Energy"), tr("EHigh:"), 60, 0, 60, 2, &ok2);
-            if (ok2)
-            {qDebug()<<"New upper energy "<<chan2<<'\n'; *(shared_memory5+101)=chan2;}
-        }
-}
-
-
-
-
-void MainWindow::Pixels() { // Change pixel dimension
-    bool ok1;
-    int px = QInputDialog::getInt(this, "Set Pixel Size", "Pixel side dimension:", 1, 1, 30, 1, &ok1);
-
-    if (ok1) {
-      imageLabel->set_pixel_dim(px);
-        printf("[!] New pixel dimension: %d\n", px);
-    }
-    else printf("[!] Couldn't obtain new pixel dimensions\n");
-}
-
-void MainWindow::LoadNewFile_SHM() { // Loads a new file in memory
-    LoadNewFileWithNoCorrection_SHM();
-    displayImage_SHM();
-}
 
 void MainWindow::LoadElementsMapSum() {
     for (int i = 0; i < 6; i++)
@@ -492,14 +426,14 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::Info1_1() {
-    system("evince manual/Info_software_general.pdf &");
+    system("evince doc/Info_software_general.pdf &");
 }
 
 void MainWindow::Info1_2() {
-    system("evince manual/Info_shared_memory.pdf &");
+    system("evince doc/Info_shared_memory.pdf &");
 }
 
 void MainWindow::Info2_1() {
-    system("evince manual/Info_kernel_modules.pdf &");
+    system("evince doc/Info_kernel_modules.pdf &");
 }
 

@@ -1,5 +1,5 @@
-﻿#include "h/image_display.h"
-#include "h/mainwindow.h"
+﻿#include "include/image_display.h"
+#include "include/mainwindow.h"
 #include "../Header.h"
 
 extern tty_agent tty_ptr;
@@ -16,7 +16,7 @@ void MainWindow::start_point_daq()
   case 0:
     shared_memory_cmd[300] = 1;
     shared_memory_cmd[301] = measuring_time;
-    system("./app-modules/digitizer &");
+    system("./digitizer &");
     QTimer::singleShot(measuring_time * 1000, this, SLOT(stop_point_daq()));
     break;
   case 1:
@@ -65,7 +65,7 @@ void MainWindow::stop_point_daq()
 
 void MainWindow::ShowHistogram() {
   if ( *(shared_memory_cmd+71) == 0 ) {
-    system("./app-modules/spectrum & ");
+    system("./bin/spectrum & ");
     *(shared_memory_cmd+71)=1; // XRF
   }
   else {
@@ -76,7 +76,7 @@ void MainWindow::ShowHistogram() {
 void MainWindow::RateMeter() {
   if(*(shared_memory_cmd+73)==0)
   {
-    system("./app-modules/rate & ");
+    system("./bin/rate & ");
     *(shared_memory_cmd+73)=1; // Rate
   }
   else
@@ -87,7 +87,7 @@ void MainWindow::XrayTable()
 {  
   if(*(shared_memory_cmd+74)==0)
   {
-    system("./app-modules/XRayTable & ");
+    system("./bin/XRayTable & ");
     *(shared_memory_cmd+74)=1;
   }
   else qDebug()<<"[!] X-Ray table window already opened";
@@ -132,10 +132,10 @@ void MainWindow::GoOnLine() {
     *(shared_memory_cmd+75) = 0;
   }
   else {
-    imageLabel->set_map_opened(true);
+    image_label_->set_map_opened(true);
     qDebug()<<"... Live-Map is active";
     *(shared_memory_cmd+75)=1;
-    system("./app-modules/OnLineMap & ");
+    system("./bin/OnLineMap & ");
   }
 }
 

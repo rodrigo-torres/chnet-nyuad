@@ -1,4 +1,4 @@
-#include "h/mainwindow.h"
+#include "include/mainwindow.h"
 #include "../Header.h"
 
 // Checking of access rights to COM ports, i.e. stages and MCA USB ports,

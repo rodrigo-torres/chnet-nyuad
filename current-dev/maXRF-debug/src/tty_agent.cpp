@@ -1,4 +1,4 @@
-﻿#include <h/tty.h>
+﻿#include "include/tty.h"
 
 tty_agent::tty_agent() {
     update_timer = new QTimer(this);
@@ -280,7 +280,7 @@ void tty_agent::scan() {
 
     // Request prompt dialogue from MainWindow
     shared_memory_cmd[300] = 2;
-    system("./app-modules/digitizer &");
+    system("./digitizer &");
     /* Synchronize */
     /* Sending X motor to 1st limit */
     sem_wait(sem_reply);

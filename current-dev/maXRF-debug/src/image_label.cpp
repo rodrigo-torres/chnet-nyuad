@@ -1,5 +1,5 @@
-#include "h/image_display.h"
-#include "h/mainwindow.h"
+#include "include/image_display.h"
+#include "include/mainwindow.h"
 
 extern int *shared_memory, *shared_memory_cmd;
 

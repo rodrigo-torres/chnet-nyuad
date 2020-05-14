@@ -17,7 +17,7 @@ CXX           = g++
 DEFINES       = -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SQL_LIB -DQT_XML_LIB -DQT_CORE_LIB -DQT_QML_DEBUG
 CFLAGS        = -pipe -g -D_REENTRANT -Wall -W -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -g -std=gnu++1y -D_REENTRANT -Wall -W -fPIC $(DEFINES)
-INCPATH       = -I. -I. -isystem /usr/include/qt5 -isystem /usr/include/qt5/QtOpenGL -isystem /usr/include/qt5/QtWidgets -isystem /usr/include/qt5/QtGui -isystem /usr/include/qt5/QtSql -isystem /usr/include/qt5/QtXml -isystem /usr/include/qt5/QtCore -I. -isystem /usr/include/libdrm -I/usr/lib64/qt5/mkspecs/linux-g++
+INCPATH       = -I. -I. -isystem /usr/include/qt5 -isystem /usr/include/qt5/QtOpenGL -isystem /usr/include/qt5/QtWidgets -isystem /usr/include/qt5/QtGui -isystem /usr/include/qt5/QtSql -isystem /usr/include/qt5/QtXml -isystem /usr/include/qt5/QtCore -Ibuild -isystem /usr/include/libdrm -I/usr/lib64/qt5/mkspecs/linux-g++
 QMAKE         = /usr/local/bin/qmake
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -37,7 +37,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = maXRF-app1.0.0
-DISTDIR = /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/.tmp/maXRF-app1.0.0
+DISTDIR = /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/build/maXRF-app1.0.0
 LINK          = g++
 LFLAGS        = 
 LIBS          = $(SUBLIBS) -lpthread /usr/lib64/libQt5OpenGL.so /usr/lib64/libQt5Widgets.so /usr/lib64/libQt5Gui.so /usr/lib64/libQt5Sql.so /usr/lib64/libQt5Xml.so /usr/lib64/libQt5Core.so /usr/lib64/libGL.so   
@@ -48,51 +48,53 @@ STRIP         = strip
 
 ####### Output directory
 
-OBJECTS_DIR   = ./
+OBJECTS_DIR   = build/
 
 ####### Files
 
 SOURCES       = src/daq_header.cpp \
-		src/dpp_gui.cpp \
 		src/dpp_main.cpp \
 		src/external_programs.cpp \
+		src/gui_dock_widget.cpp \
+		src/gui_interface_dpp.cpp \
+		src/gui_interface_tty.cpp \
+		src/gui_interface_xrfimage.cpp \
 		src/image_label.cpp \
 		src/main.cpp \
 		src/mainwindow.cpp \
 		src/mainwindow_conns.cpp \
 		src/mainwindow_gui.cpp \
 		src/mainwindow_menu.cpp \
-		src/map_render.cpp \
 		src/shm.cpp \
 		src/tty_agent.cpp \
-		src/tty_interface.cpp \
 		src/utility_c.c \
-		src/xrf_image.cpp qrc_Resource.cpp \
-		moc_daq_header.cpp \
-		moc_dpp.cpp \
-		moc_mainwindow.cpp \
-		moc_tty.cpp
-OBJECTS       = daq_header.o \
-		dpp_gui.o \
-		dpp_main.o \
-		external_programs.o \
-		image_label.o \
-		main.o \
-		mainwindow.o \
-		mainwindow_conns.o \
-		mainwindow_gui.o \
-		mainwindow_menu.o \
-		map_render.o \
-		shm.o \
-		tty_agent.o \
-		tty_interface.o \
-		utility_c.o \
-		xrf_image.o \
-		qrc_Resource.o \
-		moc_daq_header.o \
-		moc_dpp.o \
-		moc_mainwindow.o \
-		moc_tty.o
+		src/xrf_image.cpp build/qrc_resource.cpp \
+		build/moc_daq_header.cpp \
+		build/moc_dpp.cpp \
+		build/moc_mainwindow.cpp \
+		build/moc_tty.cpp
+OBJECTS       = build/daq_header.o \
+		build/dpp_main.o \
+		build/external_programs.o \
+		build/gui_dock_widget.o \
+		build/gui_interface_dpp.o \
+		build/gui_interface_tty.o \
+		build/gui_interface_xrfimage.o \
+		build/image_label.o \
+		build/main.o \
+		build/mainwindow.o \
+		build/mainwindow_conns.o \
+		build/mainwindow_gui.o \
+		build/mainwindow_menu.o \
+		build/shm.o \
+		build/tty_agent.o \
+		build/utility_c.o \
+		build/xrf_image.o \
+		build/qrc_resource.o \
+		build/moc_daq_header.o \
+		build/moc_dpp.o \
+		build/moc_mainwindow.o \
+		build/moc_tty.o
 DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib64/qt5/mkspecs/common/unix.conf \
 		/usr/lib64/qt5/mkspecs/common/linux.conf \
@@ -258,28 +260,29 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		maXRF-app.pro ../Header.h \
 		../Shm.h \
 		../qt_dependencies.h \
-		h/daq_header.h \
-		h/dpp.h \
-		h/enums_and_wrappers.h \
-		h/image_display.h \
-		h/mainwindow.h \
-		h/tty.h \
-		h/utility_c.h \
-		h/viridis.h \
-		h/xrfimage.h src/daq_header.cpp \
-		src/dpp_gui.cpp \
+		include/daq_header.h \
+		include/dpp.h \
+		include/enums_and_wrappers.h \
+		include/image_display.h \
+		include/mainwindow.h \
+		include/tty.h \
+		include/utility_c.h \
+		include/viridis.h \
+		include/xrfimage.h src/daq_header.cpp \
 		src/dpp_main.cpp \
 		src/external_programs.cpp \
+		src/gui_dock_widget.cpp \
+		src/gui_interface_dpp.cpp \
+		src/gui_interface_tty.cpp \
+		src/gui_interface_xrfimage.cpp \
 		src/image_label.cpp \
 		src/main.cpp \
 		src/mainwindow.cpp \
 		src/mainwindow_conns.cpp \
 		src/mainwindow_gui.cpp \
 		src/mainwindow_menu.cpp \
-		src/map_render.cpp \
 		src/shm.cpp \
 		src/tty_agent.cpp \
-		src/tty_interface.cpp \
 		src/utility_c.c \
 		src/xrf_image.cpp
 QMAKE_TARGET  = maXRF-app
@@ -456,7 +459,7 @@ Makefile: maXRF-app.pro /usr/lib64/qt5/mkspecs/linux-g++/qmake.conf /usr/lib64/q
 		/usr/lib64/qt5/mkspecs/features/yacc.prf \
 		/usr/lib64/qt5/mkspecs/features/lex.prf \
 		maXRF-app.pro \
-		Resource.qrc
+		resources/resource.qrc
 	$(QMAKE) -o Makefile maXRF-app.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug
 /usr/lib64/qt5/mkspecs/features/spec_pre.prf:
 /usr/lib64/qt5/mkspecs/common/unix.conf:
@@ -621,7 +624,7 @@ Makefile: maXRF-app.pro /usr/lib64/qt5/mkspecs/linux-g++/qmake.conf /usr/lib64/q
 /usr/lib64/qt5/mkspecs/features/yacc.prf:
 /usr/lib64/qt5/mkspecs/features/lex.prf:
 maXRF-app.pro:
-Resource.qrc:
+resources/resource.qrc:
 qmake: FORCE
 	@$(QMAKE) -o Makefile maXRF-app.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug
 
@@ -636,10 +639,10 @@ dist: distdir FORCE
 distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
-	$(COPY_FILE) --parents Resource.qrc $(DISTDIR)/
+	$(COPY_FILE) --parents resources/resource.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib64/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../Header.h ../Shm.h ../qt_dependencies.h h/daq_header.h h/dpp.h h/enums_and_wrappers.h h/image_display.h h/mainwindow.h h/tty.h h/utility_c.h h/viridis.h h/xrfimage.h $(DISTDIR)/
-	$(COPY_FILE) --parents src/daq_header.cpp src/dpp_gui.cpp src/dpp_main.cpp src/external_programs.cpp src/image_label.cpp src/main.cpp src/mainwindow.cpp src/mainwindow_conns.cpp src/mainwindow_gui.cpp src/mainwindow_menu.cpp src/map_render.cpp src/shm.cpp src/tty_agent.cpp src/tty_interface.cpp src/utility_c.c src/xrf_image.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../Header.h ../Shm.h ../qt_dependencies.h include/daq_header.h include/dpp.h include/enums_and_wrappers.h include/image_display.h include/mainwindow.h include/tty.h include/utility_c.h include/viridis.h include/xrfimage.h $(DISTDIR)/
+	$(COPY_FILE) --parents src/daq_header.cpp src/dpp_main.cpp src/external_programs.cpp src/gui_dock_widget.cpp src/gui_interface_dpp.cpp src/gui_interface_tty.cpp src/gui_interface_xrfimage.cpp src/image_label.cpp src/main.cpp src/mainwindow.cpp src/mainwindow_conns.cpp src/mainwindow_gui.cpp src/mainwindow_menu.cpp src/shm.cpp src/tty_agent.cpp src/utility_c.c src/xrf_image.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -663,51 +666,59 @@ check: first
 
 benchmark: first
 
-compiler_rcc_make_all: qrc_Resource.cpp
+compiler_rcc_make_all: build/qrc_resource.cpp
 compiler_rcc_clean:
-	-$(DEL_FILE) qrc_Resource.cpp
-qrc_Resource.cpp: Resource.qrc \
+	-$(DEL_FILE) build/qrc_resource.cpp
+build/qrc_resource.cpp: resources/resource.qrc \
 		/usr/lib64/qt5/bin/rcc \
-		conf/M404_2PD.txt \
-		conf/user_conf.xml \
-		conf/M404_8PD.txt \
-		IMG/TT_CHNet_res1.png \
-		IMG/TT_CHNet_res0.png \
-		IMG/TT_CHNet_res2.png
-	/usr/lib64/qt5/bin/rcc -name Resource Resource.qrc -o qrc_Resource.cpp
+		resources/images/TT_CHNet_res1.png \
+		resources/images/TT_CHNet_res0.png \
+		resources/images/TT_CHNet_res2.png \
+		resources/icons/right.xpm \
+		resources/icons/up.png \
+		resources/icons/left.xpm \
+		resources/icons/down.png \
+		resources/icons/up.xpm \
+		resources/icons/down.xpm \
+		resources/icons/right.png \
+		resources/icons/reload.ico \
+		resources/icons/left.png \
+		resources/icons/app-icons/index.theme \
+		resources/icons/app-icons/actions/64/reload.ico
+	/usr/lib64/qt5/bin/rcc -name resource resources/resource.qrc -o build/qrc_resource.cpp
 
-compiler_moc_predefs_make_all: moc_predefs.h
+compiler_moc_predefs_make_all: build/moc_predefs.h
 compiler_moc_predefs_clean:
-	-$(DEL_FILE) moc_predefs.h
-moc_predefs.h: /usr/lib64/qt5/mkspecs/features/data/dummy.cpp
-	g++ -pipe -g -std=gnu++1y -D_REENTRANT -Wall -W -dM -E -o moc_predefs.h /usr/lib64/qt5/mkspecs/features/data/dummy.cpp
+	-$(DEL_FILE) build/moc_predefs.h
+build/moc_predefs.h: /usr/lib64/qt5/mkspecs/features/data/dummy.cpp
+	g++ -pipe -g -std=gnu++1y -D_REENTRANT -Wall -W -dM -E -o build/moc_predefs.h /usr/lib64/qt5/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_daq_header.cpp moc_dpp.cpp moc_mainwindow.cpp moc_tty.cpp
+compiler_moc_header_make_all: build/moc_daq_header.cpp build/moc_dpp.cpp build/moc_mainwindow.cpp build/moc_tty.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_daq_header.cpp moc_dpp.cpp moc_mainwindow.cpp moc_tty.cpp
-moc_daq_header.cpp: h/daq_header.h \
-		moc_predefs.h \
+	-$(DEL_FILE) build/moc_daq_header.cpp build/moc_dpp.cpp build/moc_mainwindow.cpp build/moc_tty.cpp
+build/moc_daq_header.cpp: include/daq_header.h \
+		build/moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
-	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include h/daq_header.h -o moc_daq_header.cpp
+	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/daq_header.h -o build/moc_daq_header.cpp
 
-moc_dpp.cpp: h/dpp.h \
-		moc_predefs.h \
+build/moc_dpp.cpp: include/dpp.h \
+		build/moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
-	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include h/dpp.h -o moc_dpp.cpp
+	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/dpp.h -o build/moc_dpp.cpp
 
-moc_mainwindow.cpp: h/mainwindow.h \
-		h/dpp.h \
-		h/enums_and_wrappers.h \
+build/moc_mainwindow.cpp: include/mainwindow.h \
+		include/dpp.h \
+		include/enums_and_wrappers.h \
 		../Shm.h \
 		../qt_dependencies.h \
-		moc_predefs.h \
+		build/moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
-	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include h/mainwindow.h -o moc_mainwindow.cpp
+	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/mainwindow.h -o build/moc_mainwindow.cpp
 
-moc_tty.cpp: h/tty.h \
-		moc_predefs.h \
+build/moc_tty.cpp: include/tty.h \
+		build/moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
-	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include h/tty.h -o moc_tty.cpp
+	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/tty.h -o build/moc_tty.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -725,127 +736,140 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 
 ####### Compile
 
-daq_header.o: src/daq_header.cpp h/daq_header.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o daq_header.o src/daq_header.cpp
+build/daq_header.o: src/daq_header.cpp include/daq_header.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/daq_header.o src/daq_header.cpp
 
-dpp_gui.o: src/dpp_gui.cpp h/dpp.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o dpp_gui.o src/dpp_gui.cpp
-
-dpp_main.o: src/dpp_main.cpp h/mainwindow.h \
-		h/dpp.h \
-		h/enums_and_wrappers.h \
+build/dpp_main.o: src/dpp_main.cpp include/mainwindow.h \
+		include/dpp.h \
+		include/enums_and_wrappers.h \
 		../Shm.h \
 		../qt_dependencies.h \
 		../Header.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o dpp_main.o src/dpp_main.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/dpp_main.o src/dpp_main.cpp
 
-external_programs.o: src/external_programs.cpp h/mainwindow.h \
-		h/dpp.h \
-		h/enums_and_wrappers.h \
+build/external_programs.o: src/external_programs.cpp include/image_display.h \
+		include/xrfimage.h \
+		include/viridis.h \
+		include/mainwindow.h \
+		include/dpp.h \
+		include/enums_and_wrappers.h \
 		../Shm.h \
 		../qt_dependencies.h \
 		../Header.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o external_programs.o src/external_programs.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/external_programs.o src/external_programs.cpp
 
-image_label.o: src/image_label.cpp h/image_display.h \
-		h/xrfimage.h \
-		h/viridis.h \
-		h/mainwindow.h \
-		h/dpp.h \
-		h/enums_and_wrappers.h \
+build/gui_dock_widget.o: src/gui_dock_widget.cpp include/mainwindow.h \
+		include/dpp.h \
+		include/enums_and_wrappers.h \
+		../Shm.h \
+		../qt_dependencies.h \
+		include/image_display.h \
+		include/xrfimage.h \
+		include/viridis.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/gui_dock_widget.o src/gui_dock_widget.cpp
+
+build/gui_interface_dpp.o: src/gui_interface_dpp.cpp include/dpp.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/gui_interface_dpp.o src/gui_interface_dpp.cpp
+
+build/gui_interface_tty.o: src/gui_interface_tty.cpp include/tty.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/gui_interface_tty.o src/gui_interface_tty.cpp
+
+build/gui_interface_xrfimage.o: src/gui_interface_xrfimage.cpp include/mainwindow.h \
+		include/dpp.h \
+		include/enums_and_wrappers.h \
+		../Shm.h \
+		../qt_dependencies.h \
+		include/image_display.h \
+		include/xrfimage.h \
+		include/viridis.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/gui_interface_xrfimage.o src/gui_interface_xrfimage.cpp
+
+build/image_label.o: src/image_label.cpp include/image_display.h \
+		include/xrfimage.h \
+		include/viridis.h \
+		include/mainwindow.h \
+		include/dpp.h \
+		include/enums_and_wrappers.h \
 		../Shm.h \
 		../qt_dependencies.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o image_label.o src/image_label.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/image_label.o src/image_label.cpp
 
-main.o: src/main.cpp h/mainwindow.h \
-		h/dpp.h \
-		h/enums_and_wrappers.h \
+build/main.o: src/main.cpp include/mainwindow.h \
+		include/dpp.h \
+		include/enums_and_wrappers.h \
 		../Shm.h \
 		../qt_dependencies.h \
 		../Header.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o src/main.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/main.o src/main.cpp
 
-mainwindow.o: src/mainwindow.cpp h/mainwindow.h \
-		h/dpp.h \
-		h/enums_and_wrappers.h \
+build/mainwindow.o: src/mainwindow.cpp include/mainwindow.h \
+		include/dpp.h \
+		include/enums_and_wrappers.h \
 		../Shm.h \
 		../qt_dependencies.h \
-		h/image_display.h \
-		h/xrfimage.h \
-		h/viridis.h \
-		h/tty.h \
+		include/image_display.h \
+		include/xrfimage.h \
+		include/viridis.h \
+		include/tty.h \
 		../Header.h \
 		../variables.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o src/mainwindow.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/mainwindow.o src/mainwindow.cpp
 
-mainwindow_conns.o: src/mainwindow_conns.cpp h/mainwindow.h \
-		h/dpp.h \
-		h/enums_and_wrappers.h \
+build/mainwindow_conns.o: src/mainwindow_conns.cpp include/mainwindow.h \
+		include/dpp.h \
+		include/enums_and_wrappers.h \
 		../Shm.h \
 		../qt_dependencies.h \
 		../Header.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow_conns.o src/mainwindow_conns.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/mainwindow_conns.o src/mainwindow_conns.cpp
 
-mainwindow_gui.o: src/mainwindow_gui.cpp h/mainwindow.h \
-		h/dpp.h \
-		h/enums_and_wrappers.h \
+build/mainwindow_gui.o: src/mainwindow_gui.cpp include/mainwindow.h \
+		include/dpp.h \
+		include/enums_and_wrappers.h \
 		../Shm.h \
 		../qt_dependencies.h \
 		../Header.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow_gui.o src/mainwindow_gui.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/mainwindow_gui.o src/mainwindow_gui.cpp
 
-mainwindow_menu.o: src/mainwindow_menu.cpp h/mainwindow.h \
-		h/dpp.h \
-		h/enums_and_wrappers.h \
+build/mainwindow_menu.o: src/mainwindow_menu.cpp include/mainwindow.h \
+		include/dpp.h \
+		include/enums_and_wrappers.h \
 		../Shm.h \
 		../qt_dependencies.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow_menu.o src/mainwindow_menu.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/mainwindow_menu.o src/mainwindow_menu.cpp
 
-map_render.o: src/map_render.cpp h/mainwindow.h \
-		h/dpp.h \
-		h/enums_and_wrappers.h \
-		../Shm.h \
-		../qt_dependencies.h \
-		h/image_display.h \
-		h/xrfimage.h \
-		h/viridis.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o map_render.o src/map_render.cpp
-
-shm.o: src/shm.cpp h/mainwindow.h \
-		h/dpp.h \
-		h/enums_and_wrappers.h \
+build/shm.o: src/shm.cpp include/mainwindow.h \
+		include/dpp.h \
+		include/enums_and_wrappers.h \
 		../Shm.h \
 		../qt_dependencies.h \
 		../Header.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o shm.o src/shm.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/shm.o src/shm.cpp
 
-tty_agent.o: src/tty_agent.cpp h/tty.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o tty_agent.o src/tty_agent.cpp
+build/tty_agent.o: src/tty_agent.cpp include/tty.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/tty_agent.o src/tty_agent.cpp
 
-tty_interface.o: src/tty_interface.cpp h/tty.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o tty_interface.o src/tty_interface.cpp
+build/utility_c.o: src/utility_c.c include/utility_c.h
+	$(CC) -c $(CFLAGS) $(INCPATH) -o build/utility_c.o src/utility_c.c
 
-utility_c.o: src/utility_c.c h/utility_c.h
-	$(CC) -c $(CFLAGS) $(INCPATH) -o utility_c.o src/utility_c.c
+build/xrf_image.o: src/xrf_image.cpp include/xrfimage.h \
+		include/viridis.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/xrf_image.o src/xrf_image.cpp
 
-xrf_image.o: src/xrf_image.cpp h/xrfimage.h \
-		h/viridis.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o xrf_image.o src/xrf_image.cpp
+build/qrc_resource.o: build/qrc_resource.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/qrc_resource.o build/qrc_resource.cpp
 
-qrc_Resource.o: qrc_Resource.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qrc_Resource.o qrc_Resource.cpp
+build/moc_daq_header.o: build/moc_daq_header.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/moc_daq_header.o build/moc_daq_header.cpp
 
-moc_daq_header.o: moc_daq_header.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_daq_header.o moc_daq_header.cpp
+build/moc_dpp.o: build/moc_dpp.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/moc_dpp.o build/moc_dpp.cpp
 
-moc_dpp.o: moc_dpp.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_dpp.o moc_dpp.cpp
+build/moc_mainwindow.o: build/moc_mainwindow.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/moc_mainwindow.o build/moc_mainwindow.cpp
 
-moc_mainwindow.o: moc_mainwindow.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_mainwindow.o moc_mainwindow.cpp
-
-moc_tty.o: moc_tty.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_tty.o moc_tty.cpp
+build/moc_tty.o: build/moc_tty.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/moc_tty.o build/moc_tty.cpp
 
 ####### Install
 

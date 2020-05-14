@@ -32,7 +32,7 @@ using std::endl;
 #include <errno.h>
 #include <sys/ioctl.h>
 using namespace std;
-//#include "h/mainwindow.h"
+//#include "include/mainwindow.h"
 
 
 //////////////////////////// inherited from motore.cpp    

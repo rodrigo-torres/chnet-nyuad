@@ -1,8 +1,8 @@
-cmd_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAENUSBdrvB.o := gcc -Wp,-MD,/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/.CAENUSBdrvB.o.d  -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/9/include -I./arch/x86/include -I./arch/x86/include/generated  -I./include -I./arch/x86/include/uapi -I./arch/x86/include/generated/uapi -I./include/uapi -I./include/generated/uapi -include ./include/linux/kconfig.h -include ./include/linux/compiler_types.h -D__KERNEL__ -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE -Werror=implicit-function-declaration -Werror=implicit-int -Wno-format-security -Wno-address-of-packed-member -std=gnu89 -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -m64 -falign-jumps=1 -falign-loops=1 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -mtune=generic -mno-red-zone -mcmodel=kernel -DCONFIG_AS_CFI=1 -DCONFIG_AS_CFI_SIGNAL_FRAME=1 -DCONFIG_AS_CFI_SECTIONS=1 -DCONFIG_AS_SSSE3=1 -DCONFIG_AS_AVX=1 -DCONFIG_AS_AVX2=1 -DCONFIG_AS_AVX512=1 -DCONFIG_AS_SHA1_NI=1 -DCONFIG_AS_SHA256_NI=1 -Wno-sign-compare -fno-asynchronous-unwind-tables -mindirect-branch=thunk-extern -mindirect-branch-register -fno-jump-tables -fno-delete-null-pointer-checks -Wno-frame-address -Wno-format-truncation -Wno-format-overflow -Wno-address-of-packed-member -O2 --param=allow-store-data-races=0 -Wframe-larger-than=2048 -fstack-protector-strong -Wno-unused-but-set-variable -Wimplicit-fallthrough -Wno-unused-const-variable -fno-var-tracking-assignments -g -pg -mrecord-mcount -mfentry -DCC_USING_FENTRY -flive-patching=inline-clone -Wdeclaration-after-statement -Wvla -Wno-pointer-sign -Wno-stringop-truncation -fno-strict-overflow -fno-merge-all-constants -fmerge-constants -fno-stack-check -fconserve-stack -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -fmacro-prefix-map=./= -fcf-protection=none -Wno-packed-not-aligned -O2 -I/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/../include  -DMODULE  -DKBUILD_BASENAME='"CAENUSBdrvB"' -DKBUILD_MODNAME='"CAENUSBdrvB"' -c -o /home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAENUSBdrvB.o /home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAENUSBdrvB.c
+cmd_/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/utility/CAEN-libs/CAENUSBdrvB-1.5.2/CAENUSBdrvB.o := gcc -Wp,-MD,/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/utility/CAEN-libs/CAENUSBdrvB-1.5.2/.CAENUSBdrvB.o.d  -nostdinc -isystem /usr/lib/gcc/x86_64-redhat-linux/9/include -I./arch/x86/include -I./arch/x86/include/generated  -I./include -I./arch/x86/include/uapi -I./arch/x86/include/generated/uapi -I./include/uapi -I./include/generated/uapi -include ./include/linux/kconfig.h -include ./include/linux/compiler_types.h -D__KERNEL__ -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE -Werror=implicit-function-declaration -Werror=implicit-int -Wno-format-security -Wno-address-of-packed-member -std=gnu89 -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -m64 -falign-jumps=1 -falign-loops=1 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -mtune=generic -mno-red-zone -mcmodel=kernel -DCONFIG_AS_CFI=1 -DCONFIG_AS_CFI_SIGNAL_FRAME=1 -DCONFIG_AS_CFI_SECTIONS=1 -DCONFIG_AS_SSSE3=1 -DCONFIG_AS_AVX=1 -DCONFIG_AS_AVX2=1 -DCONFIG_AS_AVX512=1 -DCONFIG_AS_SHA1_NI=1 -DCONFIG_AS_SHA256_NI=1 -DCONFIG_AS_ADX=1 -Wno-sign-compare -fno-asynchronous-unwind-tables -mindirect-branch=thunk-extern -mindirect-branch-register -fno-jump-tables -fno-delete-null-pointer-checks -Wno-frame-address -Wno-format-truncation -Wno-format-overflow -Wno-address-of-packed-member -O2 --param=allow-store-data-races=0 -Wframe-larger-than=2048 -fstack-protector -Wno-unused-but-set-variable -Wimplicit-fallthrough -Wno-unused-const-variable -fno-var-tracking-assignments -g -pg -mrecord-mcount -mfentry -DCC_USING_FENTRY -flive-patching=inline-clone -Wdeclaration-after-statement -Wvla -Wno-pointer-sign -Wno-stringop-truncation -fno-strict-overflow -fno-merge-all-constants -fmerge-constants -fno-stack-check -fconserve-stack -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -fmacro-prefix-map=./= -fcf-protection=none -Wno-packed-not-aligned -O2 -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/utility/CAEN-libs/CAENUSBdrvB-1.5.2/../include  -DMODULE  -DKBUILD_BASENAME='"CAENUSBdrvB"' -DKBUILD_MODNAME='"CAENUSBdrvB"' -c -o /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/utility/CAEN-libs/CAENUSBdrvB-1.5.2/CAENUSBdrvB.o /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/utility/CAEN-libs/CAENUSBdrvB-1.5.2/CAENUSBdrvB.c
 
-source_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAENUSBdrvB.o := /home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAENUSBdrvB.c
+source_/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/utility/CAEN-libs/CAENUSBdrvB-1.5.2/CAENUSBdrvB.o := /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/utility/CAEN-libs/CAENUSBdrvB-1.5.2/CAENUSBdrvB.c
 
-deps_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAENUSBdrvB.o := \
+deps_/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/utility/CAEN-libs/CAENUSBdrvB-1.5.2/CAENUSBdrvB.o := \
     $(wildcard include/config/devfs/fs.h) \
     $(wildcard include/config/kernel/lock.h) \
     $(wildcard include/config/usb/dynamic/minors.h) \
@@ -75,12 +75,12 @@ deps_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAEN
     $(wildcard include/config/debug/atomic/sleep.h) \
     $(wildcard include/config/mmu.h) \
     $(wildcard include/config/prove/locking.h) \
-    $(wildcard include/config/arch/has/refcount.h) \
     $(wildcard include/config/panic/timeout.h) \
   /usr/lib/gcc/x86_64-redhat-linux/9/include/stdarg.h \
   include/linux/limits.h \
   include/uapi/linux/limits.h \
   include/linux/linkage.h \
+    $(wildcard include/config/x86.h) \
   include/linux/stringify.h \
   include/linux/export.h \
     $(wildcard include/config/modversions.h) \
@@ -123,14 +123,15 @@ deps_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAEN
     $(wildcard include/config/matom.h) \
     $(wildcard include/config/paravirt.h) \
   arch/x86/include/asm/disabled-features.h \
-    $(wildcard include/config/x86/intel/mpx.h) \
     $(wildcard include/config/x86/smap.h) \
-    $(wildcard include/config/x86/intel/umip.h) \
+    $(wildcard include/config/x86/umip.h) \
     $(wildcard include/config/x86/intel/memory/protection/keys.h) \
     $(wildcard include/config/x86/5level.h) \
     $(wildcard include/config/page/table/isolation.h) \
   include/asm-generic/bitops/const_hweight.h \
-  include/asm-generic/bitops-instrumented.h \
+  include/asm-generic/bitops/instrumented-atomic.h \
+  include/asm-generic/bitops/instrumented-non-atomic.h \
+  include/asm-generic/bitops/instrumented-lock.h \
   include/asm-generic/bitops/le.h \
   arch/x86/include/uapi/asm/byteorder.h \
   include/linux/byteorder/little_endian.h \
@@ -175,6 +176,7 @@ deps_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAEN
   include/uapi/linux/stat.h \
   include/linux/time.h \
     $(wildcard include/config/arch/uses/gettimeoffset.h) \
+    $(wildcard include/config/posix/timers.h) \
   include/linux/seqlock.h \
     $(wildcard include/config/debug/lock/alloc.h) \
   include/linux/spinlock.h \
@@ -195,7 +197,6 @@ deps_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAEN
     $(wildcard include/config/base/small.h) \
   include/linux/percpu-defs.h \
     $(wildcard include/config/debug/force/weak/per/cpu.h) \
-    $(wildcard include/config/virtualization.h) \
     $(wildcard include/config/amd/mem/encrypt.h) \
   include/linux/thread_info.h \
     $(wildcard include/config/thread/info/in/task.h) \
@@ -217,6 +218,7 @@ deps_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAEN
   arch/x86/include/asm/current.h \
   arch/x86/include/asm/thread_info.h \
     $(wildcard include/config/vm86.h) \
+    $(wildcard include/config/x86/iopl/ioperm.h) \
     $(wildcard include/config/frame/pointer.h) \
     $(wildcard include/config/compat.h) \
     $(wildcard include/config/ia32/emulation.h) \
@@ -242,7 +244,6 @@ deps_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAEN
   arch/x86/include/asm/ist.h \
   arch/x86/include/uapi/asm/ist.h \
   include/video/edid.h \
-    $(wildcard include/config/x86.h) \
   include/uapi/video/edid.h \
   arch/x86/include/asm/page_64_types.h \
     $(wildcard include/config/dynamic/memory/layout.h) \
@@ -263,6 +264,7 @@ deps_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAEN
   arch/x86/include/asm/cpufeature.h \
     $(wildcard include/config/x86/feature/names.h) \
   arch/x86/include/asm/processor.h \
+    $(wildcard include/config/x86/vmx/feature/names.h) \
     $(wildcard include/config/kvm.h) \
     $(wildcard include/config/stackprotector.h) \
     $(wildcard include/config/paravirt/xxl.h) \
@@ -336,6 +338,7 @@ deps_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAEN
   arch/x86/include/asm/fpu/types.h \
   arch/x86/include/asm/unwind_hints.h \
   arch/x86/include/asm/orc_types.h \
+  arch/x86/include/asm/vmxfeatures.h \
   include/linux/personality.h \
   include/uapi/linux/personality.h \
   include/linux/err.h \
@@ -567,30 +570,6 @@ deps_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAEN
   arch/x86/include/asm/topology.h \
     $(wildcard include/config/sched/mc/prio.h) \
   include/asm-generic/topology.h \
-  arch/x86/include/asm/realmode.h \
-    $(wildcard include/config/acpi/sleep.h) \
-  arch/x86/include/asm/io.h \
-    $(wildcard include/config/mtrr.h) \
-    $(wildcard include/config/x86/pat.h) \
-  arch/x86/include/generated/asm/early_ioremap.h \
-  include/asm-generic/early_ioremap.h \
-    $(wildcard include/config/generic/early/ioremap.h) \
-  include/asm-generic/iomap.h \
-    $(wildcard include/config/has/ioport/map.h) \
-    $(wildcard include/config/pci.h) \
-    $(wildcard include/config/generic/iomap.h) \
-  include/asm-generic/pci_iomap.h \
-    $(wildcard include/config/no/generic/pci/ioport/map.h) \
-    $(wildcard include/config/generic/pci/iomap.h) \
-  include/asm-generic/io.h \
-    $(wildcard include/config/virt/to/bus.h) \
-  include/linux/logic_pio.h \
-    $(wildcard include/config/indirect/pio.h) \
-  include/linux/fwnode.h \
-  include/linux/vmalloc.h \
-  include/linux/llist.h \
-    $(wildcard include/config/arch/have/nmi/safe/cmpxchg.h) \
-  include/linux/overflow.h \
   arch/x86/include/uapi/asm/vsyscall.h \
   include/asm-generic/fixmap.h \
   arch/x86/include/asm/hardirq.h \
@@ -614,6 +593,8 @@ deps_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAEN
     $(wildcard include/config/need/per/cpu/page/first/chunk.h) \
   include/linux/smp.h \
     $(wildcard include/config/up/late/init.h) \
+  include/linux/llist.h \
+    $(wildcard include/config/arch/have/nmi/safe/cmpxchg.h) \
   include/linux/sysctl.h \
     $(wildcard include/config/sysctl.h) \
   include/uapi/linux/sysctl.h \
@@ -641,8 +622,6 @@ deps_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAEN
   include/linux/kobject_ns.h \
   include/linux/kref.h \
   include/linux/refcount.h \
-    $(wildcard include/config/refcount/full.h) \
-  arch/x86/include/asm/refcount.h \
   include/linux/moduleparam.h \
     $(wildcard include/config/alpha.h) \
     $(wildcard include/config/ia64.h) \
@@ -652,6 +631,7 @@ deps_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAEN
   include/asm-generic/error-injection.h \
   arch/x86/include/asm/module.h \
     $(wildcard include/config/unwinder/orc.h) \
+    $(wildcard include/config/m486sx.h) \
     $(wildcard include/config/m486.h) \
     $(wildcard include/config/m586.h) \
     $(wildcard include/config/m586tsc.h) \
@@ -680,7 +660,6 @@ deps_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAEN
     $(wildcard include/config/modules/use/elf/rela.h) \
   arch/x86/include/asm/orc_types.h \
   include/linux/sched/signal.h \
-    $(wildcard include/config/posix/timers.h) \
     $(wildcard include/config/sched/autogroup.h) \
     $(wildcard include/config/bsd/process/acct.h) \
     $(wildcard include/config/taskstats.h) \
@@ -791,6 +770,7 @@ deps_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAEN
     $(wildcard include/config/task/io/accounting.h) \
   include/linux/posix-timers.h \
   include/linux/alarmtimer.h \
+    $(wildcard include/config/rtc/class.h) \
   include/uapi/linux/rseq.h \
   include/linux/sched/jobctl.h \
   include/linux/sched/task.h \
@@ -863,6 +843,7 @@ deps_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAEN
   include/uapi/linux/fcntl.h \
   arch/x86/include/generated/uapi/asm/fcntl.h \
   include/uapi/asm-generic/fcntl.h \
+  include/uapi/linux/openat2.h \
   include/uapi/linux/fiemap.h \
   include/linux/migrate_mode.h \
   include/linux/percpu-rwsem.h \
@@ -898,9 +879,12 @@ deps_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAEN
     $(wildcard include/config/slab.h) \
     $(wildcard include/config/slub.h) \
     $(wildcard include/config/slob.h) \
+  include/linux/overflow.h \
   include/linux/percpu-refcount.h \
   include/linux/kasan.h \
+    $(wildcard include/config/kasan/vmalloc.h) \
     $(wildcard include/config/kasan/generic.h) \
+    $(wildcard include/config/kasan/inline.h) \
   include/linux/usb.h \
     $(wildcard include/config/usb/mon.h) \
     $(wildcard include/config/pm.h) \
@@ -920,18 +904,19 @@ deps_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAEN
     $(wildcard include/config/of.h) \
     $(wildcard include/config/devtmpfs.h) \
     $(wildcard include/config/sysfs/deprecated.h) \
+  include/linux/dev_printk.h \
   include/linux/ioport.h \
   include/linux/klist.h \
   include/linux/pm.h \
     $(wildcard include/config/vt/console/sleep.h) \
     $(wildcard include/config/pm/clk.h) \
     $(wildcard include/config/pm/generic/domains.h) \
+  include/linux/device/bus.h \
+  include/linux/device/class.h \
+  include/linux/device/driver.h \
   arch/x86/include/asm/device.h \
     $(wildcard include/config/intel/iommu.h) \
     $(wildcard include/config/amd/iommu.h) \
-    $(wildcard include/config/sta2x11.h) \
-    $(wildcard include/config/x86/dev/dma/ops.h) \
-    $(wildcard include/config/pci/domains.h) \
   include/linux/pm_wakeup.h \
   include/uapi/linux/usb/ch9.h \
   include/linux/delay.h \
@@ -955,8 +940,8 @@ deps_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAEN
   arch/x86/include/asm/sections.h \
   include/asm-generic/sections.h \
   include/linux/pm_runtime.h \
-  /home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAENUSBdrvB.h \
+  /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/utility/CAEN-libs/CAENUSBdrvB-1.5.2/CAENUSBdrvB.h \
 
-/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAENUSBdrvB.o: $(deps_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAENUSBdrvB.o)
+/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/utility/CAEN-libs/CAENUSBdrvB-1.5.2/CAENUSBdrvB.o: $(deps_/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/utility/CAEN-libs/CAENUSBdrvB-1.5.2/CAENUSBdrvB.o)
 
-$(deps_/home/frao/Desktop/xrfmultidet/chnet-nyuad/CAEN-libs/CAENUSBdrvB-1.5.2/CAENUSBdrvB.o):
+$(deps_/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/utility/CAEN-libs/CAENUSBdrvB-1.5.2/CAENUSBdrvB.o):

@@ -1,10 +1,11 @@
-﻿#include "h/mainwindow.h"
+﻿#include "include/mainwindow.h"
 #include <QTextEdit>
 #include <QToolBox>
 #include <QStackedWidget>
 #include <QDockWidget>
 #include <../Header.h>
 #include <../Shm.h>
+
 
 void MainWindow::GUI_CREATOR() {
     using namespace widgets;
@@ -106,10 +107,10 @@ void MainWindow::GUI_CREATOR() {
     tab2->setObjectName(QString::fromUtf8("tab2_3"));
     tab2->setEnabled(false);
 
-    QPixmap pixmap1("IMG/icons/up.xpm");
-    QPixmap pixmap2("IMG/icons/down.xpm");
-    QPixmap pixmap3("IMG/icons/left.xpm");
-    QPixmap pixmap4("IMG/icons/right.xpm");
+    QPixmap pixmap1(":/icons/up.png");
+    QPixmap pixmap2(":/icons/down.png");
+    QPixmap pixmap3(":/icons/left.png");
+    QPixmap pixmap4(":/icons/right.png");
 
 
     buttonTab3[0] = new QPushButton(tab2);   // Move X
@@ -366,63 +367,29 @@ void MainWindow::GUI_CREATOR() {
 //    status->showMessage("Ready");
 //#endif
 
-    QDockWidget* dock = new QDockWidget(centralWidget);
-    QWidget* dock_layout_container = new QWidget(dock);
-    QVBoxLayout* dock_layout = new QVBoxLayout(dock_layout_container);
 
-    /* General layout */
-    QComboBox* dock_select = new QComboBox;
-    dock_select->addItem("XRF map");
-    dock_select->addItem("XRF spectra");
+//    // Debug console
+//    auto debug_console_groupbox = new QGroupBox{ tr("Debug Console") };
+//    auto debug_console_layout = new QVBoxLayout{};
 
-    QStackedWidget* dock_stack = new QStackedWidget(dock);
-    connect(dock_select, QOverload<int>::of(&QComboBox::activated),
-            dock_stack, &QStackedWidget::setCurrentIndex);
-
-    dock_layout->addWidget(dock_select);
-    dock_layout->addWidget(dock_stack);
-
-    QWidget* dock_tab1 = new QWidget(dock_stack);
-    QVBoxLayout* dlayout_tab1 = new QVBoxLayout(dock_tab1);
-
-    QWidget* dock_tab2 = new QWidget(dock_stack);
-    QVBoxLayout* dlayout_tab2 = new QVBoxLayout(dock_tab2);
-    QLabel* dock_label = new QLabel("IN CONSTRUCTION");
-
-
-    scrollArea = new QScrollArea(dock_tab1);
-    scrollArea->setBackgroundRole(QPalette::Dark);
-    scrollArea->setMinimumSize(450, 450);
-
-    dlayout_tab1->addWidget(scrollArea);
-    dlayout_tab2->addWidget(dock_label, Qt::AlignCenter);
-    dock_stack->addWidget(dock_tab1);
-    dock_stack->addWidget(dock_tab2);
-    dock ->setWidget(dock_layout_container);
-    dock ->setFeatures(QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetMovable);
-    dock ->setAllowedAreas(Qt::AllDockWidgetAreas);
-
-
-    // Debug console
-    auto debug_console_groupbox = new QGroupBox{ tr("Debug Console") };
-    auto debug_console_layout = new QVBoxLayout{};
-
-    debug_console_ = new QTextEdit{};
-    debug_console_layout->addWidget(debug_console_);
-    //debug_console_layout->addStretch(1);
-    debug_console_groupbox->setLayout(debug_console_layout);
-    debug_console_groupbox->setFlat(true);
+//    debug_console_ = new QTextEdit{};
+//    debug_console_layout->addWidget(debug_console_);
+//    //debug_console_layout->addStretch(1);
+//    debug_console_groupbox->setLayout(debug_console_layout);
+//    debug_console_groupbox->setFlat(true);
 
     //layoutMaster->addWidget(dock_map, 0, 4, 4, 1, Qt::AlignTop);
     layoutMaster->addWidget(tabWidget, 0, 1, 3, 2, Qt::AlignTop);
     layoutMaster->addWidget(monitorsBox, 0, 0, 2, 1);
     layoutMaster->addWidget(groupBox, 2, 0, Qt::AlignTop);
-    layoutMaster->addWidget(debug_console_groupbox, 3, 0, 1, 3);
-    addDockWidget(Qt::RightDockWidgetArea, dock);
+    //layoutMaster->addWidget(debug_console_groupbox, 0, 4, 1, 3);
 
+    auto dock = MakeDockWidget();
+    //addDockWidget(Qt::TopDockWidgetArea, dock);
+    layoutMaster->addWidget(dock, 0, 4);
 
     size = centralWidget->sizeHint();
-    centralWidget->setFixedSize(size);
+    //centralWidget->setFixedSize(size);
 }
 
 void MainWindow::time_monitor(double val)

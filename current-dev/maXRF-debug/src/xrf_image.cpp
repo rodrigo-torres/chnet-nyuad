@@ -1,4 +1,4 @@
-#include "h/xrfimage.h"
+#include "include/xrfimage.h"
 
 XRFImage::XRFImage()
 {
@@ -10,6 +10,7 @@ XRFImage::~XRFImage()
   {
     file_.close();
   }
+  //std::cout<<"I'm being deleted!"<<std::endl;
 }
 
 bool XRFImage::is_valid()
@@ -78,8 +79,7 @@ QImage XRFImage::ConstructQImage(QString mode, int Pixeldim)
   QImage image(x_length_ * Pixeldim, y_length_ * Pixeldim, QImage::Format_RGB32);
 
   QColor myColor;
-  auto map_size = pixels_in_image_ * Pixeldim * Pixeldim;
-  for (long i = 0; i < map_size; ++i)
+  for (long i = 0; i < pixels_in_image_; ++i)
   {
     double intensity = 0;
     if (max_i)

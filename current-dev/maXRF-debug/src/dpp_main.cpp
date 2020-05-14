@@ -1,6 +1,6 @@
-#include "h/mainwindow.h"
+#include "include/mainwindow.h"
 #include "../Header.h"
-#include "h/dpp.h"
+#include "include/dpp.h"
 
 extern int *shared_memory_cmd, *shared_memory4;
 extern char *shared_memory5;

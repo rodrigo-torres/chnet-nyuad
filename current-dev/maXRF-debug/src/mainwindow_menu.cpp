@@ -1,4 +1,4 @@
-#include "h/mainwindow.h"
+#include "include/mainwindow.h"
 
 void MainWindow::create_menu_actions()
 {
@@ -15,10 +15,10 @@ void MainWindow::create_menu_actions()
     w_actions.at(ac::file_export)->setText("Export map");
     w_actions.at(ac::file_exit)->setText("Quit");
 
-    connect(w_actions.at(ac::file_openmap), &QAction::triggered, this, &MainWindow::LoadTxt);
+    connect(w_actions.at(ac::file_openmap), &QAction::triggered, this, &MainWindow::LoadImageDataFile);
     // [[deprecated]] function saveImageXRFData
     //connect(w_actions.at(ac::file_savetxt), &QAction::triggered, this, &MainWindow::saveImageXRFData);
-    connect(w_actions.at(ac::file_export), &QAction::triggered, this, &MainWindow::export_map);
+    connect(w_actions.at(ac::file_export), &QAction::triggered, this, &MainWindow::ExportImageToPNG);
     connect(w_actions.at(ac::file_exit), &QAction::triggered, this, &MainWindow::close);
 
     /* MAP Menu */
@@ -31,11 +31,11 @@ void MainWindow::create_menu_actions()
     w_actions.at(ac::map_viewlive)->setCheckable(true);
 
     connect(w_actions.at(ac::map_channelfilter), &QAction::triggered, this, &MainWindow::SelectChannels);
-    connect(w_actions.at(ac::map_pixelsize), &QAction::triggered, this, &MainWindow::Pixels);
-    connect(w_actions.at(ac::map_reload), &QAction::triggered, this, &MainWindow::LoadNewFile_SHM);
+    connect(w_actions.at(ac::map_pixelsize), &QAction::triggered, this, &MainWindow::ChangePixelDimension);
+    connect(w_actions.at(ac::map_reload), &QAction::triggered, this, &MainWindow::DisplayImageLabel);
     connect(w_actions.at(ac::map_reloadsum), &QAction::triggered, this, &MainWindow::LoadElementsMapSum);
     // Display image doesn't do much when called from this context.
-    connect(w_actions.at(ac::map_show), &QAction::triggered, this, &MainWindow::displayImage_SHM);
+    connect(w_actions.at(ac::map_show), &QAction::triggered, this, &MainWindow::DisplayImageLabel);
     connect(w_actions.at(ac::map_viewlive), &QAction::triggered, this, &MainWindow::GoOnLine);
 
     /* DAQ Menu */
