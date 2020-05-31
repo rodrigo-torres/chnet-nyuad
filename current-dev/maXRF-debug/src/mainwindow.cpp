@@ -1,8 +1,5 @@
 #include "include/mainwindow.h"
-#include "include/image_display.h"
 #include "include/tty.h"
-#include "../Header.h"
-#include "../variables.h"
 
 extern int shmid[8];
 extern key_t key, key2, key3, key4, key5, key_cmd, key_rate;
@@ -12,8 +9,6 @@ extern int *shared_memory_cmd, *shared_memory_rate;
 
 tty_agent *tty_ptr;
 
-bool CameraOn = false;
-
 
 int DAQ_TYPE = 1;
 int measuring_time = 300; // for single-spectrum DAQ
@@ -22,21 +17,21 @@ char process[30];
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
-    SHM_CREATOR();                 /// CREATING SHARED MEMORY SEGMENT
+    CreateSHMResources();                 /// CREATING SHARED MEMORY SEGMENT
     create_menu_actions();
-    create_menus();            	    /// CREATING MENU from Menu.cpp
-    GUI_CREATOR();
-    handle_connections();
+    CreateMenu();            	    /// CREATING MENU from Menu.cpp
+    CreateGUI();
+    CreateConnections();
 
     readmultidetcalpar();
-    start_thread_tty();
+    StartThreadTTY();
 
     this->resize(this->sizeHint());
     this->show();
 }
 
 
-void MainWindow::start_thread_tty() {
+void MainWindow::StartThreadTTY() {
 
     tty_ptr = new tty_agent();
     tty_ptr->moveToThread(&test_thread);
@@ -45,7 +40,6 @@ void MainWindow::start_thread_tty() {
     connect(tty_ptr, &tty_agent::toggle_tab1, this, &MainWindow::toggle_tab1);
     connect(tty_ptr, &tty_agent::toggle_widgets, this, &MainWindow::toggle_widgets);
     connect(tty_ptr, &tty_agent::update_monitor, this, &MainWindow::update_monitor);
-    //connect(tty_ptr, &tty_agent::save_file, this, &MainWindow::saveImageXRFData);
 
     connect(this, &MainWindow::set_target, tty_ptr, &tty_agent::set_target);
     connect(this, &MainWindow::keyence_reading, tty_ptr, &tty_agent::enable_servo);
@@ -333,7 +327,6 @@ void MainWindow::LoadElementsMapSum() {
     buttonBox->addButton(CANCELbutton, QDialogButtonBox::AcceptRole);
 
     connect(OKbutton, SIGNAL(clicked()), elementsdlg, SLOT(close()));
-    connect(OKbutton, SIGNAL(clicked()), this, SLOT(LoadSHM_SumMap()));
     connect(CANCELbutton, SIGNAL(clicked()), elementsdlg, SLOT(close()));
 
 

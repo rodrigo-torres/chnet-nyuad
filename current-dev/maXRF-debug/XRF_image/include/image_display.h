@@ -2,6 +2,10 @@
 #define IMAGE_DISPLAY_H
 
 #include <QLabel>
+#include <QMessageBox>
+#include <QMouseEvent>
+#include <QDebug>
+#include <QWheelEvent>
 #include <QTextEdit>
 
 #include "include/xrfimage.h"
@@ -14,7 +18,8 @@ class ImgLabel : public QLabel
 
 public:
   ImgLabel();
-  void DisplayImage(QString palette);
+  ~ImgLabel();
+  void DisplayImage();
 
   // ACCESOR methods
   bool is_map_opened() const;
@@ -24,7 +29,11 @@ public:
   void set_pixel_dim(int);
   void set_map_opened(bool state);
   void set_image_data(XRFImage * data_ptr);
+  void set_current_palette(QString palette);
 private:
+  int * shared_memory_cmd;
+  int * shared_memory;
+
   int pixel_dim_;
   bool left_mouse_clicked_;
   bool coordinates_found_;
@@ -34,11 +43,13 @@ private:
   int y_image_;
 
   QImage qimage_;
+  QString current_palette_;
   QTextEdit * debug_console_;
   XRFImage * image_data_;
 
-  void mousePressEvent(QMouseEvent *event);
-  void mouseReleaseEvent(QMouseEvent *event);
+  void mousePressEvent(QMouseEvent * event);
+  void mouseReleaseEvent(QMouseEvent * event);
+  void wheelEvent(QWheelEvent * event);
 };
 
 #endif // IMAGE_DISPLAY_H

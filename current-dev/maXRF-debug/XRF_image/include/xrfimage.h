@@ -12,18 +12,6 @@
 #include <QProgressBar>
 #include <QString>
 
-#include "viridis.h"
-
-extern std::vector<int> integral;
-extern int x_len, y_len, x_step, y_step, min_x, min_y;
-
-
-// Conversion methods
-
-// Detector alignment methods
-extern double *shared_memory5;
-
-struct Pixel;
 struct Pixel
 {
   std::streamoff first_datum_pos;
@@ -53,29 +41,7 @@ public:
   void UpdateROIIntegrals();
   bool FindPixelWithCoordinates(uint, uint, uint*);
 
-  void ComputeROISpectrum(std::vector<int>&& pixels_selected)
-  {
-    roi_spectrum_.resize(16384);
-    std::fill(roi_spectrum_.begin(), roi_spectrum_.end(), 0);
-    for (auto val : pixels_selected)
-    {
-      std::string line;
-      auto & p = image_data_.at(val);
-      int i_line = 0, channel = 0, count = 0;
-
-      file_.seekg(p->first_datum_pos);
-      getline(file_, line);
-      while (line.front() != 'P' && !file_.eof())
-      {
-        i_line = stoi(line);
-        channel = (i_line & 0xFFFC000) >> 14;
-        count = (i_line & 0x3FFF);
-        roi_spectrum_.at(channel) += count;
-        getline(file_, line);
-      }
-    }
-  }
-
+  void ComputeROISpectrum(std::vector<int>&& pixels_selected);
   QImage ConstructQImage(QString mode, int Pixeldim);
 
   Spectrum roi_spectrum()
@@ -92,6 +58,11 @@ public:
   {
     return y_length_;
   }
+
+  void set_shared_memory5(double * ptr)
+  {
+    shared_memory5 = ptr;
+  }
 private:
   void ComputeXLength();
   void ComputeYLength();
@@ -104,6 +75,7 @@ private:
 
   double roi_low;
   double roi_high;
+  double * shared_memory5;
 
   std::string err_msg_;
   std::fstream  file_;
@@ -115,9 +87,5 @@ private:
   // Info about the data file associated
 
 };
-
-extern XRFImage xrf_image;
-
-
 
 #endif // XRFIMAGE_H

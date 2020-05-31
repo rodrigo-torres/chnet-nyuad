@@ -22,27 +22,19 @@ DESTDIR = . #Target file directory
 
 # Input
 HEADERS += \
-  ../Header.h \
   ../Shm.h \
-  ../qt_dependencies.h \
   include/daq_header.h \
   include/dpp.h \
   include/enums_and_wrappers.h \
-  include/image_display.h \
   include/mainwindow.h \
   include/tty.h \
-  include/utility_c.h \
-  include/viridis.h \
-  include/xrfimage.h
+  include/utility_c.h
 SOURCES += \
    src/daq_header.cpp \
    src/dpp_main.cpp \
    src/external_programs.cpp \
-   src/gui_dock_widget.cpp \
    src/gui_interface_dpp.cpp \
    src/gui_interface_tty.cpp \
-   src/gui_interface_xrfimage.cpp \
-   src/image_label.cpp \
    src/main.cpp \
    src/mainwindow.cpp \
    src/mainwindow_conns.cpp \
@@ -50,7 +42,6 @@ SOURCES += \
    src/mainwindow_menu.cpp \
    src/shm.cpp \
    src/tty_agent.cpp \
-   src/utility_c.c \
-   src/xrf_image.cpp
+   src/utility_c.c
 RESOURCES += \
   resources/resource.qrc

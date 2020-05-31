@@ -1,17 +1,13 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <algorithm>
-#include <cstdint>
-
-#include <unistd.h> //POSIX
+#include <QtWidgets>
 #include <QThread>
 
-#include "include/dpp.h"
+#include "../Shm.h"
 #include "include/enums_and_wrappers.h"
-#include <../Shm.h>
-#include "../qt_dependencies.h"
 
+class MainWindowDPP;
 class QTextEdit;
 
 class Sleeper : public QThread {
@@ -22,7 +18,6 @@ public:
 };
 
 class tty_agent;
-class ImgLabel;
 
 
 using namespace std;
@@ -38,15 +33,11 @@ public:
 
   virtual void closeEvent(QCloseEvent *event);
 
-  void GUI_CREATOR();
-  void MENU_CONNECTIONS_CREATOR();
-  void handle_connections();
-  void SHM_CREATOR();
-  void create_menus();
-  void start_thread_tty();
-
-
-  void LoadNewFileWithNoCorrection_SHM();
+  void CreateGUI();
+  void CreateConnections();
+  void CreateSHMResources();
+  void CreateMenu();
+  void StartThreadTTY();
 
   friend class tty_agent;
 
@@ -55,29 +46,17 @@ public:
   QWidget *tab3;
   QTextEdit * debug_console_;
 
-private:
-  // Dock area on the right
-  QTabWidget * MakeDockWidget();
-  QWidget * MakeImageDockTab();
-  QWidget * MakeSpectrumDisplayDockTab();
-
-  ImgLabel * image_label_;
-  QScrollArea * scroll_area_;
-
 public slots:
   void toggle_tab1(bool);
   void toggle_widgets(int);
   void update_monitor(QString, QString, int);
   void tab3_set_target();
   void handle_pushbuttons();
-  void LoadSHM_SumMap();
   void enable_servo();
 
   /* Internal slots */
   void time_monitor(double);
 
-  void SelectLowIntegralLimit(int val);
-  void SelectHighIntegralLimit(int val);
 signals:
   void request_tty_action(int, QString = "");
   void set_target(int, double);
@@ -92,47 +71,29 @@ private slots:
   void Info1_2();
   void Info2_1();
 
-  void GoOnLine();
-  void DisplayImageLabel();
-  void displaySumImage_SHM();
-  void LoadNewFile_SHM();
+  // Composed XRF_image methods
   void LoadElementsMapSum();
   void writeCompMapLimits(int);
-  void SelectChannels();
   void start_point_daq();
   void stop_point_daq();
   void set_PMAcquisitionTime();
   void SelDigiCh0();
   void SelDigiCh1();
   void SelDigiCh0and1();
-  void TreD();
-  void DueD();
 
-  void ChangePixelDimension();
   void ShowHistogram();
   void RateMeter();
-  void load_optimized();
-  void LoadImageDataFile();
   void readmultidetcalpar();
   void Changeparameters();
 
   void enable_keyence_reading();
   void openDPPInter();
-  void Detector();
-  void Helium_interface();
-  void VLC_interface();
-  void caenoscilloscope();
 
   void USB_DAQ(int);
   void OPTICAL_DAQ();
 
-  void ExportImageToPNG();
-
   void set_abort_flag();
-
   void CheckSegFault();
-  void saveImageXRFData();
-
   void XrayTable();
 
 private:
@@ -167,13 +128,10 @@ private:
 
   QLineEdit *dev_monitor[5];
 
-
-
   QTimer *timer;
   QStatusBar *status;
   QPushButton *OKbutton;
   QPushButton *CANCELbutton;
-
 
 };
 

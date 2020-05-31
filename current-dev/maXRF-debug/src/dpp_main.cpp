@@ -1,9 +1,7 @@
 #include "include/mainwindow.h"
-#include "../Header.h"
 #include "include/dpp.h"
 
 extern int *shared_memory_cmd, *shared_memory4;
-extern char *shared_memory5;
 
 /*  Shared memory definitions for DPP:
                                   *(shared_memory4)=40;        // Trigger Threshold
@@ -74,8 +72,7 @@ void MainWindowDPP::paramDCOffset(int offset) {
 
 //    char strResult[6] = { 0 };
 //    memcpy(strResult,result.toStdString().c_str(),result.size());
-//    for (int i = 0; i < result.size(); i++) *(shared_memory5+i) = strResult[i];
-    *(shared_memory4+7) = offset;
+  *(shared_memory4+7) = offset;
 }
 
 void MainWindowDPP::HoldOff(int holdoff)            ///// TRIGGER HOLDOFF

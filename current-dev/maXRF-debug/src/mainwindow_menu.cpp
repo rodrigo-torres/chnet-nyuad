@@ -10,33 +10,9 @@ void MainWindow::create_menu_actions()
 
     /* FILE Menu */
     typedef widgets::actions ac;
-    w_actions.at(ac::file_openmap)->setText("Open map");
-    //w_actions.at(ac::file_savetxt)->setText("Save map");
-    w_actions.at(ac::file_export)->setText("Export map");
     w_actions.at(ac::file_exit)->setText("Quit");
-
-    connect(w_actions.at(ac::file_openmap), &QAction::triggered, this, &MainWindow::LoadImageDataFile);
-    // [[deprecated]] function saveImageXRFData
-    //connect(w_actions.at(ac::file_savetxt), &QAction::triggered, this, &MainWindow::saveImageXRFData);
-    connect(w_actions.at(ac::file_export), &QAction::triggered, this, &MainWindow::ExportImageToPNG);
     connect(w_actions.at(ac::file_exit), &QAction::triggered, this, &MainWindow::close);
 
-    /* MAP Menu */
-    w_actions.at(ac::map_channelfilter)->setText("Set channel interval");
-    w_actions.at(ac::map_pixelsize)->setText("Set pixel size");
-    w_actions.at(ac::map_reload)->setText("Reload map");
-    w_actions.at(ac::map_reloadsum)->setText("Reload composed map");
-    w_actions.at(ac::map_show)->setText("Show map");
-    w_actions.at(ac::map_viewlive)->setText("View live map");
-    w_actions.at(ac::map_viewlive)->setCheckable(true);
-
-    connect(w_actions.at(ac::map_channelfilter), &QAction::triggered, this, &MainWindow::SelectChannels);
-    connect(w_actions.at(ac::map_pixelsize), &QAction::triggered, this, &MainWindow::ChangePixelDimension);
-    connect(w_actions.at(ac::map_reload), &QAction::triggered, this, &MainWindow::DisplayImageLabel);
-    connect(w_actions.at(ac::map_reloadsum), &QAction::triggered, this, &MainWindow::LoadElementsMapSum);
-    // Display image doesn't do much when called from this context.
-    connect(w_actions.at(ac::map_show), &QAction::triggered, this, &MainWindow::DisplayImageLabel);
-    connect(w_actions.at(ac::map_viewlive), &QAction::triggered, this, &MainWindow::GoOnLine);
 
     /* DAQ Menu */
     w_actions.at(ac::daq_time)->setText("Set acquisition time");
@@ -63,16 +39,13 @@ void MainWindow::create_menu_actions()
     w_actions.at(ac::histo_3dim)->setText("Show 3D surface map");
 
     connect(w_actions.at(ac::histo_openwindow), &QAction::triggered, this, &MainWindow::ShowHistogram);
-    connect(w_actions.at(ac::histo_3dim), &QAction::triggered, this, &MainWindow::TreD);
 
     /* TOOLS Menu */
     w_actions.at(ac::tools_daqparams)->setText("Set DPP-PHA parameters");
     w_actions.at(ac::tools_xraytable)->setText("Open the X-ray table");
-    w_actions.at(ac::tools_camera)->setText("Open Camera");
 
     connect(w_actions.at(ac::tools_daqparams), &QAction::triggered, this, &MainWindow::openDPPInter);
     connect(w_actions.at(ac::tools_xraytable), &QAction::triggered, this, &MainWindow::XrayTable);
-    connect(w_actions.at(ac::tools_camera), &QAction::triggered, this, &MainWindow::VLC_interface);
 
     /* ABOUT Menu */
     w_actions.at(ac::info_open0)->setText("About this software");
@@ -84,26 +57,12 @@ void MainWindow::create_menu_actions()
     connect(w_actions.at(ac::info_open3), &QAction::triggered, this, &MainWindow::Info2_1);
 }
 
-void MainWindow::create_menus() {
+void MainWindow::CreateMenu() {
 
     typedef widgets::actions ac;
     typedef widgets::menus menus;
     w_menus.at(menus::file) = menuBar()->addMenu(tr("File"));
-    w_menus.at(menus::file)->addAction(w_actions.at(ac::file_openmap));
-    //w_menus.at(menus::file)->addAction(w_actions.at(ac::file_savetxt));
-    w_menus.at(menus::file)->addAction(w_actions.at(ac::file_export));
-    w_menus.at(menus::file)->addSeparator();
     w_menus.at(menus::file)->addAction(w_actions.at(ac::file_exit));
-
-    w_menus.at(menus::map) = menuBar()->addMenu(tr("Show Map"));
-    w_menus.at(menus::map)->addAction(w_actions.at(ac::map_channelfilter));
-    w_menus.at(menus::map)->addAction(w_actions.at(ac::map_pixelsize));
-    w_menus.at(menus::map)->addSeparator();
-    w_menus.at(menus::map)->addAction(w_actions.at(ac::map_reload));
-    w_menus.at(menus::map)->addAction(w_actions.at(ac::map_reloadsum));
-    w_menus.at(menus::map)->addAction(w_actions.at(ac::map_show));
-    w_menus.at(menus::map)->addSeparator();
-    w_menus.at(menus::map)->addAction(w_actions.at(ac::map_viewlive));
 
     w_menus.at(menus::daq) = menuBar()->addMenu(tr("Acquisition"));
     w_menus.at(menus::daq)->addAction(w_actions.at(ac::daq_time));
@@ -123,7 +82,6 @@ void MainWindow::create_menus() {
     w_menus.at(menus::tools) = menuBar()->addMenu(tr("Tools"));
     w_menus.at(menus::tools)->addAction(w_actions.at(ac::tools_daqparams));
     w_menus.at(menus::tools)->addAction(w_actions.at(ac::tools_xraytable));
-    w_menus.at(menus::tools)->addAction(w_actions.at(ac::tools_camera));
 
     w_menus.at(menus::about) = menuBar()->addMenu(tr("HowTo"));
     w_menus.at(menus::infosoftware) = w_menus.at(menus::about)->addMenu( "Software" );

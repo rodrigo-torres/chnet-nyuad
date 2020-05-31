@@ -1,13 +1,6 @@
 ﻿#include "include/mainwindow.h"
-#include <QTextEdit>
-#include <QToolBox>
-#include <QStackedWidget>
-#include <QDockWidget>
-#include <../Header.h>
-#include <../Shm.h>
 
-
-void MainWindow::GUI_CREATOR() {
+void MainWindow::CreateGUI() {
     using namespace widgets;
     auto total_pushbuttons = index_of(pushbuttons::TOTAL_NO);
     buttons.resize(total_pushbuttons);
@@ -382,11 +375,6 @@ void MainWindow::GUI_CREATOR() {
     layoutMaster->addWidget(tabWidget, 0, 1, 3, 2, Qt::AlignTop);
     layoutMaster->addWidget(monitorsBox, 0, 0, 2, 1);
     layoutMaster->addWidget(groupBox, 2, 0, Qt::AlignTop);
-    //layoutMaster->addWidget(debug_console_groupbox, 0, 4, 1, 3);
-
-    auto dock = MakeDockWidget();
-    //addDockWidget(Qt::TopDockWidgetArea, dock);
-    layoutMaster->addWidget(dock, 0, 4);
 
     size = centralWidget->sizeHint();
     //centralWidget->setFixedSize(size);

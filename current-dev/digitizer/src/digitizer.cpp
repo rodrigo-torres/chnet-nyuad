@@ -62,7 +62,7 @@ digitizer::digitizer()
 	{
 		daq_mode = shared_memory_cmd[300];
 		//DEBUG
-		daq_mode = 2;
+		//daq_mode = 2;
 		daq_mode == 0 ?
 				daq_enable = false :
 				daq_enable = true;
@@ -223,7 +223,7 @@ void digitizer::readDataFromDGTZ()
 void digitizer::start_daq()
 {
 	// DEBUG only
-	daq_mode = 2;
+	//daq_mode = 2;
 
 	using daq_writer::DataPacket;
 	using daq_writer::FileWriter;
@@ -426,6 +426,8 @@ void digitizer::configTimer()
 {
 	switch (daq_mode)
 	{
+	case 1:
+		break;
 	case 2:
 		// Wait for the motors in position, ready for new line
 		sem_post(sem_reply);
@@ -435,6 +437,7 @@ void digitizer::configTimer()
 		printf("[!] Invalid DAQ mode\n");
 		break;
 	}
+	printf("Timer Interval: %d\n", timer_interval);
 
 	it_val.it_value.tv_sec = timer_interval / 1000;
 	it_val.it_value.tv_usec = (timer_interval * 1000) % 1000000;
@@ -454,13 +457,13 @@ void digitizer::stopTimer()
 	if (setitimer(ITIMER_REAL, &it_val, NULL) == -1)
 	{
 		perror("[!] Error setting interval timer");
-		exit(1);8
+		exit(1);
 	}
 }
 
 void digitizer::handle_alarm()
 {
-	daq_mode = 2;
+	//daq_mode = 2;
 	switch (daq_mode)
 	{
 	case 0:

@@ -1,6 +1,4 @@
 #include "include/mainwindow.h"
-#include <../Header.h>
-#include <../Shm.h>
 
 int shmid[8] = { 0 };
 int *shared_memory_cmd, *shared_memory_rate;
@@ -18,9 +16,9 @@ template <typename T> T* assignSHM(key_t key, size_t size, int id) {
     else return static_cast<T*>(shmat(shmID, nullptr, 0));
 }
 
-void MainWindow::SHM_CREATOR() {
+void MainWindow::CreateSHMResources() {
 
-    key_t key_cmd = 6900, key = 7000, key2 = 7200, key3 = 7300, key4 = 7400, key5 = 8000;
+    key_t key_cmd = 6900, key = 7000, key4 = 7400, key5 = 8000;
     key_t key_rate = 7500;
 
     shared_memory_cmd = assignSHM<int>(key_cmd, SHMSZ_CMD_STATUS, 0);

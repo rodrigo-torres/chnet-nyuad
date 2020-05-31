@@ -1,12 +1,21 @@
 #include "include/image_display.h"
-#include "include/mainwindow.h"
+#include "include/posix_common.h"
 
 extern int *shared_memory, *shared_memory_cmd;
 
 ImgLabel::ImgLabel() : pixel_dim_ {1}, left_mouse_clicked_ {false},
   coordinates_found_ {false}, map_opened_ {false}
 {
+  shared_memory_cmd = posix::assignSHM<int>(6900, 4096);
+  shared_memory = posix::assignSHM<int>(7000, 409600);
+}
 
+ImgLabel::~ImgLabel()
+{
+//  shmctl(shared_memory_cmd, IPC_RMID, 0);
+//  shmctl(shared_memory, IPC_RMID, 0);
+  shmdt(shared_memory_cmd);
+  shmdt(shared_memory);
 }
 
 bool ImgLabel::is_map_opened() const
@@ -33,9 +42,14 @@ void ImgLabel::set_image_data(XRFImage * data_ptr)
   image_data_ = data_ptr;
 }
 
-void ImgLabel::DisplayImage(QString palette)
+void ImgLabel::set_current_palette(QString palette)
 {
-  qimage_ = image_data_->ConstructQImage(palette, pixel_dim_);
+  current_palette_ = palette;
+}
+
+void ImgLabel::DisplayImage()
+{
+  qimage_ = image_data_->ConstructQImage(current_palette_, pixel_dim_);
   QCursor cursor(QPixmap::fromImage(qimage_));
   cursor.setShape(Qt::PointingHandCursor);
 
@@ -44,6 +58,33 @@ void ImgLabel::DisplayImage(QString palette)
   resize(sizeHint());
 
   map_opened_ = true;
+}
+
+void ImgLabel::wheelEvent(QWheelEvent *event)
+{
+  if (!map_opened_)
+  {
+    event->ignore();
+    return;
+  }
+
+  auto delta = event->angleDelta().y();
+  delta = (delta > 0) ? 1 : -1;
+  pixel_dim_ += delta;
+
+  if (pixel_dim_ < 0)
+  {
+    pixel_dim_ = 1;
+    QMessageBox msg_box;
+    msg_box.warning(this, "Warning!", "Can't zoom out the image any futher!");
+    event->ignore();
+  }
+  else
+  {
+    DisplayImage();
+    event->accept();
+  }
+
 }
 
 void ImgLabel::mousePressEvent(QMouseEvent *event) {
@@ -130,13 +171,13 @@ void ImgLabel::mouseReleaseEvent(QMouseEvent *event) { // Click and release in d
       max_x++;
       max_y++;
 
-//      auto length_y = max_y - min_y + 1;
-//      auto length_x = max_x - min_x + 1;
-//      auto area = length_x * length_y;
+      //      auto length_y = max_y - min_y + 1;
+      //      auto length_x = max_x - min_x + 1;
+      //      auto area = length_x * length_y;
 
       int pixel = 0;
       std::vector<int> pixels_selected;
-//      pixels_selected.reserve(area);
+      //      pixels_selected.reserve(area);
       for (int i = min_y; i < max_y; ++i)
       {
         for (int j = min_x; j < max_x; ++j)

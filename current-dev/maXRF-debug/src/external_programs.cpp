@@ -1,10 +1,8 @@
-﻿#include "include/image_display.h"
-#include "include/mainwindow.h"
-#include "../Header.h"
+﻿#include "include/mainwindow.h"
+#include "include/dpp.h"
 
 extern tty_agent tty_ptr;
 
-extern bool CameraOn;
 extern int measuring_time;   extern int DAQ_TYPE;
 extern int *shared_memory_cmd, *shared_memory;
 extern int *shared_memory_cmd;
@@ -104,39 +102,6 @@ void MainWindow::openDPPInter() {
     *(shared_memory_cmd+72) = 1; // DPP interface active
   }
   else qDebug()<<"[!] DPP window already opened";
-}
-
-void MainWindow::Detector() {
-}
-
-void MainWindow::VLC_interface() {
-  if (CameraOn) {system("pkill -9 vlc &"); CameraOn=false;}
-  else {system("vlc & "); CameraOn=true;}
-}
-
-void MainWindow::Helium_interface() {
-}
-
-void MainWindow::caenoscilloscope() {
-}
-
-
-void MainWindow::TreD() {
-}
-
-void MainWindow::DueD() {
-}
-
-void MainWindow::GoOnLine() {
-  if (*(shared_memory_cmd+75) == 1) {
-    *(shared_memory_cmd+75) = 0;
-  }
-  else {
-    image_label_->set_map_opened(true);
-    qDebug()<<"... Live-Map is active";
-    *(shared_memory_cmd+75)=1;
-    system("./bin/OnLineMap & ");
-  }
 }
 
 

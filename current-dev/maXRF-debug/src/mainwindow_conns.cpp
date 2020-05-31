@@ -1,8 +1,6 @@
 #include "include/mainwindow.h"
-#include <../Header.h>
-#include <../Shm.h>
 
-void MainWindow::handle_connections() {
+void MainWindow::CreateConnections() {
 
     connect(tab1_stop, &QPushButton::clicked, this, &MainWindow::set_abort_flag);
 

@@ -1,4 +1,5 @@
 #include "include/xrfimage.h"
+#include "include/viridis.h"
 
 XRFImage::XRFImage()
 {
@@ -36,6 +37,29 @@ bool XRFImage::FindPixelWithCoordinates(uint x, uint y, uint * pixel)
       *pixel += (x_length_ - x - 1);
 
   return true;
+}
+
+void XRFImage::ComputeROISpectrum(std::vector<int>&& pixels_selected)
+{
+  roi_spectrum_.resize(16384);
+  std::fill(roi_spectrum_.begin(), roi_spectrum_.end(), 0);
+  for (auto val : pixels_selected)
+  {
+    std::string line;
+    auto & p = image_data_.at(val);
+    int i_line = 0, channel = 0, count = 0;
+
+    file_.seekg(p->first_datum_pos);
+    getline(file_, line);
+    while (line.front() != 'P' && !file_.eof())
+    {
+      i_line = stoi(line);
+      channel = (i_line & 0xFFFC000) >> 14;
+      count = (i_line & 0x3FFF);
+      roi_spectrum_.at(channel) += count;
+      getline(file_, line);
+    }
+  }
 }
 
 void XRFImage::UpdateROIIntegrals()
