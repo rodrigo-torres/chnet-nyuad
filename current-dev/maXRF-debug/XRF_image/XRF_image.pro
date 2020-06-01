@@ -20,7 +20,7 @@ DESTDIR = . #Target file directory
 # Input
 HEADERS += \
   include/image_display.h \
-  include/posix_common.h \
+  include/shm_wrapper.h \
   include/viridis.h \
   include/xrf_image_widget.h \
   include/xrfimage.h

@@ -15,8 +15,8 @@
 #include <QString>
 #include <QToolBar>
 
-
 #include "include/image_display.h"
+#include "include/shm_wrapper.h"
 
 namespace xrfimage
 {
@@ -40,7 +40,8 @@ private:
   void CreateActions();
   void CreateWidget();
 
-  double * shared_memory5;
+  //double * shared_memory5;
+  shm::array<double> shared_memory5;
   XRFImage xrf_image;
 
   // STATIC methods. Internal methods only seen in this translation unit
@@ -57,17 +58,5 @@ private:
   QWidget * parent_;
   ImgLabel * image_label_;
 };
-
-
-class XRFImageWindow : public QMainWindow
-{
-  Q_OBJECT
-public:
-  XRFImageWindow();
-  ~XRFImageWindow();
-private:
-  XRFImageWidget * central_widget_;
-};
-}
-
+} // namespace xrfimage
 #endif // XRFIMAGEWIDGET_H

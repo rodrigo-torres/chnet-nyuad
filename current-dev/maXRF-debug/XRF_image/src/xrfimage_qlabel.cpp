@@ -1,22 +1,23 @@
 #include "include/image_display.h"
-#include "include/posix_common.h"
 
 extern int *shared_memory, *shared_memory_cmd;
 
 ImgLabel::ImgLabel() : pixel_dim_ {1}, left_mouse_clicked_ {false},
   coordinates_found_ {false}, map_opened_ {false}
 {
-  shared_memory_cmd = posix::assignSHM<int>(6900, 4096);
-  shared_memory = posix::assignSHM<int>(7000, 409600);
+  shm::TypeDefInitSHM shm_cmd {6900, 4096, IPC_CREAT | 0666};
+  shm::TypeDefInitSHM shm {7000, 409600, IPC_CREAT | 0666};
+
+  shared_memory_cmd.initialize(shm_cmd);
+  shared_memory.initialize(shm);
+
+  // TODO check validity of signal to signal connection
+  image_data_ = &default_image_;
+  connect(image_data_, &XRFImage::UpdateProgressBar, this, &ImgLabel::RelayProgressBarSignal);
 }
 
 ImgLabel::~ImgLabel()
-{
-//  shmctl(shared_memory_cmd, IPC_RMID, 0);
-//  shmctl(shared_memory, IPC_RMID, 0);
-  shmdt(shared_memory_cmd);
-  shmdt(shared_memory);
-}
+{}
 
 bool ImgLabel::is_map_opened() const
 {
@@ -200,16 +201,16 @@ void ImgLabel::mouseReleaseEvent(QMouseEvent *event) { // Click and release in d
     int * spectrum_display_ptr = nullptr;
     auto spectrum = image_data_->roi_spectrum();
 
-    switch (shared_memory_cmd[100])
+    switch (shared_memory_cmd.at(100))
     {
     case 0:
-      spectrum_display_ptr = &shared_memory[100];
+      spectrum_display_ptr = &shared_memory.at(100);
       break;
     case 1:
-      spectrum_display_ptr = &shared_memory[20000];
+      spectrum_display_ptr = &shared_memory.at(20000);
       break;
     case 2:
-      spectrum_display_ptr = &shared_memory[40000];
+      spectrum_display_ptr = &shared_memory.at(40000);
       break;
     default:
       // TODO warning here
@@ -223,7 +224,7 @@ void ImgLabel::mouseReleaseEvent(QMouseEvent *event) { // Click and release in d
       ++i;
     }
 
-    shared_memory[99] = 1;
+    shared_memory.at(99)= 1;
   }
 }
 

@@ -9,12 +9,22 @@
 #include <QTextEdit>
 
 #include "include/xrfimage.h"
+#include "include/shm_wrapper.h"
 
 class ImgLabel : public QLabel
 {
   // INHERITED PUBLIC METHODS
   // Mutator function for the label's QPixmap
   // void setPixmap(const QPixmap &)
+  Q_OBJECT
+signals:
+  void UpdateProgressBar(int value);
+
+public slots:
+  void RelayProgressBarSignal(int value)
+  {
+    emit UpdateProgressBar(value);
+  }
 
 public:
   ImgLabel();
@@ -30,9 +40,13 @@ public:
   void set_map_opened(bool state);
   void set_image_data(XRFImage * data_ptr);
   void set_current_palette(QString palette);
+
+  XRFImage default_image_;
 private:
-  int * shared_memory_cmd;
-  int * shared_memory;
+  //int * shared_memory_cmd;
+  //int * shared_memory;
+  shm::array<int> shared_memory_cmd;
+  shm::array<int> shared_memory;
 
   int pixel_dim_;
   bool left_mouse_clicked_;

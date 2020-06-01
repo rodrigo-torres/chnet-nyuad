@@ -10,6 +10,7 @@
 
 #include <QInputDialog>
 #include <QProgressBar>
+#include <QObject>
 #include <QString>
 
 struct Pixel
@@ -28,11 +29,22 @@ typedef std::vector<std::unique_ptr<Pixel>> ImageData;
 // TODO add ROI limits info
 
 // API
-class XRFImage
+class XRFImage : public QObject
 {
+  Q_OBJECT
+signals:
+  void UpdateProgressBar(int value);
+
 public:
-  XRFImage();
-  ~XRFImage();
+  explicit XRFImage(QWidget* parent = 0) {}
+  virtual ~XRFImage()
+  {
+    if (file_.is_open())
+    {
+      file_.close();
+    }
+  }
+
   void LoadDataFile(std::string);
   bool is_valid();
   std::string err_msg();

@@ -1,5 +1,5 @@
 #include "include/xrf_image_widget.h"
-#include "include/posix_common.h"
+#include "include/shm_wrapper.h"
 
 namespace xrfimage
 {
@@ -7,7 +7,14 @@ namespace xrfimage
 XRFImageWidget::XRFImageWidget(QWidget * parent) : parent_{parent}
 {
   parent_ = this;
-  shared_memory5 = posix::assignSHM<double>(8000, 4096);
+
+  shm::TypeDefInitSHM shm5_init;
+  shm5_init.key = 8000;
+  shm5_init.size = 4096;
+  shm5_init.shmflag = shm::SHMFlags::CREATE | shm::SHMPermissions::ALL_ALL;
+
+  shared_memory5.initialize(shm5_init);
+  //shared_memory5 = posix::assignSHM<double>(8000, 4096);
 
   CreateActions();
   CreateWidget();
@@ -17,7 +24,7 @@ XRFImageWidget::XRFImageWidget(QWidget * parent) : parent_{parent}
 
 XRFImageWidget::~XRFImageWidget()
 {
-  shmdt(shared_memory5);
+  //shmdt(shared_memory5);
 }
 
 QWidget * XRFImageWidget::widget()
@@ -147,6 +154,8 @@ void XRFImageWidget::CreateWidget()
   image_actions_box->setLayout(grid);
 
   auto progress_bar = new QProgressBar;
+  progress_bar->setRange(0, 100);
+  progress_bar->setValue(0);
 
   QVBoxLayout * layout = new QVBoxLayout;
   layout->addWidget(scroll_area_);
@@ -160,51 +169,52 @@ void XRFImageWidget::CreateWidget()
   auto action_sliderlow = [=](int i) {
     limits_low_edit->setText(QString::number(i));
     limits_high_slider->setMinimum(i);
-    shared_memory5[100] = i;
+    shared_memory5.at(100) = i;
   };
 
   auto action_sliderhigh = [=](int i) {
     limits_high_edit->setText(QString::number(i));
     limits_low_slider->setMaximum(i);
-    shared_memory5[101] = i;
+    shared_memory5.at(101) = i;
   };
 
   connect(limits_low_slider, QOverload<int>::of(&QSpinBox::valueChanged), action_sliderlow);
   connect(limits_high_slider, QOverload<int>::of(&QSpinBox::valueChanged), action_sliderhigh);
 
+  connect(image_label_, &ImgLabel::UpdateProgressBar, progress_bar, &QProgressBar::setValue);
   widget_ = this;
 }
 
 
 void XRFImageWidget::LoadImageDataFile()
 {
-    QString filename =
-        QFileDialog::getOpenFileName(parent_, "Open XRF Image Data File",
-                                     data_directory);
-    if (filename.isEmpty())
-    {
-        QMessageBox msg_box;
-        msg_box.warning(parent_, "Warning!", "You have chosen an empty filename.\n"
-                         "No image data has been loaded onto memory.");
-        return;
-    }
+  QFileDialog dialog;
+  QString filename = dialog.getOpenFileName(nullptr, "Open XRF Image Data File", data_directory);
 
-    xrf_image.LoadDataFile(filename.toStdString());
-    if (xrf_image.is_valid())
-    {
-      // The function below provided the functionality to pass a spectrum
-      //  onto shared memory. With the XRFImage class we can pass straight to
-      //  the DisplayImageSHM
-      xrf_image.set_shared_memory5(shared_memory5);
-      image_label_->set_image_data(&xrf_image);
-      DisplayImageLabel();
-    }
-    else
-    {
-      QMessageBox msg_box;
-      msg_box.critical(parent_, "Error!",
-                       QString::fromStdString(xrf_image.err_msg()));
-    }
+  if (filename.isEmpty())
+  {
+    QMessageBox msg_box;
+    msg_box.warning(parent_, "Warning!", "You have chosen an empty filename.\n"
+                                         "No image data has been loaded onto memory.");
+    return;
+  }
+
+  image_label_->default_image_.LoadDataFile(filename.toStdString());
+  if (image_label_->default_image_.is_valid())
+  {
+    // The function below provided the functionality to pass a spectrum
+    //  onto shared memory. With the XRFImage class we can pass straight to
+    //  the DisplayImageSHM
+    image_label_->default_image_.set_shared_memory5(shared_memory5.data());
+    image_label_->set_image_data(&image_label_->default_image_);
+    DisplayImageLabel();
+  }
+  else
+  {
+    QMessageBox msg_box;
+    msg_box.critical(parent_, "Error!",
+                     QString::fromStdString(xrf_image.err_msg()));
+  }
 }
 
 void XRFImageWidget::DisplayImageLabel()
@@ -215,7 +225,7 @@ void XRFImageWidget::DisplayImageLabel()
   QString item =
       QInputDialog::getItem(parent_, tr("Color Palette"),
                             tr("Using color palette:"),
-                            { tr("Viridis"), tr("Grayscale") },
+  { tr("Viridis"), tr("Grayscale") },
                             0, false, &valid);
 
   if (valid)
@@ -272,21 +282,5 @@ void XRFImageWidget::ExportImageToPNG()
 // TODO false color / composed image methods
 // TODO live xrf image functionality
 // TODO data format conversion methods
-
-
-XRFImageWindow::XRFImageWindow()
-{
-  XRFImageWidget central_widget{this};
-  setCentralWidget(&central_widget);
-  //addToolBar(central_widget.toolbar());
-
-  this->resize(this->sizeHint());
-  this->show();
-}
-
-XRFImageWindow::~XRFImageWindow()
-{
-
-}
 
 }

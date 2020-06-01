@@ -1,18 +1,7 @@
 #include "include/xrfimage.h"
 #include "include/viridis.h"
 
-XRFImage::XRFImage()
-{
-
-}
-XRFImage::~XRFImage()
-{
-  if (file_.is_open())
-  {
-    file_.close();
-  }
-  //std::cout<<"I'm being deleted!"<<std::endl;
-}
+#include <sys/stat.h> // For file information
 
 bool XRFImage::is_valid()
 {
@@ -73,6 +62,9 @@ void XRFImage::UpdateROIIntegrals()
   roi_low = shared_memory5[100];
   roi_high = shared_memory5[101];
 
+  size_t current = 0;
+  double size = image_data_.size();
+
   int i_line = 0, channel = 0, count = 0;
   std::string line;
   for (auto & p: image_data_)
@@ -92,7 +84,10 @@ void XRFImage::UpdateROIIntegrals()
       }
       getline(file_, line);
     }
+    emit UpdateProgressBar(static_cast<int>((current *100) / size));
+    ++current;
   }
+  emit UpdateProgressBar(0);
 }
 
 QImage XRFImage::ConstructQImage(QString mode, int Pixeldim)
@@ -176,6 +171,17 @@ int XRFImage::ComputeMaxIntegral()
 // Starting contents of source file
 void XRFImage::LoadDataFile(std::string filename)
 {
+  // Close previous file
+  if (file_.is_open()) {
+    file_.close();
+  }
+
+  // Some information about the file first
+  struct stat stat_buf;
+  int rc = stat(filename.c_str(), &stat_buf);
+  auto size_bytes = (rc == 0) ? stat_buf.st_size : -1;
+
+
   file_ = std::fstream{filename, std::fstream::in};
   if (file_.is_open())
   {
@@ -221,6 +227,11 @@ void XRFImage::LoadDataFile(std::string filename)
       pixel->x_coord = tokens.at(2).toInt();
       pixel->y_coord = tokens.at(3).toInt();
 
+      double progress = static_cast<double>(pixel->first_datum_pos) / size_bytes;
+      progress *= 100;
+
+      emit UpdateProgressBar(static_cast<int>(progress));
+
       image_data_.push_back(std::move(pixel));
       if (image_data_.size() > 1)
       {
@@ -259,6 +270,7 @@ void XRFImage::LoadDataFile(std::string filename)
     ComputeXLength();
     ComputeYLength();
     pixels_in_image_ = x_length_ * y_length_;
+    emit UpdateProgressBar(0);
     //sum_spectrum_.shrink_to_fit();
   }
 
