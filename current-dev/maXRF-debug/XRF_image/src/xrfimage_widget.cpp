@@ -81,7 +81,7 @@ void XRFImageWidget::CreateActions()
   connect(open_action, &QAction::triggered, this, &XRFImageWidget::LoadImageDataFile);
   connect(export_action, &QAction::triggered, this, &XRFImageWidget::ExportImageToPNG);
   // TODO pixel_action slot
-  connect(reload_button, &QAction::triggered, this, &XRFImageWidget::DisplayImageLabel);
+  connect(reload_button, &QAction::triggered, this, &XRFImageWidget::RefreshImageDisplay);
 
 }
 
@@ -188,58 +188,12 @@ void XRFImageWidget::CreateWidget()
 
 void XRFImageWidget::LoadImageDataFile()
 {
-  QFileDialog dialog;
-  QString filename = dialog.getOpenFileName(nullptr, "Open XRF Image Data File", data_directory);
-
-  if (filename.isEmpty())
-  {
-    QMessageBox msg_box;
-    msg_box.warning(parent_, "Warning!", "You have chosen an empty filename.\n"
-                                         "No image data has been loaded onto memory.");
-    return;
-  }
-
-  image_label_->default_image_.LoadDataFile(filename.toStdString());
-  if (image_label_->default_image_.is_valid())
-  {
-    // The function below provided the functionality to pass a spectrum
-    //  onto shared memory. With the XRFImage class we can pass straight to
-    //  the DisplayImageSHM
-    image_label_->default_image_.set_shared_memory5(shared_memory5.data());
-    image_label_->set_image_data(&image_label_->default_image_);
-    DisplayImageLabel();
-  }
-  else
-  {
-    QMessageBox msg_box;
-    msg_box.critical(parent_, "Error!",
-                     QString::fromStdString(xrf_image.err_msg()));
-  }
+  image_label_->AddImageToBuffer();
 }
 
-void XRFImageWidget::DisplayImageLabel()
+void XRFImageWidget::RefreshImageDisplay()
 {
-  // TODO. The available color palettes should be given directly by the
-  //  a method of the class ImgLabel. It'd be less prone to mistakes
-  bool valid { false };
-  QString item =
-      QInputDialog::getItem(parent_, tr("Color Palette"),
-                            tr("Using color palette:"),
-  { tr("Viridis"), tr("Grayscale") },
-                            0, false, &valid);
-
-  if (valid)
-  {
-    // Ask the QLabel handling the XRF image to render the image again
-    //  using the color palette specified in 'item' and the pixel size
-    //  currently specified in its internal member 'pixel_dimension_'
-    image_label_->set_current_palette(item);
-    image_label_->DisplayImage();
-
-    // There's no need to set imageLabel again as the widget in scrollArea
-    // The QScrollArea reacts dinamically to the size and contents of its
-    //  underlying widget.
-  }
+  image_label_->RenderAndPaintImage();
 }
 
 void XRFImageWidget::ExportImageToPNG()

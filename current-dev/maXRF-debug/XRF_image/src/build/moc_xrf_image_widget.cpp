@@ -22,7 +22,7 @@ QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_xrfimage__XRFImageWidget_t {
     QByteArrayData data[5];
-    char stringdata0[79];
+    char stringdata0[81];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -35,11 +35,11 @@ QT_MOC_LITERAL(0, 0, 24), // "xrfimage::XRFImageWidget"
 QT_MOC_LITERAL(1, 25, 17), // "LoadImageDataFile"
 QT_MOC_LITERAL(2, 43, 0), // ""
 QT_MOC_LITERAL(3, 44, 16), // "ExportImageToPNG"
-QT_MOC_LITERAL(4, 61, 17) // "DisplayImageLabel"
+QT_MOC_LITERAL(4, 61, 19) // "RefreshImageDisplay"
 
     },
     "xrfimage::XRFImageWidget\0LoadImageDataFile\0"
-    "\0ExportImageToPNG\0DisplayImageLabel"
+    "\0ExportImageToPNG\0RefreshImageDisplay"
 };
 #undef QT_MOC_LITERAL
 
@@ -77,7 +77,7 @@ void xrfimage::XRFImageWidget::qt_static_metacall(QObject *_o, QMetaObject::Call
         switch (_id) {
         case 0: _t->LoadImageDataFile(); break;
         case 1: _t->ExportImageToPNG(); break;
-        case 2: _t->DisplayImageLabel(); break;
+        case 2: _t->RefreshImageDisplay(); break;
         default: ;
         }
     }

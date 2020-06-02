@@ -1,5 +1,5 @@
 #include "include/xrfimage.h"
-#include "include/viridis.h"
+//#include "include/viridis.h"
 
 #include <sys/stat.h> // For file information
 
@@ -53,14 +53,14 @@ void XRFImage::ComputeROISpectrum(std::vector<int>&& pixels_selected)
 
 void XRFImage::UpdateROIIntegrals()
 {
-  if (roi_low == shared_memory5[100]  && roi_high == shared_memory5[101])
+  if (roi_low == shared_memory5.at(100) && roi_high == shared_memory5.at(101))
   {
     // ROI limits haven't changed
     return;
   }
 
-  roi_low = shared_memory5[100];
-  roi_high = shared_memory5[101];
+  roi_low = shared_memory5.at(100);
+  roi_high = shared_memory5.at(101);
 
   size_t current = 0;
   double size = image_data_.size();
@@ -90,47 +90,27 @@ void XRFImage::UpdateROIIntegrals()
   emit UpdateProgressBar(0);
 }
 
-QImage XRFImage::ConstructQImage(QString mode, int Pixeldim)
+QImage XRFImage::RenderQImage()
 {
+  QImage image(x_length_, y_length_, QImage::Format_Indexed8);
+  image.setColorCount(256);
 
   UpdateROIIntegrals();
   auto max_i = ComputeMaxIntegral();
-  QImage image(x_length_ * Pixeldim, y_length_ * Pixeldim, QImage::Format_RGB32);
-
-  QColor myColor;
-  for (long i = 0; i < pixels_in_image_; ++i)
+  if (max_i == 0)
   {
-    double intensity = 0;
-    if (max_i)
-    {
-      intensity = static_cast<double>(image_data_[i]->integral) / max_i;
-      //intensity *= scale;
-    }
+    // The maximum integral of any given pixel is 0, so the image is null
+    //  We return a black image (which reflects the fact above)
+    image.fill(Qt::black);
+    return image;
+  }
 
+  double intensity = 0;
+  for (auto & pixel : image_data_)
+  {
+    intensity = static_cast<double>(pixel->integral) / max_i;
+    image.setPixel(pixel->x_coord, pixel->y_coord, std::ceil(intensity * 255));
 
-    if (mode == "Viridis")
-    {
-      int temp = int(intensity * 255);
-
-      int color_r = viridis[temp][0];
-      int color_g = viridis[temp][1];
-      int color_b = viridis[temp][2];
-      myColor.setRgb(color_r, color_g, color_b, 255);
-    }
-
-    else if ( mode == "Grayscale" ) {
-      intensity *= 255;
-      myColor.setRgb(int(intensity),int(intensity),int(intensity),255);
-    }
-
-    int x_corner = image_data_[i]->x_coord * Pixeldim;
-    int y_corner = image_data_[i]->y_coord * Pixeldim;
-
-    for (int j = 0; j < Pixeldim; j++) {
-      for (int i = 0; i < Pixeldim; i++){
-        image.setPixel(x_corner + i, y_corner + j, myColor.rgb());
-      }
-    }
   }
   return image;
 }
@@ -277,7 +257,7 @@ void XRFImage::LoadDataFile(std::string filename)
   else
   {
     err_msg_ = "The file cannot be opened.\n"
-               "Check format and access priviledges.";
+               "Check format and access privileges.";
     valid_ = false;
   }
 }

@@ -31,71 +31,7 @@ namespace common
 
 
 template <class T>
-class SharedMemory
-{
-
-public:
-	SharedMemory() = default;
-	[[nodiscard]] bool open(key_t keyval, size_t segsize) noexcept
-	{
-		// We try to access the segment as a client
-		int shmid_ = shmget(keyval, segsize, 0);
-		if (shmid_ == -1)
-		{
-			perror("[DAQ] Can't access SHM segment 5: ");
-			return valid_ = false;
-		}
-		else
-		{
-			underlying_pointer = (T*)shmat(shmid_, nullptr, 0);
-
-			// Compute the number of elements in a segment of size n bytes
-			long pagesize = sysconf(_SC_PAGE_SIZE);
-			long segsize = pagesize * ((segsize / pagesize) + 1);
-			segsize  /= sizeof(T);
-
-			underlying_container_.reserve(segsize);
-			for (int i = 0; i < segsize; i++) {
-				underlying_container_.push_back(underlying_pointer[i]);
-			}
-
-			//shmdt(shared_memory_);
-			return valid_ = true;
-		}
-	}
-	void detach() {
-		shmdt(underlying_pointer);
-	}
-
-	T* getPointer() {
-		return underlying_pointer;
-	}
-
-	bool isValid() {
-		return valid_;
-	}
-	size_t size() {
-		return underlying_container_.size();
-	}
-	T& operator[](size_t pos) {
-		return underlying_container_[pos];
-	}
-	T& at(size_t pos) {
-			return underlying_container_.at(pos);
-	}
-	const T& operator[](size_t pos) const {
-		return underlying_container_[pos];
-	}
-	const T& at(size_t pos) const	{
-		return underlying_container_.at(pos);
-	}
-
-
-private:
-	bool valid_ {false};
-	T* underlying_pointer;
-	std::vector<T> underlying_container_;
-};
+rt13
 }	// namespace common
 
 

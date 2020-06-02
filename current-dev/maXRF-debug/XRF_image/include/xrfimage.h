@@ -2,6 +2,7 @@
 #define XRFIMAGE_H
 
 #include <algorithm>  // For maximum element algorithm
+#include <cmath>      // ceil functions
 #include <fstream>
 #include <memory>     // Smart pointers
 #include <string>
@@ -12,6 +13,14 @@
 #include <QProgressBar>
 #include <QObject>
 #include <QString>
+
+#include "include/shm_wrapper.h"
+
+// -------------------- USER CONFIGURATION -------------------- //
+// These fields will eventually need to be populated from a configuration file
+static int const lowest_bin = 0;
+static int const highest_bin = 16383;
+
 
 struct Pixel
 {
@@ -27,16 +36,28 @@ typedef std::vector<int_least32_t> Spectrum;
 typedef std::vector<std::unique_ptr<Pixel>> ImageData;
 
 // TODO add ROI limits info
+class ImgLabel;
 
 // API
 class XRFImage : public QObject
 {
   Q_OBJECT
+  friend ImgLabel;
+
 signals:
   void UpdateProgressBar(int value);
 
 public:
-  explicit XRFImage(QWidget* parent = 0) {}
+  explicit XRFImage(QWidget* parent = 0) : valid_{false}, x_length_{0},
+  y_length_{0}, pixels_in_image_{0}, roi_low{highest_bin}, roi_high{lowest_bin}
+  {
+	  shm::TypeDefInitSHM shm5_init;
+	  shm5_init.key = 8000;
+	  shm5_init.size = 4096;
+	  shm5_init.shmflag = shm::SHMFlags::CREATE | shm::SHMPermissions::ALL_ALL;
+
+	  shared_memory5.initialize(shm5_init);
+  }
   virtual ~XRFImage()
   {
     if (file_.is_open())
@@ -44,6 +65,7 @@ public:
       file_.close();
     }
   }
+
 
   void LoadDataFile(std::string);
   bool is_valid();
@@ -54,7 +76,7 @@ public:
   bool FindPixelWithCoordinates(uint, uint, uint*);
 
   void ComputeROISpectrum(std::vector<int>&& pixels_selected);
-  QImage ConstructQImage(QString mode, int Pixeldim);
+  QImage RenderQImage();
 
   Spectrum roi_spectrum()
   {
@@ -62,19 +84,20 @@ public:
   }
   Spectrum sum_spectrum();
 
-  uint x_length()
+  int x_length()
   {
     return x_length_;
   }
-  uint y_length()
+  int y_length()
   {
     return y_length_;
   }
-
-  void set_shared_memory5(double * ptr)
+protected:
+  XRFImage * address()
   {
-    shared_memory5 = ptr;
+    return this;
   }
+
 private:
   void ComputeXLength();
   void ComputeYLength();
@@ -87,7 +110,7 @@ private:
 
   double roi_low;
   double roi_high;
-  double * shared_memory5;
+  shm::array<double> shared_memory5;
 
   std::string err_msg_;
   std::fstream  file_;
