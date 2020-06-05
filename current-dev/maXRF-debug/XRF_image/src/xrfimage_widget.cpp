@@ -4,17 +4,15 @@
 namespace xrfimage
 {
 
-XRFImageWidget::XRFImageWidget(QWidget * parent) : parent_{parent}
+XRFImageWidget::XRFImageWidget(QWidget * parent)
 {
-  parent_ = this;
-
   shm::TypeDefInitSHM shm5_init;
   shm5_init.key = 8000;
   shm5_init.size = 4096;
-  shm5_init.shmflag = shm::SHMFlags::CREATE | shm::SHMPermissions::ALL_ALL;
+  shm5_init.shmflag = shm::Flags::CREATE | shm::Permissions::ALL_ALL;
 
   shared_memory5.initialize(shm5_init);
-  //shared_memory5 = posix::assignSHM<double>(8000, 4096);
+  image_label_ = new ImgLabel{this};
 
   CreateActions();
   CreateWidget();
@@ -24,18 +22,9 @@ XRFImageWidget::XRFImageWidget(QWidget * parent) : parent_{parent}
 
 XRFImageWidget::~XRFImageWidget()
 {
-  //shmdt(shared_memory5);
+
 }
 
-QWidget * XRFImageWidget::widget()
-{
-  return widget_;
-}
-
-QToolBar * XRFImageWidget::toolbar()
-{
-  return toolbar_;
-}
 
 
 QString XRFImageWidget::data_directory = "/home/frao/Documents/Workspaces/MAXRF/Data";
@@ -78,31 +67,18 @@ void XRFImageWidget::CreateActions()
   toolbar_->addAction(reload_button);
 
 
-  connect(open_action, &QAction::triggered, this, &XRFImageWidget::LoadImageDataFile);
-  connect(export_action, &QAction::triggered, this, &XRFImageWidget::ExportImageToPNG);
+  connect(open_action, &QAction::triggered,
+          image_label_, &ImgLabel::AddImageToBuffer);
+  connect(export_action, &QAction::triggered,
+          this, &XRFImageWidget::ExportImageToPNG);
   // TODO pixel_action slot
-  connect(reload_button, &QAction::triggered, this, &XRFImageWidget::RefreshImageDisplay);
+  connect(reload_button, &QAction::triggered,
+          image_label_, &ImgLabel::RenderAndPaintImage);
 
 }
 
-
-
-void XRFImageWidget::CreateWidget()
+void XRFImageWidget::FilterImageDialog()
 {
-  //QWidget * tab = new QWidget;
-  QImage image(":/images/TT_CHNet_res2.png");
-
-  // CHILD WIDGETS
-  image_label_ = new ImgLabel;
-  image_label_->setPixmap(QPixmap::fromImage(image));
-  image_label_->setBackgroundRole(QPalette::Base);
-
-  auto scroll_area_ = new QScrollArea;
-  scroll_area_->setBackgroundRole(QPalette::Dark);
-  scroll_area_->setMinimumSize(450, 450);
-  scroll_area_->setWidget(image_label_);
-  scroll_area_->setAlignment(Qt::AlignCenter);
-
   auto image_actions_box = new QGroupBox{tr("Image Controls")};
   image_actions_box->setAlignment(Qt::AlignCenter);
   //image_actions_box->setStyleSheet("QGroupBox {border: 1px solid #000}");
@@ -153,19 +129,6 @@ void XRFImageWidget::CreateWidget()
 
   image_actions_box->setLayout(grid);
 
-  auto progress_bar = new QProgressBar;
-  progress_bar->setRange(0, 100);
-  progress_bar->setValue(0);
-
-  QVBoxLayout * layout = new QVBoxLayout;
-  layout->addWidget(scroll_area_);
-  layout->addWidget(toolbar_);
-  layout->addLayout(integral_select_layout);
-  layout->addWidget(image_actions_box);
-  layout->addWidget(progress_bar);
-  this->setLayout(layout);
-  //tab->setLayout(layout);
-
   auto action_sliderlow = [=](int i) {
     limits_low_edit->setText(QString::number(i));
     limits_high_slider->setMinimum(i);
@@ -178,23 +141,141 @@ void XRFImageWidget::CreateWidget()
     shared_memory5.at(101) = i;
   };
 
+  QVBoxLayout * layout = new QVBoxLayout;
+  layout->addLayout(integral_select_layout);
+  layout->addWidget(image_actions_box);
+
+
+  // TODO setObjectNames for children to avoid pointers
+
   connect(limits_low_slider, QOverload<int>::of(&QSpinBox::valueChanged), action_sliderlow);
   connect(limits_high_slider, QOverload<int>::of(&QSpinBox::valueChanged), action_sliderhigh);
-
-  connect(image_label_, &ImgLabel::UpdateProgressBar, progress_bar, &QProgressBar::setValue);
-  widget_ = this;
 }
 
 
-void XRFImageWidget::LoadImageDataFile()
+
+void XRFImageWidget::CreateWidget()
 {
-  image_label_->AddImageToBuffer();
+  //QWidget * tab = new QWidget;
+  QImage image(":/images/TT_CHNet_res2.png");
+
+  // CHILD WIDGETS
+  image_label_->setPixmap(QPixmap::fromImage(image));
+  image_label_->setBackgroundRole(QPalette::Base);
+
+  auto scroll_area_ = new QScrollArea;
+  scroll_area_->setBackgroundRole(QPalette::Dark);
+  scroll_area_->setMinimumSize(450, 450);
+  scroll_area_->setWidget(image_label_);
+  scroll_area_->setAlignment(Qt::AlignCenter);
+  \
+
+  auto tab_widget = new QTabWidget;
+
+  //  // ---------- TAB1 WIDGET DEFINITION ---------- //
+  auto tab1 = new QWidget;
+
+  QVector<double> x(256), y(256);
+  for (int i=0; i <x.size(); ++i)
+  {
+    x[i] = i;
+    y[i] = i;
+  }
+
+  image_histogram_ = new QCustomPlot{};
+
+  auto bars1 = new QCPBars(image_histogram_->xAxis, image_histogram_->yAxis);
+  bars1->setWidth(1);
+  bars1->setData(x, y, true);
+  bars1->setPen(Qt::NoPen);
+  bars1->setBrush(QColor("Orange"));
+
+
+  connect(image_label_, &ImgLabel::UpdateImageHistogram,
+          this, [=](QVector<int> histogram) {
+    auto it = histogram.begin();
+    for (auto & i : *bars1->data())
+    {
+      i.value = *it;
+      ++it;
+    }
+    auto max = *std::max_element(histogram.begin(), histogram.end());
+    image_histogram_->yAxis->setRange(0, max);
+    image_histogram_->replot();
+  });
+
+
+  image_histogram_->yAxis->setRange(0, 255);
+  image_histogram_->xAxis->setRange(0, 255);
+  image_histogram_->yAxis->setVisible(true);
+  image_histogram_->xAxis->setVisible(true);
+  image_histogram_->setBackground(QBrush(QColor("white")));
+
+  image_histogram_->replot();
+
+  auto checklist1 = new QCheckBox{"Filter 1"};
+
+  //  BRIGHTNESS CONTROLS
+
+  QLabel * brightness_label = new QLabel{"Brightness"};
+
+  auto brightness_slider = new QSlider{Qt::Horizontal};
+  brightness_slider->setRange(-50, 50);
+  brightness_slider->setSingleStep(1);
+  brightness_slider->setPageStep(10);
+  brightness_slider->setValue(0);
+
+  auto brightness_indicator = new QLabel;
+  brightness_indicator->setNum(brightness_slider->value());
+
+  QObject::connect(brightness_slider, &QSlider::valueChanged, this,
+                   [=](int value) {
+    auto formatted_string = QString::number(value).append("%");
+    if (value > 0)
+    {
+      formatted_string.prepend("+");
+    }
+    brightness_indicator->setText(formatted_string);
+  });
+
+  // CONTRAST CONTROLS
+
+  auto contrast_checkbox = new QCheckBox{"Stretch Histogram"};
+
+  QObject::connect(brightness_slider, &QSlider::valueChanged,
+                   image_label_, &ImgLabel::set_brightness);
+  QObject::connect(contrast_checkbox, &QCheckBox::stateChanged,
+                   image_label_, &ImgLabel::ToggleHistogramStretching);
+
+  auto tab1_layout = new QGridLayout;
+  tab1_layout->addWidget(checklist1, 0, 0);
+  tab1_layout->addWidget(image_histogram_, 1, 0, 1, 3);
+  tab1_layout->addWidget(brightness_label, 2, 0);
+  tab1_layout->addWidget(brightness_slider, 2, 1);
+  tab1_layout->addWidget(brightness_indicator, 2, 2);
+  tab1_layout->addWidget(contrast_checkbox, 3, 0);
+
+  tab1->setLayout(tab1_layout);
+  tab_widget->addTab(tab1, "Scale");
+  tab_widget->setCurrentIndex(0);
+
+
+  auto progress_bar = new QProgressBar;
+  progress_bar->setRange(0, 100);
+  progress_bar->setValue(0);
+
+  QVBoxLayout * layout = new QVBoxLayout;
+  layout->addWidget(scroll_area_);
+  layout->addWidget(toolbar_);
+  layout->addWidget(tab_widget);
+  layout->addWidget(progress_bar);
+  this->setLayout(layout);
+
+  connect(image_label_, &ImgLabel::UpdateProgressBar,
+          progress_bar, &QProgressBar::setValue);
+
 }
 
-void XRFImageWidget::RefreshImageDisplay()
-{
-  image_label_->RenderAndPaintImage();
-}
 
 void XRFImageWidget::ExportImageToPNG()
 {
@@ -207,7 +288,7 @@ void XRFImageWidget::ExportImageToPNG()
   }
 
   QString filename =
-      QFileDialog::getSaveFileName(parent_, "Save image as PNG", data_directory,
+      QFileDialog::getSaveFileName(this, "Save image as PNG", data_directory,
                                    tr("Images (*.png)"));
   if (filename.isEmpty())
   {

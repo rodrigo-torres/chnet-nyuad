@@ -6,7 +6,8 @@ TEMPLATE = app
 TARGET = XRF_image
 INCLUDEPATH += .
 QT += widgets \
-      gui
+      gui \
+      printsupport
 CONFIG += c++14
 CONFIG += qt warn_on thread
 CONFIG += console
@@ -19,15 +20,18 @@ DESTDIR = . #Target file directory
 
 # Input
 HEADERS += \
+  include/types.h \
+  libs/qcustomplot.h \
   include/image_display.h \
   include/shm_wrapper.h \
   include/viridis.h \
   include/xrf_image_widget.h \
   include/xrfimage.h
 SOURCES += \
-   src/main.cpp \
-   src/xrfimage_data.cpp \
-   src/xrfimage_qlabel.cpp \
-   src/xrfimage_widget.cpp
+  libs/qcustomplot.cpp \
+  src/main.cpp \
+  src/xrfimage_data.cpp \
+  src/xrfimage_qlabel.cpp \
+  src/xrfimage_widget.cpp
 RESOURCES += \
   resources/resource.qrc

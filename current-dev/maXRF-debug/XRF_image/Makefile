@@ -14,10 +14,10 @@ EQ            = =
 
 CC            = gcc
 CXX           = g++
-DEFINES       = -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_QML_DEBUG
+DEFINES       = -DQT_PRINTSUPPORT_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_QML_DEBUG
 CFLAGS        = -pipe -g -D_REENTRANT -Wall -W -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -g -std=gnu++1y -D_REENTRANT -Wall -W -fPIC $(DEFINES)
-INCPATH       = -I. -I. -isystem /usr/include/qt5 -isystem /usr/include/qt5/QtWidgets -isystem /usr/include/qt5/QtGui -isystem /usr/include/qt5/QtCore -Isrc/build -isystem /usr/include/libdrm -I/usr/lib64/qt5/mkspecs/linux-g++
+INCPATH       = -I. -I. -isystem /usr/include/qt5 -isystem /usr/include/qt5/QtPrintSupport -isystem /usr/include/qt5/QtWidgets -isystem /usr/include/qt5/QtGui -isystem /usr/include/qt5/QtCore -Isrc/build -isystem /usr/include/libdrm -I/usr/lib64/qt5/mkspecs/linux-g++
 QMAKE         = /usr/local/bin/qmake
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -40,7 +40,7 @@ DISTNAME      = XRF_image1.0.0
 DISTDIR = /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/XRF_image/src/build/XRF_image1.0.0
 LINK          = g++
 LFLAGS        = 
-LIBS          = $(SUBLIBS) -lpthread /usr/lib64/libQt5Widgets.so /usr/lib64/libQt5Gui.so /usr/lib64/libQt5Core.so /usr/lib64/libGL.so   
+LIBS          = $(SUBLIBS) -lpthread /usr/lib64/libQt5PrintSupport.so /usr/lib64/libQt5Widgets.so /usr/lib64/libQt5Gui.so /usr/lib64/libQt5Core.so /usr/lib64/libGL.so   
 AR            = ar cqs
 RANLIB        = 
 SED           = sed
@@ -52,18 +52,22 @@ OBJECTS_DIR   = src/build/
 
 ####### Files
 
-SOURCES       = src/main.cpp \
+SOURCES       = libs/qcustomplot.cpp \
+		src/main.cpp \
 		src/xrfimage_data.cpp \
 		src/xrfimage_qlabel.cpp \
 		src/xrfimage_widget.cpp src/build/qrc_resource.cpp \
+		src/build/moc_qcustomplot.cpp \
 		src/build/moc_image_display.cpp \
 		src/build/moc_xrf_image_widget.cpp \
 		src/build/moc_xrfimage.cpp
-OBJECTS       = src/build/main.o \
+OBJECTS       = src/build/qcustomplot.o \
+		src/build/main.o \
 		src/build/xrfimage_data.o \
 		src/build/xrfimage_qlabel.o \
 		src/build/xrfimage_widget.o \
 		src/build/qrc_resource.o \
+		src/build/moc_qcustomplot.o \
 		src/build/moc_image_display.o \
 		src/build/moc_xrf_image_widget.o \
 		src/build/moc_xrfimage.o
@@ -229,11 +233,14 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib64/qt5/mkspecs/features/exceptions.prf \
 		/usr/lib64/qt5/mkspecs/features/yacc.prf \
 		/usr/lib64/qt5/mkspecs/features/lex.prf \
-		XRF_image.pro include/image_display.h \
+		XRF_image.pro include/types.h \
+		libs/qcustomplot.h \
+		include/image_display.h \
 		include/shm_wrapper.h \
 		include/viridis.h \
 		include/xrf_image_widget.h \
-		include/xrfimage.h src/main.cpp \
+		include/xrfimage.h libs/qcustomplot.cpp \
+		src/main.cpp \
 		src/xrfimage_data.cpp \
 		src/xrfimage_qlabel.cpp \
 		src/xrfimage_widget.cpp
@@ -593,8 +600,8 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents resources/resource.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib64/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents include/image_display.h include/shm_wrapper.h include/viridis.h include/xrf_image_widget.h include/xrfimage.h $(DISTDIR)/
-	$(COPY_FILE) --parents src/main.cpp src/xrfimage_data.cpp src/xrfimage_qlabel.cpp src/xrfimage_widget.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents include/types.h libs/qcustomplot.h include/image_display.h include/shm_wrapper.h include/viridis.h include/xrf_image_widget.h include/xrfimage.h $(DISTDIR)/
+	$(COPY_FILE) --parents libs/qcustomplot.cpp src/main.cpp src/xrfimage_data.cpp src/xrfimage_qlabel.cpp src/xrfimage_widget.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -647,28 +654,39 @@ compiler_moc_predefs_clean:
 src/build/moc_predefs.h: /usr/lib64/qt5/mkspecs/features/data/dummy.cpp
 	g++ -pipe -g -std=gnu++1y -D_REENTRANT -Wall -W -dM -E -o src/build/moc_predefs.h /usr/lib64/qt5/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: src/build/moc_image_display.cpp src/build/moc_xrf_image_widget.cpp src/build/moc_xrfimage.cpp
+compiler_moc_header_make_all: src/build/moc_qcustomplot.cpp src/build/moc_image_display.cpp src/build/moc_xrf_image_widget.cpp src/build/moc_xrfimage.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) src/build/moc_image_display.cpp src/build/moc_xrf_image_widget.cpp src/build/moc_xrfimage.cpp
+	-$(DEL_FILE) src/build/moc_qcustomplot.cpp src/build/moc_image_display.cpp src/build/moc_xrf_image_widget.cpp src/build/moc_xrfimage.cpp
+src/build/moc_qcustomplot.cpp: libs/qcustomplot.h \
+		src/build/moc_predefs.h \
+		/usr/lib64/qt5/bin/moc
+	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/XRF_image/src/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/XRF_image -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/XRF_image -I/usr/include/qt5 -I/usr/include/qt5/QtPrintSupport -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include libs/qcustomplot.h -o src/build/moc_qcustomplot.cpp
+
 src/build/moc_image_display.cpp: include/image_display.h \
 		include/xrfimage.h \
 		include/shm_wrapper.h \
+		include/types.h \
+		libs/qcustomplot.h \
 		src/build/moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
-	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/XRF_image/src/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/XRF_image -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/XRF_image -I/usr/include/qt5 -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/image_display.h -o src/build/moc_image_display.cpp
+	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/XRF_image/src/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/XRF_image -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/XRF_image -I/usr/include/qt5 -I/usr/include/qt5/QtPrintSupport -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/image_display.h -o src/build/moc_image_display.cpp
 
 src/build/moc_xrf_image_widget.cpp: include/xrf_image_widget.h \
 		include/image_display.h \
 		include/xrfimage.h \
 		include/shm_wrapper.h \
+		include/types.h \
+		libs/qcustomplot.h \
 		src/build/moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
-	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/XRF_image/src/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/XRF_image -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/XRF_image -I/usr/include/qt5 -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/xrf_image_widget.h -o src/build/moc_xrf_image_widget.cpp
+	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/XRF_image/src/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/XRF_image -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/XRF_image -I/usr/include/qt5 -I/usr/include/qt5/QtPrintSupport -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/xrf_image_widget.h -o src/build/moc_xrf_image_widget.cpp
 
 src/build/moc_xrfimage.cpp: include/xrfimage.h \
+		include/shm_wrapper.h \
+		include/types.h \
 		src/build/moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
-	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/XRF_image/src/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/XRF_image -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/XRF_image -I/usr/include/qt5 -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/xrfimage.h -o src/build/moc_xrfimage.cpp
+	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/XRF_image/src/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/XRF_image -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/maXRF-debug/XRF_image -I/usr/include/qt5 -I/usr/include/qt5/QtPrintSupport -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/xrfimage.h -o src/build/moc_xrfimage.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -686,29 +704,43 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 
 ####### Compile
 
+src/build/qcustomplot.o: libs/qcustomplot.cpp libs/qcustomplot.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o src/build/qcustomplot.o libs/qcustomplot.cpp
+
 src/build/main.o: src/main.cpp include/xrf_image_widget.h \
 		include/image_display.h \
 		include/xrfimage.h \
-		include/shm_wrapper.h
+		include/shm_wrapper.h \
+		include/types.h \
+		libs/qcustomplot.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o src/build/main.o src/main.cpp
 
 src/build/xrfimage_data.o: src/xrfimage_data.cpp include/xrfimage.h \
-		include/viridis.h
+		include/shm_wrapper.h \
+		include/types.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o src/build/xrfimage_data.o src/xrfimage_data.cpp
 
 src/build/xrfimage_qlabel.o: src/xrfimage_qlabel.cpp include/image_display.h \
 		include/xrfimage.h \
-		include/shm_wrapper.h
+		include/shm_wrapper.h \
+		include/types.h \
+		libs/qcustomplot.h \
+		include/viridis.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o src/build/xrfimage_qlabel.o src/xrfimage_qlabel.cpp
 
 src/build/xrfimage_widget.o: src/xrfimage_widget.cpp include/xrf_image_widget.h \
 		include/image_display.h \
 		include/xrfimage.h \
-		include/shm_wrapper.h
+		include/shm_wrapper.h \
+		include/types.h \
+		libs/qcustomplot.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o src/build/xrfimage_widget.o src/xrfimage_widget.cpp
 
 src/build/qrc_resource.o: src/build/qrc_resource.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o src/build/qrc_resource.o src/build/qrc_resource.cpp
+
+src/build/moc_qcustomplot.o: src/build/moc_qcustomplot.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o src/build/moc_qcustomplot.o src/build/moc_qcustomplot.cpp
 
 src/build/moc_image_display.o: src/build/moc_image_display.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o src/build/moc_image_display.o src/build/moc_image_display.cpp

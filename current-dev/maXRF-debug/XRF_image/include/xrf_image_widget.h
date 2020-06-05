@@ -6,11 +6,13 @@
 #include <QFileDialog>
 #include <QDockWidget>
 #include <QLayout>
+#include <QLabel>
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QMenu>
 #include <QObject>
 #include <QScrollArea>
+#include <QSlider>
 #include <QSpinBox>
 #include <QString>
 #include <QToolBar>
@@ -28,21 +30,16 @@ public:
   XRFImageWidget(QWidget * parent = nullptr);
   ~XRFImageWidget();
 
-  QWidget * widget();
-  QToolBar * toolbar();
-
 public slots:
-  void LoadImageDataFile();
   void ExportImageToPNG();
-  void RefreshImageDisplay();
 
 private:
   void CreateActions();
   void CreateWidget();
+  void FilterImageDialog();
 
-  //double * shared_memory5;
+private:
   shm::array<double> shared_memory5;
-  XRFImage xrf_image;
 
   // STATIC methods. Internal methods only seen in this translation unit
   // TODO variable below must be implemented as a user preference variable
@@ -52,11 +49,9 @@ private:
   static int const histogram_lowest_bin = 0;
   static int const histogram_highest_bin = 16383;
 
-  QMenu * menu_;
-  QToolBar * toolbar_;
-  QWidget * widget_;
-  QWidget * parent_;
   ImgLabel * image_label_;
+  QToolBar * toolbar_;
+  QCustomPlot * image_histogram_;
 };
 } // namespace xrfimage
 #endif // XRFIMAGEWIDGET_H

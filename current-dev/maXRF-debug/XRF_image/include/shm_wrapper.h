@@ -12,13 +12,13 @@
 namespace shm
 {
 
-enum SHMFlags : int
+enum Flags : int
 {
   ACCESS = 0,
   CREATE = IPC_CREAT
 };
 
-enum SHMPermissions : int
+enum Permissions : int
 {
   USER_READ = S_IRUSR,
   USER_WRITE = S_IWUSR,

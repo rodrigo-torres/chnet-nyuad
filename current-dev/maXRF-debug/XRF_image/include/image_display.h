@@ -2,6 +2,7 @@
 #define IMAGE_DISPLAY_H
 
 #include <memory>
+#include <tuple>
 
 #include <QDebug>
 #include <QFileDialog>
@@ -14,6 +15,7 @@
 
 #include "include/xrfimage.h"
 #include "include/shm_wrapper.h"
+#include "libs/qcustomplot.h"
 
 // -------------------- USER CONFIGURATION -------------------- //
 // These fields will eventually need to be populated from a configuration file
@@ -27,9 +29,7 @@ class ImgLabel : public QLabel
   // void setPixmap(const QPixmap &)
   Q_OBJECT
 
-  using ImagePointer	= std::unique_ptr<XRFImage>;
-  using ImageBuffer		= std::vector<ImagePointer>;
-  using ImageIterator	= ImageBuffer::iterator;
+  using Renderer	= std::unique_ptr<XRFImage>;
 
   using ColorTable = QVector<QRgb>;
   using Palettes = std::map<QString, ColorTable>;
@@ -37,6 +37,7 @@ class ImgLabel : public QLabel
 
 signals:
   void UpdateProgressBar(int value);
+  void UpdateImageHistogram(QVector<int> histogram);
 
 public slots:
   void RelayProgressBarSignal(int value)
@@ -45,7 +46,7 @@ public slots:
   }
 
 public:
-  ImgLabel();
+  ImgLabel(QWidget * parent);
   ~ImgLabel();
   /**
     *	A method that loads an XRFImage and adds it to the behind-the-curtains
@@ -58,7 +59,7 @@ public:
 
 
   void RenderAndPaintImage();
-  void RepaintImage();
+  void ProcessImage();
 
 
   // ACCESOR methods
@@ -67,17 +68,24 @@ public:
 
   // MUTATOR methods
   void set_pixel_dim(int);
-  void set_map_opened(bool state);
-  void set_current_palette(QString palette);
+  void ToggleHistogramStretching(int percentage);
+  void set_brightness(int percentage);
 
 private:
   void CreatePalettes();
+  void AdjustContrast();
+  void AdjustBrightness();
+  void PaintImage();
+  void ResizeImage();
+
+  void mousePressEvent(QMouseEvent * event);
+  void mouseReleaseEvent(QMouseEvent * event);
+  void wheelEvent(QWheelEvent * event);
 
 private:
   shm::array<int> shared_memory_cmd;
   shm::array<int> shared_memory;
 
-  int pixel_dim_;
   bool left_mouse_clicked_;
   bool coordinates_found_;
   bool map_opened_;
@@ -85,21 +93,20 @@ private:
   int x_image_;
   int y_image_;
 
-  QImage qimage_;
+  //QImage qimage_;
 
+  // Look-up tables for the painted XRF images, which are stored as 8-bit
+  //  indexed images
   Palettes palettes_;
-
   QString selected_palette;
-  XRFImage * img_data;
 
-  ImageBuffer images_;
-  ImageIterator image_on_display_;
+  XRFImage renderer;
+  std::vector<std::unique_ptr<UnprocessedImage>> images_;
+  std::vector<std::unique_ptr<UnprocessedImage>>::iterator active_image_;
 
+  QImage displayed_image_;
 
-
-  void mousePressEvent(QMouseEvent * event);
-  void mouseReleaseEvent(QMouseEvent * event);
-  void wheelEvent(QWheelEvent * event);
+  QWidget * parent_;
 };
 
 #endif // IMAGE_DISPLAY_H

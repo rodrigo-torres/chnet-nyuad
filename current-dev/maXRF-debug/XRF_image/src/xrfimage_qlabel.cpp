@@ -1,8 +1,9 @@
 #include "include/image_display.h"
 #include "include/viridis.h"
 
-ImgLabel::ImgLabel() : pixel_dim_ {1}, left_mouse_clicked_ {false},
-  coordinates_found_ {false}, map_opened_ {false}
+ImgLabel::ImgLabel(QWidget * parent) :
+  left_mouse_clicked_ {false}, coordinates_found_ {false},
+  map_opened_ {false}, renderer{}, parent_(parent)
 {
   shm::TypeDefInitSHM shm_cmd {6900, 4096, IPC_CREAT | 0666};
   shm::TypeDefInitSHM shm {7000, 409600, IPC_CREAT | 0666};
@@ -11,10 +12,14 @@ ImgLabel::ImgLabel() : pixel_dim_ {1}, left_mouse_clicked_ {false},
   shared_memory.initialize(shm);
 
   CreatePalettes();
+  connect(&renderer, &XRFImage::UpdateProgressBar,
+          this, &ImgLabel::RelayProgressBarSignal);
 }
 
 ImgLabel::~ImgLabel()
-{}
+{
+
+}
 
 void ImgLabel::AddImageToBuffer()
 {
@@ -29,38 +34,16 @@ void ImgLabel::AddImageToBuffer()
     return;
   }
 
-  // We create a new XRFImage object in the heap. A raw pointer is used instead
-  //  of a smart pointer because we need to take the address of the object to
-  //  connect its signals to the main QWidget
-  XRFImage  * new_image = new XRFImage{};
-  connect(new_image, &XRFImage::UpdateProgressBar,
-          this, &ImgLabel::RelayProgressBarSignal);
-
-  // Now, how do we make a smart pointer point to an address of an object
-  //  that already exists in the heap?
-  // Step 1: Make a std:unique_ptr for a new XRFImage object
-  std::unique_ptr<XRFImage> ptr{};
-  // Step 2: Replace the managed object of the pointer with the address of the
-  //  first XRFImage object (currently 'managed' by a raw pointer)
-  ptr.reset(new_image);
-  // Step 3: Transfer ownership of the image to the buffer through std::move
-  images_.push_back(std::move(ptr));
-	images_.back()->LoadDataFile(filename.toStdString());
-
-	if (images_.back()->is_valid())
-	{
-		// Assign the iterator to point to the last element in the buffer
-		image_on_display_ = images_.end() - 1;
+  renderer.LoadDataFile(filename.toStdString());
+  if (renderer.is_valid())
+  {
 		RenderAndPaintImage();
 	}
 	else
-	{
-	  // The last element is destroyed. Since each element is a unique pointer,
-	  //  the XRFImage object in the heap is destroyed, and all resources freed.
-	  images_.pop_back();
-		QMessageBox::critical(this, "Error!",
-		                      QString::fromStdString(images_.back()->err_msg()));
-		map_opened_ = false;
+  {
+    QMessageBox::critical(this, "Error!",
+                          QString::fromStdString(renderer.err_mesg()));
+    map_opened_ = false;
 	}
 }
 
@@ -71,28 +54,42 @@ bool ImgLabel::is_map_opened() const
 
 QImage ImgLabel::qimage() const
 {
-  return qimage_;
+  return displayed_image_;
+  //return qimage_;
 }
 
 void ImgLabel::set_pixel_dim(int dim)
 {
-  pixel_dim_ = dim;
-}
-void ImgLabel::set_map_opened(bool state)
-{
-  map_opened_ = state;
+  (**active_image_).pixel_replication = dim;
 }
 
-void ImgLabel::set_current_palette(QString palette)
+void ImgLabel::ToggleHistogramStretching(int state)
 {
-  selected_palette = palette;
+  switch (state)
+  {
+  case Qt::Unchecked :
+    (**active_image_).contrast = false;
+    break;
+  case Qt::PartiallyChecked :
+  case Qt::Checked :
+    (**active_image_).contrast = true;
+    break;
+  }
+}
+
+void ImgLabel::set_brightness(int percentage)
+{
+  // Values are constrained between -50% and +50%
+  (**active_image_).brightness = static_cast<int>(percentage * 2.56);
+  ProcessImage();
 }
 
 void ImgLabel::RenderAndPaintImage()
 {
-  // TODO RenderQImage has to set x_length and y_length fields to proper values
-  auto & img_data = *image_on_display_;
-  qimage_ = img_data->RenderQImage();
+  auto image = renderer.RenderQImage();
+  image->processed = image->matrix;
+  std::vector<int> nuisance{image->histogram.begin(), image->histogram.end()};
+  emit UpdateImageHistogram(QVector<int>::fromStdVector(nuisance));
 
   QStringList available_palettes{};
   for (auto & it : palettes_)
@@ -105,26 +102,87 @@ void ImgLabel::RenderAndPaintImage()
       QInputDialog::getItem(this, "Color Palette", "Using color palette:",
                             available_palettes, 0, false, &valid);
   selected_palette = (valid == true) ? item : available_palettes.at(0);
-  RepaintImage();
+  image->palette = selected_palette;
+
+  if (images_.size() == 0)
+  {
+    images_.push_back(std::move(image));
+    active_image_ = images_.end() - 1;
+  }
+  else
+  {
+    images_.back().swap(image);
+  }
+  ProcessImage();
+}
+
+void ImgLabel::AdjustContrast()
+{
+  // TODO implement simple histogram stretching
+}
+
+void ImgLabel::AdjustBrightness()
+{
+  auto & image = **active_image_;
+
+  auto palette = image.processed.colorTable();
+  decltype (palette) ::iterator it;
+  union U {
+    decltype (palette) ::iterator it;
+    decltype (palette) ::reverse_iterator rit;
+  };
+  U u{palette.begin()};
+
+
+  std::vector<int> nuisance{256, 0};
+  emit UpdateImageHistogram(QVector<int>::fromStdVector(nuisance));
+
+  if (std::signbit(image.brightness))
+  {
+    u.rit = palette.rbegin();
+    while (u.rit != (palette.rend() + image.brightness))
+    {
+      *u.rit = *(u.rit + std::abs(image.brightness));
+      ++u.rit;
+    }
+    std::fill(palette.begin() + 1, palette.begin() - (image.brightness),
+              palette.front());
+  }
+
+  else
+  {
+    it = palette.begin();
+    while (it != (palette.end() - image.brightness))
+    {
+      *it = *(it + image.brightness);
+      ++it;
+    }
+    std::fill(palette.rbegin(), palette.rbegin() + image.brightness,
+              palette.back());
+  }
+  image.processed.setColorTable(palette);
+
+
+}
+
+void ImgLabel::ResizeImage()
+{
+  auto & img = **active_image_;
+
+  QSize requested_size {img.matrix.width() * img.pixel_replication,
+        img.matrix.height() * img.pixel_replication};
+
+  displayed_image_ = img.processed.scaled(requested_size, Qt::KeepAspectRatio);
+
+  PaintImage();
 }
 
 /**
   *  @brief Handles resizing events and changes in the palette selection
   */
-void ImgLabel::RepaintImage()
+void ImgLabel::ProcessImage()
 {
-  auto & img_data = *image_on_display_;
-  QSize requested_size {img_data->x_length() * pixel_dim_,
-                        img_data->y_length() * pixel_dim_};
-
-  if (qimage_.size() != requested_size)
-  {
-    // Resize the existing image to the new pixel dimensions
-    // The Qt::FastTransformation flag ensures the image is not transformed
-    //  further.
-    qimage_ = qimage_.scaled(requested_size,
-                   Qt::KeepAspectRatio, Qt::FastTransformation);
-  }
+  auto & img = **active_image_;
 
   auto color_table = palettes_.find(selected_palette);
   if (color_table == palettes_.end())
@@ -133,16 +191,37 @@ void ImgLabel::RepaintImage()
     // Default to a given palette and inform the user
     color_table = palettes_.begin();
   }
-  qimage_.setColorTable(color_table->second);
+  //qimage_.setColorTable(color_table->second)
+  img.processed.setColorTable(color_table->second);
 
+//  if (img.contrast != 0)
+//  {
+//    AdjustContrast();
+//  }
+
+  if (img.brightness != 0)
+  {
+    AdjustBrightness();
+  }
+
+
+
+  ResizeImage();
+}
+
+void ImgLabel::PaintImage()
+{
   // Now actually repaint the displayed image
-  QCursor cursor(QPixmap::fromImage(qimage_));
+  QCursor cursor (QPixmap::fromImage(displayed_image_));
+  //QCursor cursor(QPixmap::fromImage(qimage_));
   cursor.setShape(Qt::PointingHandCursor);
 
 
-  this->setPixmap(QPixmap::fromImage(qimage_));
+  //this->setPixmap(QPixmap::fromImage(qimage_));
+  this->setPixmap(QPixmap::fromImage(displayed_image_));
   this->setCursor(cursor);
-  this->resize(qimage_.size());
+  //this->resize(qimage_.size());
+  this->resize(displayed_image_.size());
 
   map_opened_ = true;
 }
@@ -177,12 +256,13 @@ void ImgLabel::wheelEvent(QWheelEvent *event)
     event->ignore();
     return;
   }
+  auto & pixel_dim_ = (**active_image_).pixel_replication;
 
   auto delta = event->angleDelta().y();
   delta = (delta > 0) ? 1 : -1;
-  pixel_dim_ += delta;
+  (**active_image_).pixel_replication += delta;
 
-  if (pixel_dim_ < 0)
+  if (pixel_dim_ < 1)
   {
     pixel_dim_ = 1;
     QMessageBox msg_box;
@@ -191,7 +271,7 @@ void ImgLabel::wheelEvent(QWheelEvent *event)
   }
   else
   {
-    RepaintImage();
+    ResizeImage();
     event->accept();
   }
 
@@ -205,15 +285,16 @@ void ImgLabel::mousePressEvent(QMouseEvent *event) {
 
   if (event->buttons() == Qt::LeftButton)
   {
-    auto & img_data = *image_on_display_;
+    //auto & img_data = *image_on_display_;
+    auto &img = (**active_image_);
     // Left click: Tells me the integral of the point
     left_mouse_clicked_ = true;
 
-    x_image_ = event->x() / pixel_dim_;
-    y_image_ = event->y() / pixel_dim_;
+    x_image_ = event->x() / img.pixel_replication;
+    y_image_ = event->y() / img.pixel_replication;
 
-    uint pixel;
-    if (img_data->FindPixelWithCoordinates(x_image_, y_image_, &pixel))
+    //if (img_data->FindPixelWithCoordinates(x_image_, y_image_, &pixel))
+    if (renderer.IsPixelOnImage(x_image_, y_image_))
     {
       // Pixel coordinates exist on the image
       coordinates_found_ = true;
@@ -248,13 +329,14 @@ static int smallest(int a, int b) {
 void ImgLabel::mouseReleaseEvent(QMouseEvent *event) { // Click and release in different pixel -> displays the rectangle's count integral
 
   if (map_opened_ && left_mouse_clicked_) {
-    auto & img_data = *image_on_display_;
+    //auto & img_data = *image_on_display_;
+    auto &img = (**active_image_);
     left_mouse_clicked_ = false;
 
     uint pixel;
-    int x_image2 = event->x() / pixel_dim_;
-    int y_image2 = event->y() / pixel_dim_;
-    if (img_data->FindPixelWithCoordinates(x_image2, y_image2, &pixel))
+    int x_image2 = event->x() / img.pixel_replication;
+    int y_image2 = event->y() / img.pixel_replication;
+    if (renderer.IsPixelOnImage(x_image2, y_image2))
     {
     }
     else {
@@ -294,11 +376,11 @@ void ImgLabel::mouseReleaseEvent(QMouseEvent *event) { // Click and release in d
       {
         for (int j = min_x; j < max_x; ++j)
         {
-          pixel = (i * img_data->x_length()) + j;
+          pixel = (i * img.matrix.width()) + j;
           pixels_selected.push_back(pixel);
         }
       }
-      img_data->ComputeROISpectrum(std::move(pixels_selected));
+      renderer.ComputeROISpectrum(std::move(pixels_selected));
     }
     else
     {
@@ -306,11 +388,11 @@ void ImgLabel::mouseReleaseEvent(QMouseEvent *event) { // Click and release in d
       //  are the same, i.e., a point was clicked.
       auto pixel = y_image2 * (x_image2 + 1);
       std::vector<int> pixel_selected{1, pixel};
-      img_data->ComputeROISpectrum(std::move(pixel_selected));
+      renderer.ComputeROISpectrum(std::move(pixel_selected));
     }
 
     int * spectrum_display_ptr = nullptr;
-    auto spectrum = img_data->roi_spectrum();
+    auto spectrum = renderer.roi_spectrum();
 
     switch (shared_memory_cmd.at(100))
     {
