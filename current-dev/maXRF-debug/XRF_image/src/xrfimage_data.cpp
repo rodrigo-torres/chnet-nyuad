@@ -161,7 +161,6 @@ auto XRFImage::RenderQImage() -> std::unique_ptr<UnprocessedImage>
     // The maximum integral of any given pixel is 0, so the image is null
     //  We return a black image (which reflects the fact above)
     image->matrix.fill(Qt::black);
-    image->intensity_maximum = 0;
     return image;
   }
 

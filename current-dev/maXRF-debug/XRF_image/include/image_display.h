@@ -37,7 +37,7 @@ class ImgLabel : public QLabel
 
 signals:
   void UpdateProgressBar(int value);
-  void UpdateImageHistogram(QVector<int> histogram);
+  void UpdateImageHistogram(QVector<uint> histogram);
 
 public slots:
   void RelayProgressBarSignal(int value)

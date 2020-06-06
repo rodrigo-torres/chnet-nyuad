@@ -33,7 +33,7 @@ struct Pixel
 struct UnprocessedImage
 {
   UnprocessedImage() : matrix{}, brightness{0}, contrast{false},
-    pixel_replication{1}, palette{}, intensity_minimum{0}, intensity_maximum{1}
+    pixel_replication{1}, palette{}
   {}
   // An 8-bit grayscale representation of the rendered matrix by XRFImage
   QImage matrix;
@@ -43,10 +43,8 @@ struct UnprocessedImage
   bool contrast;
   int pixel_replication;
   QString palette;
-  // Convenience variables to ease computing time
-  int intensity_minimum;
-  int intensity_maximum;
   std::array<int32_t, 256> histogram;
+  std::vector<uint> nhistogram;
 };
 
 struct DataFile

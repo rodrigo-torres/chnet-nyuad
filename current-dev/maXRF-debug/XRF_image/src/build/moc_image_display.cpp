@@ -23,7 +23,7 @@ QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_ImgLabel_t {
     QByteArrayData data[8];
-    char stringdata0[101];
+    char stringdata0[102];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -37,13 +37,13 @@ QT_MOC_LITERAL(1, 9, 17), // "UpdateProgressBar"
 QT_MOC_LITERAL(2, 27, 0), // ""
 QT_MOC_LITERAL(3, 28, 5), // "value"
 QT_MOC_LITERAL(4, 34, 20), // "UpdateImageHistogram"
-QT_MOC_LITERAL(5, 55, 12), // "QVector<int>"
-QT_MOC_LITERAL(6, 68, 9), // "histogram"
-QT_MOC_LITERAL(7, 78, 22) // "RelayProgressBarSignal"
+QT_MOC_LITERAL(5, 55, 13), // "QVector<uint>"
+QT_MOC_LITERAL(6, 69, 9), // "histogram"
+QT_MOC_LITERAL(7, 79, 22) // "RelayProgressBarSignal"
 
     },
     "ImgLabel\0UpdateProgressBar\0\0value\0"
-    "UpdateImageHistogram\0QVector<int>\0"
+    "UpdateImageHistogram\0QVector<uint>\0"
     "histogram\0RelayProgressBarSignal"
 };
 #undef QT_MOC_LITERAL
@@ -85,7 +85,7 @@ void ImgLabel::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, vo
         Q_UNUSED(_t)
         switch (_id) {
         case 0: _t->UpdateProgressBar((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 1: _t->UpdateImageHistogram((*reinterpret_cast< QVector<int>(*)>(_a[1]))); break;
+        case 1: _t->UpdateImageHistogram((*reinterpret_cast< QVector<uint>(*)>(_a[1]))); break;
         case 2: _t->RelayProgressBarSignal((*reinterpret_cast< int(*)>(_a[1]))); break;
         default: ;
         }
@@ -96,7 +96,7 @@ void ImgLabel::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, vo
             switch (*reinterpret_cast<int*>(_a[1])) {
             default: *reinterpret_cast<int*>(_a[0]) = -1; break;
             case 0:
-                *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType< QVector<int> >(); break;
+                *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType< QVector<uint> >(); break;
             }
             break;
         }
@@ -110,7 +110,7 @@ void ImgLabel::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, vo
             }
         }
         {
-            using _t = void (ImgLabel::*)(QVector<int> );
+            using _t = void (ImgLabel::*)(QVector<uint> );
             if (*reinterpret_cast<_t *>(_a[1]) == static_cast<_t>(&ImgLabel::UpdateImageHistogram)) {
                 *result = 1;
                 return;
@@ -167,7 +167,7 @@ void ImgLabel::UpdateProgressBar(int _t1)
 }
 
 // SIGNAL 1
-void ImgLabel::UpdateImageHistogram(QVector<int> _t1)
+void ImgLabel::UpdateImageHistogram(QVector<uint> _t1)
 {
     void *_a[] = { nullptr, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 1, _a);

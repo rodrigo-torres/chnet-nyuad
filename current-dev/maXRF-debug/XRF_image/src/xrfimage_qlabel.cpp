@@ -24,7 +24,7 @@ ImgLabel::~ImgLabel()
 void ImgLabel::AddImageToBuffer()
 {
   QString filename = QFileDialog::getOpenFileName(
-      nullptr, "Open XRF Image Data File", data_directory);
+        nullptr, "Open XRF Image Data File", data_directory);
 
   if (filename.isEmpty())
   {
@@ -37,14 +37,14 @@ void ImgLabel::AddImageToBuffer()
   renderer.LoadDataFile(filename.toStdString());
   if (renderer.is_valid())
   {
-		RenderAndPaintImage();
-	}
-	else
+    RenderAndPaintImage();
+  }
+  else
   {
     QMessageBox::critical(this, "Error!",
                           QString::fromStdString(renderer.err_mesg()));
     map_opened_ = false;
-	}
+  }
 }
 
 bool ImgLabel::is_map_opened() const
@@ -75,6 +75,7 @@ void ImgLabel::ToggleHistogramStretching(int state)
     (**active_image_).contrast = true;
     break;
   }
+  ProcessImage();
 }
 
 void ImgLabel::set_brightness(int percentage)
@@ -88,8 +89,8 @@ void ImgLabel::RenderAndPaintImage()
 {
   auto image = renderer.RenderQImage();
   image->processed = image->matrix;
-  std::vector<int> nuisance{image->histogram.begin(), image->histogram.end()};
-  emit UpdateImageHistogram(QVector<int>::fromStdVector(nuisance));
+  std::vector<uint> nuisance{image->histogram.begin(), image->histogram.end()};
+  emit UpdateImageHistogram(QVector<uint>::fromStdVector(nuisance));
 
   QStringList available_palettes{};
   for (auto & it : palettes_)
@@ -119,6 +120,33 @@ void ImgLabel::RenderAndPaintImage()
 void ImgLabel::AdjustContrast()
 {
   // TODO implement simple histogram stretching
+  auto & image = **active_image_;
+  auto rit = std::find_if(image.nhistogram.rbegin(), image.nhistogram.rend(),
+                          [] (uint & n) -> bool {return n != 0;});
+  auto max = 255 - std::distance(image.nhistogram.rbegin(), rit);
+  auto it =  std::find_if(image.nhistogram.begin(), image.nhistogram.end(),
+                           [] (uint & n) -> bool {return n != 0;});
+  auto min = std::distance(image.nhistogram.begin(), it);
+
+  if (max != min || (max != 256 && min != 256))
+  {
+    double factor = (max - min);
+    factor /= 255.;
+
+    uint new_i;
+    std::vector<uint> newvec;
+    ColorTable new_palette{};
+    ColorTable palette = image.processed.colorTable();
+    for (long i = 0; i < 256; ++i)
+    {
+      new_i = i * factor + min;
+      newvec.push_back(image.nhistogram.at(new_i));
+      new_palette.push_back(std::move(palette.at(new_i)));
+    }
+    image.processed.setColorTable(new_palette);
+    emit UpdateImageHistogram(QVector<uint>::fromStdVector(newvec));
+}
+
 }
 
 void ImgLabel::AdjustBrightness()
@@ -126,43 +154,35 @@ void ImgLabel::AdjustBrightness()
   auto & image = **active_image_;
 
   auto palette = image.processed.colorTable();
-  decltype (palette) ::iterator it;
-  union U {
-    decltype (palette) ::iterator it;
-    decltype (palette) ::reverse_iterator rit;
-  };
-  U u{palette.begin()};
+  auto offset = std::abs(image.brightness);
 
-
-  std::vector<int> nuisance{256, 0};
-  emit UpdateImageHistogram(QVector<int>::fromStdVector(nuisance));
-
-  if (std::signbit(image.brightness))
+  std::vector<uint> nuisance;
+  if (image.brightness < 0)
   {
-    u.rit = palette.rbegin();
-    while (u.rit != (palette.rend() + image.brightness))
-    {
-      *u.rit = *(u.rit + std::abs(image.brightness));
-      ++u.rit;
-    }
-    std::fill(palette.begin() + 1, palette.begin() - (image.brightness),
-              palette.front());
+    nuisance.resize(offset, 0);
+    std::move(palette.begin(), palette.end() - offset, std::back_inserter(nuisance));
+    image.processed.setColorTable(QVector<uint>::fromStdVector(nuisance));
+    nuisance.clear();
+    std::copy(image.histogram.begin() + offset, image.histogram.end(),
+              std::back_inserter(nuisance));
+    nuisance.resize(256, 0);
+    std::for_each(image.histogram.begin(), image.histogram.begin() + offset,
+                  [&](int & n){nuisance.front() += n;});
   }
-
   else
   {
-    it = palette.begin();
-    while (it != (palette.end() - image.brightness))
-    {
-      *it = *(it + image.brightness);
-      ++it;
-    }
-    std::fill(palette.rbegin(), palette.rbegin() + image.brightness,
-              palette.back());
+    std::move(palette.begin() + offset, palette.end(), std::back_inserter(nuisance));
+    nuisance.resize(256, 0);
+    image.processed.setColorTable(QVector<uint>::fromStdVector(nuisance));
+    nuisance.clear();
+    nuisance.resize(offset, 0);
+    std::copy(image.histogram.begin(), image.histogram.end() - offset,
+              std::back_inserter(nuisance));
+    std::for_each(image.histogram.end() - offset, image.histogram.end(),
+                  [&](int & n){nuisance.back() += n;});
   }
-  image.processed.setColorTable(palette);
-
-
+  image.nhistogram = nuisance;
+  emit UpdateImageHistogram(QVector<uint>::fromStdVector(nuisance));
 }
 
 void ImgLabel::ResizeImage()
@@ -183,6 +203,7 @@ void ImgLabel::ResizeImage()
 void ImgLabel::ProcessImage()
 {
   auto & img = **active_image_;
+  img.nhistogram.assign(img.histogram.begin(), img.histogram.end());
 
   auto color_table = palettes_.find(selected_palette);
   if (color_table == palettes_.end())
@@ -194,10 +215,6 @@ void ImgLabel::ProcessImage()
   //qimage_.setColorTable(color_table->second)
   img.processed.setColorTable(color_table->second);
 
-//  if (img.contrast != 0)
-//  {
-//    AdjustContrast();
-//  }
 
   if (img.brightness != 0)
   {
@@ -205,6 +222,10 @@ void ImgLabel::ProcessImage()
   }
 
 
+  if (img.contrast != 0)
+  {
+    AdjustContrast();
+  }
 
   ResizeImage();
 }

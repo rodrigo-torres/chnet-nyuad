@@ -192,7 +192,7 @@ void XRFImageWidget::CreateWidget()
 
 
   connect(image_label_, &ImgLabel::UpdateImageHistogram,
-          this, [=](QVector<int> histogram) {
+          this, [=](QVector<uint> histogram) {
     auto it = histogram.begin();
     for (auto & i : *bars1->data())
     {
