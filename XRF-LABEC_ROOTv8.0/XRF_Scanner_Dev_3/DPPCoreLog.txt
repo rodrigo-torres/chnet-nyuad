@@ -1,0 +1,36 @@
+
+[INFO]: DPPCore.c
+	[0.000]: System Started
+	[0.001]: System connection ready to receive commands
+	[0.001]: Affinity of Main Thread set to CPU 3
+	[0.001]: Waiting for commands...
+	[0.304]: Command 2 received
+	
+[INFO]: CAEN_MCA.c
+	[0.304]: Adding Board with OPTLYNK 0 0 0
+	
+[ERROR]: CAEN_MCA.c
+	[0.304]: Can't open digitizer (Link 0 0)
+	
+[ERROR]: DPPCore.c
+	[0.304]: Cannot Add Board with parameters PCI 0 0 0: ERROR = -139
+	
+[INFO]: DPPCore.c
+	[0.304]: Waiting for commands...
+	[0.321]: Command 41 received
+	
+[ERROR]: DPPCore.c
+	[0.321]: Can't find board corresponding to channel 0
+	
+[INFO]: DPPCore.c
+	[0.321]: Waiting for commands...
+	[0.321]: Command 41 received
+	
+[ERROR]: DPPCore.c
+	[0.321]: Can't find board corresponding to channel 1
+	
+[INFO]: DPPCore.c
+	[0.321]: Waiting for commands...
+	[2722.993]: Command 1 received
+	[2722.993]: System Quitting
+	

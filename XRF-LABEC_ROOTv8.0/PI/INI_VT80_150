@@ -1,0 +1,344 @@
+
+
+  *IDN?
+  invia_comando_X(1,"SPA"," 60 M-404.2PD");  sleep(1);
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 14 2000"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+  invia_comando_X(1,"SPA?"," 14"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 15 1"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+  invia_comando_X(1,"SPA?"," 15"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 10 20"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+  invia_comando_X(1,"SPA?"," 10"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 74 300"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+  invia_comando_X(1,"SPA?"," 74"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 75 300"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+  invia_comando_X(1,"SPA?"," 75"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 90 10000"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+  invia_comando_X(1,"SPA?"," 90"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 91 1"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+  invia_comando_X(1,"SPA?"," 91"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 8 1"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 11 200"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 12 200"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 20 1"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 21 150"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 22 0.5"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 23 0.5"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 24 0"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 26 0"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 47 149.5"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 48 0"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 49 0"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 50 0"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 51 0"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 52 0"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 63 0"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 71 0"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 72 0"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 73 20"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 77 1"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1024 1"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1025 250"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1026 25"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1027 50"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1028 0"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1029 0"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1030 5"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1031 5"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1041 1000"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1042 1000"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1043 200"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1044 1000"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1045 0"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1046 100"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1047 100"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1057 250"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1058 25"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1059 50"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1060 2000"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1061 0"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1062 10000"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1063 10000"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1073 5"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1074 10"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1075 10"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1076 2000"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1077 0"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1078 10000"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1079 10000"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1089 5"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1090 10"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1091 10"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1092 2000"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1093 0"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1094 10000"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 1095 10000"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 117442049 MM");
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 9 32767"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 19 0"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 80 0.2"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 89 32767"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 98 0"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 99 0.2"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 112 2"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 113 0"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 119 0"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 120 0"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 121 1"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 148 10000"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 149 0.8"); 
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+  invia_comando_X(1,"SPA"," 60 62309150");
+  invia_comando_X(1,"ERR?",NULL);
+  read_Xanswer();
+
+
+
+
+

@@ -105,7 +105,7 @@ void image_xrf::make_header()
                "the new header.\n"
                "Please enter the object identifier:\n";
     getline(std::cin, line);
-    header.append("Object_ID = " + line);
+    header.append("Object-Identifier = " + line);
     header.push_back('\n');
     std::cout<<"Enter the date when this scan was acquired.\n"
                "Use the format YYYY-MM-DD:\n";

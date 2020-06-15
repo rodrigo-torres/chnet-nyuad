@@ -1,0 +1,207 @@
+////////////////////////////////////////////////////////////////////////////////////////
+//°°°°°°°°°°LINK ALLE LIBRERIE DI ROOT°°°°°°°°°°°°°°°°°°°°°°°°°°°//////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+Nel file .pro:
+TEMPLATE = app
+
+QT += widgets    ///questo serve per Qt5
+
+win32 {
+   QMAKE_CXXFLAGS += -FIw32pragma.h  
+}
+CONFIG += qt warn_on thread
+
+INCLUDEPATH += $(ROOTSYS)/include ////ROOTSYS è la directory dove si fa il build di root ("cmake --build" come da istruzioni INSTALL di root)
+                                   ///nel mio caso ROOTSYS è /home/lara/root_build
+win32:LIBS += -L$(ROOTSYS)/lib -llibCore -llibCint -llibRIO -llibNet \     ////libCint nn esiste più in root 6
+        -llibHist -llibGraf -llibGraf3d -llibGpad -llibTree \
+        -llibRint -llibPostscript -llibMatrix -llibPhysics \
+        -llibGui -llibRGL 
+else:LIBS += -L$(ROOTSYS)/lib -lCore -lThread -lRIO -lMathCore -lNet \    ////libCint nn esiste più in root 6
+        -lHist -lGraf -lGraf3d -lGpad -lTree -lSpectrum\
+        -lRint -lPostscript -lMatrix -lPhysics \
+        -lGui -lGed -lFTGL -lGLEW -lRGL 
+
+HEADERS += Qt-Root_XRF_Fit.h
+SOURCES += Qt-Root_XRF_Fit.cpp main.cpp
+
+
+///////////////////////////////////////////////////////////////////////////////////
+Nel file .bashrc:
+
+# User specific aliases and functions
+
+export ROOTSYS=/home/lara/root_build
+export PATH=${PATH}:$ROOTSYS
+
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:$ROOTSYS/lib ; export LD_LIBRARY_PATH 
+//////////////////////////////////////////////////////////////////////////////////////////
+
+per Qt5 sostituire include <QWidget> con include <QtWidgets>, eliminare setAttribute(Qt::WA_PaintOnScreen, true); 
+
+////////////////////////////////////////////////////////////////
+/////installati prima di installare root 6 (come dice sul sito web -> build prerequisites)
+dnf install:
+    git
+    cmake
+    gcc-c++: (ROOT 6 requires g++ 4.8 or clang 3.4)
+    binutils
+    libX11-devel
+    libXpm-devel
+    libXft-devel
+    libXext-devel
+    python:  (ROOT6 requires version >= 2.7)
+    redhat-lsb-core
+    gcc-gfortran
+    openssl-devel
+    pcre-devel
+    mesa-libGL-devel
+    mesa-libGLU-devel
+    glew-devel 
+    ftgl-devel
+    mysql-devel
+    fftw-devel
+    cfitsio-devel
+    graphviz-devel
+    avahi-compat-libdns_sd-devel
+    libldap-dev
+    python-devel
+    libxml2-devel
+    gsl-statics
+
+////IMPORTANTE PER LA STRUTTURA DEL PROGRAMMA///////
+///////////////////////////////////////////////////
+La Mainwindow può usare le funzioni e le variabili della canvas di root perchè canvas è un'istanza della classe QRootCanvas e appartiene alla Mainwindow stessa. Viceversa no!! Cioè, una funzione della canvas non può accedere agli oggetti e funzioni della Mainwindow. In particolare non può scrivere sulle lineedit o accedere alle checkbox... non può toccare la ui.
+Per risolvere questo problema si deve:
+- creare un segnale nella classe QRootCanvas che abbia la stessa struttura della funzione della mainwindow che si vuole usare (es riceva lo stesso tipo di variabili...)
+- connettere il segnale alla funzione della mainwindow a cui si vuole accedere dall'altra classe QRootcanvas (connect(canvas, SIGNAL(sendText(QString & )), this, SLOT(SetCurrentAction(QString & )));)
+- usare "emit segnale" dentro una funzione della classe QRootCanvas (emit sendText(QString &);)
+Così alla fine si esegue la funzione della mainwindow e si può accedere alla ui.
+
+La stessa cosa vale per la MultiFit_Window. Anche da lì si accede alle funzioni della MainWindow usando gli emit.
+////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////°°°°°°°°°°°PROGRAMMA DI FIT°°°°°°°°°°°°°°°°°°°°/////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////APERTURA FILE, DISEGNO SPETTRO/////////////////////////////////////
+Menu File -> Load Spectrum fa scegliere il file.
+Legge il file, costruisce l'istogramma e lo disegna. Poi mette histo_on=true (questo è true quando c'è uno spettro disegnato).
+Ricliccando il pulsante si ridisegna da capo lo spettro(se ci sono fit o marker o calibrazione cancella tutto).
+
+SI PUÒ FARE ZOOM IN UNA ZONA CLICCANDO SULL'ASSE (tasto sinistro) COME SEMPRE IN ROOT, UN TIMER DI 20ms CHIAMA LA FUNZIONE HANDLE_ROOT_EVENTS. ANCHE PER FARE I FIT E LA CALIBRAZIONE SI PUÒ INGRANDIRE LA ZONA DI INTERESSE.
+
+//////////////////////////////////////////////////////////////////
+Da quando histo_on=true la funzione mouseMoveEvent (tramite handle_root_events) scrive sulle lineedit le coordinate X Y dove passa il mouse sullo spettro.
+
+///////////////////FIT////////////////////////////////////////////////////////////////
+Menu  Fit-> Fit. Fare i tre click per definire range e picco (in ordine estremo inferiore, picco, estremo superiore...messo un vincolo sul picco, non può cambiarlo molto rispetto al valore cliccato). Al terzo click fitta e mostra i risultati. Volendo si possono salvare in un file.
+
+Nel codice:
+Cliccando Fit si mette FitInProgress=true. La funzione MousePressEvent, se il Fit è abilitato, salva la coordinata x corrispondente al punto cliccato e manda a DoDraw(). 
+Attenzione! Finchè il mouse non è stato rilasciato non accetta un nuovo click (event_processed diventa falso quando è stato rilasciato il mouse). Senza questa condizione mantenendo il mouse cliccato lo vede come diversi click perchè il timer ritorna e rivede il mouse cliccato.
+
+DoDraw() -> se FitInProgress -> prende la coordinata cliccata e disegna una linea rossa in corrispondenza. Questo lo fa per tre click consecutivi e finito di disegnare la terza linea mette la variabile fit_Ok=true (cioè dice che siamo pronti per lanciare il fit, i tre punti sono pronti) e va a RunFit().
+
+RunFit()-> se fit_ok=true prende le tre coordinate cliccate, definisce una funzione gaussiana nel range min-max trovato, per fittare il picco. Fitta subito il picco con la gaussiana. Poi controlla il tipo di background scelto. Se non si vuole backgrond lascia valido il fit semplice gaussiano, sennò definisce le funzioni somma gaus+bkg opportune. In questo caso inizializza i parametri gaussiani a quelli trovati dal fit gaussiano e fitta lasciando liberi gli altri parametri della funzione somma.
+Poi disegna le funzioni picco, bkg e somma e la legenda.
+Mostra in una finestrina i risultati del fit, che volendo si possono salvare.
+    
+///////////////////DOUBLE FIT////////////////////////////////////////////////
+Menu Fit->DoubleFit. Fare i sei click per definire range e picchi. I primi tre marker sono rossi, i secondi tre blu. Al sesto click fitta e mostra i risultati. 
+
+Nel codice:
+Cliccando il pulsante DoubleFit si mette DoubleFitInProgress=true. La funzione MousePressEvent, se il DoubleFit è abilitato, salva ogni volta la coordinata x corrispondente al punto cliccato e manda a DoubleDoDraw(). 
+
+DoubleDoDraw() -> prende la coordinata cliccata e disegna una linea rossa o blu in corrispondenza. Questo lo fa per sei click consecutivi e finito di disegnare la sesta linea, mette la variabile Doublefit_Ok=true (cioè dice che siamo pronti per lanciare il doppio fit, i sei punti sono pronti)e va a RunDoubleFit().
+
+RunDoubleFit()-> se Doublefit_Ok-> fitta i due range rosso e blu con gaussiane, poi prende i parametri e li usa per inizializzare la funzione somma. Controlla quale background è stato scelto e poi fa il fit totale. Alla fine rimette Doublefit_Ok=false.
+Mostra in un messaggio i risultati del fit, che volendo si possono salvare.
+
+////Scelta del background///////
+Menu Fit->Select background. Si sceglie il bkg oppure niente. Va scelto prima di fare il fit.
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+//////CALIBRAZIONE (usando due picchi)/////////////////////////////////////////////////////
+Menu Calibration->Calibrate. Fare tre click intorno al primo picco (marker rossi) e tre intorno al secondo (marker blu). Nelle finestre di dialogo vanno inseriti i valori in KeV di energia corrispondenti (ELow e EHigh). Chiede prima il minore e poi il maggiore.
+
+Nel codice:
+Cliccando Calibrate, se l'istorgramma è on (histo_on) mette start_calibration=true. La funzione MousePressEvent, se la calibrazione è abilitata, salva ogni volta la coordinata x corrispondente al punto cliccato e manda a DoubleDoDraw(). 
+
+DoubleDoDraw() -> prende la coordinata cliccata e disegna una linea rossa o blu in corrispondenza. Questo lo fa per sei click consecutivi e finito di disegnare la sesta linea, mette la variabile cal_Ok=true CalculateCal().
+
+CalculateCal()-> se cal_Ok=true-> prende le sei coordinate cliccate, cerca i due range di fit e le coordinate dei picchi. Poi li fitta separatamente con due gassiane, si salva i parametri usciti dal fit, e chiede con dei dialog a quali energie corrispondono. Poi calcola la costante di calibrazione e l'offset e calibra l'istogramma f1. Poi mette single_draw=true e rimanda a DoDraw().
+Alla fine mette Calibration_ready=true (da qui in poi lo spettro è calibrato e è plottato in energia).
+
+DoDraw() -> se single_draw || Calibration_ready-> ridisegna l'istogramma in energia
+
+La variabile Calibration_ready viene rimessa falsa se si apre un nuovo spettro con File->LoadSpectrum. Lo spettro aperto dal file è in canali.
+
+//////////////////////////////////////////////////////////////////////////////////////
+//////RICERCA PICCHI/////////////////////////////////////////////////////
+Menu Spectrum->Find Peaks. Usa la classe TSpectrum di root per cercare i picchi e indicarli.
+
+////RICERCA ELEMENTI///////////////
+Menu Spectrum-> Periodic Table.  Apre la tavola periodica. Cliccando un elemento, se lo spettro è calibrato, segna delle linee sullo spettro segnando le sue righe. Sennò scrive solo le energie nella lineedit. Ricliccando lo stesso elemento cancella le linee se era già stato cliccato.
+
+Nel codice:
+i due programmi comunicano con la shm. Da quando la tavola periodica è aperta parte un secondo timer che controlla se viene cliccato un elemento. Periodic_Table scrive in memoria le energie delle righe dell'elemento cliccato.Ha bisogno del file XRayEnergy_Data. La funzione PTtimerEvent, SE LO SPETTRO È CALIBRATO, disegna i marker di un colore qualsiasi in corrispondenza delle righe dell'elemento. Per vedere bene le righe si può fare zoom sull'histogramma.
+Il programma scrive anche il suo pid nella shm e per chiuderlo si utilizza quello.
+
+//////////////////////////////////////////////////////////////////////////////////////////
+///////Multi Fit////////////////////////////////////////////////////////////////////
+Fit->MultiFit
+Funziona solo se lo spettro è calibrato. Si possono fittare fino a un max di 12 picchi con un background sovrapposto. Cliccando MultiFit dal menu si apre una nuova finestra divisa in 4 sezioni:
+-ROI Definition------> Per definire la ROI a cui siamo interessati nello spettro.Si può fare "By mouse click" o "By energy interval". Per iniziare si deve premere il pulsante Start. Nel primo caso si fanno due click direttamente sullo spettro ai due estremi della ROI, nel secondo caso si inseriscono nei dialogs gli estremi in energia. Quando è pronta la ROI il bottone rosso in alto a destra diventa verde.
+
+-Spectrum background---> Per scegliere il tipo di background da considerare. Spuntare la checkbox se si vuole sottrarre agli integrali dei picchi calcolati alla fine.
+
+-Find Peaks----> Per indicare i picchi da considerare nel MultiFit. Si può fare in modo "Auto" o "Manually" o "With Periodic Table". Per iniziare si deve premere il pulsante Start. Nel primo caso ricerca i picchi usando FindPeaks in modo automatico. Nel secondo caso si può cliccare direttamente sullo spettro indicando i picchi manualmente. Nel terzo caso si apre la tavola periodica e cliccando sugli elementi si indicano i picchi da considerare. Solo le righe che cadono nella ROI vengono considerati per il fit. Il pulsante CANCEL, quando è abilitato permette di annullare tutto e ricominciare da capo a scegliere i picchi. Nel secondo e terzo caso quando si è finito si deve premere STOP e il pulsante in alto a destra diventa verde.
+Man mano che si selezionano i picchi le energie vengono scritte nella sezione 4. 
+
+-Fit Functions---> Indica i picchi selezionati e le loro energie. Di default vengono tutti fittati con gaussiane (poi si aggiusta da solo se serve una doppia o tripla gaussiana per alcuni gruppetti), ma volendo si possono scegliere le Lorenziane. 
+
+Quando tutti e 4 i pulsanti sono verdi si abilita il pulsante in fondo Start Multi Fit. Disegna la funzione totale e scrive un file MultiFitResults.txt con i risultati del fit. 
+
+Il pulsante Reset All in basso annulla tutto e permette di ricominciare tutto da capo.
+
+
+Nel codice:
+ROI Definition-->By mouse Click-->Cliccando Start mette ROIStarted=true. La funzione MousePressEvent-->if(ROIStarted) prende due click successivi e usa le coordinate per gli estremi della ROI. Dopo il secondo click mette ROIOk=true.
+ROI Definition-->By Energy Interval-->Cliccando Start fa apparire due dialogs dove si inseriscono gli estremi in energia della ROI. Dopo il secondo mette ROIOk=true.
+
+-Spectrum background--->aggiorna la variabile bkg che indica il tipo di background scelto. La chekbox invece modifica la variabile SubtractBl che indica se il bkg va sottratto.
+
+-Find Peaks---->Auto---> Cliccando Start mette  Find_for_Multi=true PeaksFound=0 (numero totale di picchi selezionati) e emette il segnale FP(). Questo segnale è connesso alla slot FP_rimbalzo() che rmanda a FindPeaks(). FindPeaks(), se Find_for_Multi=true, scrive i picchi trovati nelle textedit della sezione 4 e disegna i picchi con un polymarker. 
+---->Manually--->Cliccando Start mette Clik_for_Multi=true e PeaksFound=0. La funzione MousePressEvent in questo caso accetta fino a 12 click e salva le coordinate cliccate in  PeakPositionX e  PeakPositiony (array che memorizzano le coordinate x-y dei picchi). Poi rimanda a IndicatePeaks(). Lui inserisce le coordinate del picco cliccato in pm_one[] (array che memorizza i marker cliccati a mano) e disegna il marker e aggiunge il picco alla lista nella sezione 4. Cliccando Stop va a StopPeaks che mette Clicked_for_Multi=true (si è finito di cliccare i picchi).  
+---->With Periodic Table---> Cliccando Start apre mette PTable_for_Multi=true e emette il segnale PTable() che lancia il programma Periodic_Table. La tavola periodica, se PTable_for_Multi=true, salva le coordinate delle righe (quelle che cadono nella ROI indicata) nei vettori PeakPositionX e PeakPositionY e nelle textedit nella sezione 4.
+
+-Fit Functions---> Cambiando il tipo di funzione nelle combobox aggiorna FitFunctionsCodes[i] (0 per gaussiana e 1 per lorentziana).
+
+Cliccando Start Multi Fit--->parte la funzione StartMultiFit(). Per prima cosa fa un conteggio di quante gassiane  e quante lorentziane si voglono. Poi emette il segnale Fit_tutti() che rimanda a Fit_All_Peaks(). A questo punto cerca i limit_sx e limit_dx per ogni picco:le valli a destra e sinistra del picco stesso. Serve per fittarli singolarmente con gaussiane semplici e trovare i parametri per inizializzare la funzione totale.
+La funzione totale GausLorF ha come parametro 0 il numero totale di picchi da fittare (PeaksFound), controlla per ogni picco il suo FitFunctionCodes[] e somma una gaussiana o una lorentziana. Dopo aver costruito la giusta funzione con il giusto numero di parametri fitta la ROI dello spettro e scrive sul file i risultati. 
+
+Cliccando Reset All---> Rimette tutta la gui della FWindow allo stato iniziale di default, riazzera le variabili e manda a CancelPeaks(). Lui mette Peaks_cancel=true e rimanda a IndicatePeaks() tramite il segnale StopFindPeaks(). Se Peaks_cancel=true controlla come sono stati segnati i picchi: se manualmente (Clicked_for_Multi) ancella tutti i markers pm_one[] singoli. Se Auto (Find_for_Multi) cancella il polymaker pm. Se con la tavola periodica (PTabled_for_Multi) cancella i marker_En[].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

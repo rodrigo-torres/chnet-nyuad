@@ -1,0 +1,3 @@
+GUI_Creator.cpp:109:        pushButton_tab_2_2X->setObjectName(QString::fromUtf8("pushButton_8"));
+GUI_Creator.cpp:110:        pushButton_tab_2_2X->setGeometry(QRect(60, 300, 320, 60));
+GUI_Creator.cpp:111:        pushButton_tab_2_2X->setText(QApplication::translate("MyWidget", "Init motor", 0, QApplication::UnicodeUTF8));

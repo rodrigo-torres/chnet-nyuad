@@ -1,0 +1,49 @@
+//////////26/05/2017////////////
+
+This software version (XRF_last_2) is the one where we started to change and test the way we write the positions on the memory during the scanning procedure.
+In this version the idea is that the writing of the positions is completly performed by the ADCXRF through the call of a timer (setitimer) and the communication with mainwindow is perfomed only to check the position (check on target) when the timer needs to restart (each time the movement changes line or column). The timer stop is completly performed by the ADCXRF. 
+
+The ADCXRF controls the positions by knowing the map dimensions, velocity and step.
+
+The velocity and step options will be left blocked once the scanning starts, so it will not be possible to change these parameters during the scan.
+
+//////////////01/06/2017////////////
+
+From today the program will write the map's txt files with a header. The program, in the presence of a file of the new version, will perform a check of all the scan parameters and it will no longer ask for the x and y steps when loading the file. Instead, if the file if from an older version (without header), it will proceed as before, asking for the steps. 
+The header will be written as the following, writing only the corresponding numbers:
+ver.001
+Xmin
+Xmax
+Ymin
+Ymax
+Xstep
+Ystep
+velocity 
+
+//////////////22/06/2017/////////////////
+The software version XRF_last_5 is the one where the map online started to be implemented. Remember! The folder on Desktop is always a test folder, so it might not work. If you are looking for a stable version that was tested, look inside the folder /Desktop/Backup_software_XRF.
+
+/////////////////28/06/2017///////////
+In the version XRF_last_6 was created after maponline started to work, even if not in its final form. Now on the version XRF_last_6 the creation of bigger pixels depending on the map dimensions will be implemented, as well as the renormalization for the pixel counts. 
+
+/////////////10/07/2017//////////////
+In the version XRF_last_7 the telemeter part was "re-implemented". The first tests with this version show that when using MapOnline and tracking together something is not working properly. Don't worry, we will find out what is it. 
+////////////18/07/2017//////////////
+Also in version XRF_last_7 the composed map (sum of different elements) starts to be implemented. 
+//////////////28/07/2017/////////////////////
+XRF_last_7 maponline works. Composed map works. Then doing abort, if the tracking is on, the program takes some time to open the window to save the data.
+//////21/08/2017/////////
+The new set-up, composed by the digitizer 5780 + SDD-XR100 "direct coupling", is directly modified in the hardware. The two channels of the digitiser are modified in order to grow the gain:
+- CH1 with gain 12 and No INrange variable;
+- CH0 with Gain 22 and INrange variable.
+
+The specific parameters for each channel are detailed in the ADCXRF.c file in the folder  Digitiser_Optical_link/src
+/////22/08/2017/////
+XRF_last_8 solved the shift problem. But the acceleration time still creates artifacts on the maps.
+/////25/08/2017/////
+The problem with the motors delay respect to the acquisition was handled by implementing a sleep function between the start of the motors and the acquisition. The sleep time has a variable component that depends of the velocity and concerns the time is takes for the motors to accelerate, and a fixed component that was found to be around 23 ms. So the sleep time is a sum of both these components. 
+///////13/09/2017///////
+the file channel_intervals was changed for the training camp samples. The old value of the intervals was saved in the file Channel_intervals_old in the same folder of the new file.
+///////28/09/2017///////
+extract_pymca file was changed to extract the map acquired with the version 8 of the software
+

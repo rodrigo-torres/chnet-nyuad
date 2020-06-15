@@ -1,15 +1,32 @@
-#-------------------------------------------------
+# ---------------------------------------------------------------------------- #
 #
-# Project created by QtCreator 2020-06-06T19:50:26
+# QT project template to be used with MAXRF application submodules
+# Author: Rodrigo Torres <rodrigo.torres@nyu.eu>
 #
-#-------------------------------------------------
-
-QT       -= gui
+# ---------------------------------------------------------------------------- #
 
 TARGET = sharedmemory
 TEMPLATE = lib
+VERSION = 1.1.0
 
 DEFINES += SHARED_MEMORY_LIBRARY
+
+# ---------------------------------------------------------------------------- #
+# QT MODULES CONFIGURATION
+# The Qt modules to be used in the target. By default core and gui are active
+# ---------------------------------------------------------------------------- #
+# For a basic target, with no GUI, uncomment below
+QT -= gui
+
+# ---------------------------------------------------------------------------- #
+# PROJECT & COMPILER CONFIGURATION
+# These flags specify compiler and further project configuration options
+# ---------------------------------------------------------------------------- #
+
+# The C++ standard version for the compiler
+CONFIG += c++17
+# Pedantic compiler warnings
+CONFIG += warn_on
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -17,28 +34,58 @@ DEFINES += SHARED_MEMORY_LIBRARY
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
 
-# You can also make your code fail to compile if you use deprecated APIs.
-# In order to do so, uncomment the following line.
-# You can also select to disable deprecated APIs only up to a certain version of Qt.
-#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
+# ---------------------------------------------------------------------------- #
+# BUILD DIRECTORIES CONFIGURATION
+# Output directories for temporary files and compiled binaries
+# ---------------------------------------------------------------------------- #
 
-DESTDIR = $$PWD/build
-#MOC_DIR     = ./build/moc
+DESTDIR = $$PWD/bin
+# The directories where all the temporary files are written
+MOC_DIR     = $$PWD/build
 OBJECTS_DIR = $$PWD/build
-#RCC_DIR     = ./build/qrc
-#UI_DIR      = ./build/uic
+RCC_DIR     = $$PWD/build
+UI_DIR      = $$PWD/build
 
-INCLUDEPATH += $$PWD/include/
+# ---------------------------------------------------------------------------- #
+# SOURCES CONFIGURATION
+# List of source, header, Qt Designer form, and Qt Resource files
+# ---------------------------------------------------------------------------- #
+
+# API headers search path for shared and static libraries
+INCLUDEPATH += $$PWD/include
 
 SOURCES += \
         src/shared_memory.cpp
 
 HEADERS += \
-        shared_memory.h
-#        shared_memory_global.h
+        include/MAXRF/shared_memory.h
 
-unix {
-#    target.path = /usr/lib
-    target.path = $$PWD/install
-    INSTALLS += target
+# ---------------------------------------------------------------------------- #
+# INSTALL CONFIGURATION
+# Header, binary, and documentation files and install directories
+# ---------------------------------------------------------------------------- #
+
+PROJECT_DIR = $$(DEV_XRF)
+INSTALL_DIR = $$PROJECT_DIR/libs
+
+# Directory where to put the documentation files for this project
+EXPORTED_DOC_DIR = $$PROJECT_DIR/docs
+# List of documentation files
+EXPORTED_DOC_FILES = doc/*
+
+# Directory where to put public API headers for this project
+EXPORTED_API_DIR = $$PROJECT_DIR/include/MAXRF
+# List of public API headers
+EXPORTED_API_HEADERS += include/MAXRF/*
+
+# Definitions for installing the appropriate files on linux
+unix:!macx {
+  target.path = $$INSTALL_DIR
+  # DOC files to be installed
+  documentation.path = $$EXPORTED_DOC_DIR
+  documentation.files = $$EXPORTED_DOC_FILES
+  # API header files to be installed
+  includes.path = $$EXPORTED_API_DIR
+  includes.files = $$EXPORTED_API_HEADERS
+  INSTALLS += target documentation includes
 }

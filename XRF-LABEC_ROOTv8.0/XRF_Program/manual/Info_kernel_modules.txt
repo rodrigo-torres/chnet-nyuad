@@ -1,0 +1,43 @@
+
+CAEN DRIVER FOR 5780 DIGITISER SERIES
+
+Drivers module for 5780 digitiser are inside the folders "Digitiser_Usb" (usb 
+driver) and "Digitiser_Optical_link" (for A3818 PCIe link module); in both cases 
+the name of the generated driver is CAENUSBdrv.ko.
+Every time that you upgrade the system you have to recompile the drivers and reload
+it into the kernel. Steps:
+
+cd (folderof interest) 
+- make clean
+- make
+
+for kernel versions <= 3.19
+
+log in as root (or use sudo or su -c "your command") and load the kernel typing:
+- insmod CAENUSBdrv.ko
+
+check for the presence of the module using:
+- lsmod | grep CAEN
+
+Newer kernel versions support only compressed xz modules. xz is a lossless data 
+compression program and is normally installed together with the OS. In this case
+you have to compress the CAEN driver module by typing:  
+
+- xz CAENUSBdrv.ko
+
+and the CAENUSBdrv.ko.xz module is generated 
+
+log in as root and load the module in the kernel:
+- insmod CAENUSBdrv.ko.xz
+
+again you can check for the presence of the module using:
+- lsmod | grep CAEN
+
+
+Copy the CAENUSBdrv.ko.xz into: XRF_Programs/Program_Data_Files since every time 
+that you run the XRF_Scanner the starting sequence of the program automatically 
+checks if the CAENUSBdrv is loaded for the presence; if it's necessary the program 
+loads the driver module.
+
+
+

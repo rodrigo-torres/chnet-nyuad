@@ -1,0 +1,17 @@
+kernel.shmmax = 320000000
+kernel.shmall = 720000000
+Data Memory attached at :0x7f743a07c000
+ with shmid: 524288
+Data Memory attached at :0x7f743a04a000
+ with shmid: 557057
+Data Memory attached at :0x7f7423b63000
+ with shmid2: 589826
+Data Memory attached at :0x7f741fe5a000
+ with shmid3: 622595
+Data Memory attached at :0x7f743a049000
+ with shmid4: 655364
+resource(s) deleted
+resource(s) deleted
+resource(s) deleted
+resource(s) deleted
+resource(s) deleted
