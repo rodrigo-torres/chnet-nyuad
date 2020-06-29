@@ -45,12 +45,12 @@ struct FieldFormatPolicy
 /// ... text ...
 /////////////////////////////////////////////////
 
-enum class EntryFlags : int
-{
-  IS_REQUIRED     = 0x01,
-  PREFER_DEFAULT  = 0x02
-};
-DECLARE_BITWISE_OPERATORS(EntryFlags)
+//enum class EntryFlags : int
+//{
+//  IS_REQUIRED     = 0x01,
+//  PREFER_DEFAULT  = 0x02
+//};
+//DECLARE_BITWISE_OPERATORS(EntryFlags)
 
 
 /**
@@ -69,7 +69,7 @@ struct HeaderEntry
   HeaderEntry(string path, string val = "", string units = "") :
     path{path}, value{val}, units{units}
   {
-    flags = EntryFlags::IS_REQUIRED | EntryFlags::PREFER_DEFAULT;
+
   }
   string const path;
   string value;
@@ -78,7 +78,6 @@ struct HeaderEntry
   std::vector<std::string> categories;
   std::string descriptor;
 
-  EntryFlags flags;
 };
 
 struct HeaderSection

@@ -1,0 +1,653 @@
+#include "file_converter.h"
+#include "pugi/pugixml.hpp"
+
+namespace maxrf {
+
+#ifdef BINARY_HYPERCUBE
+auto FileConverter::MultiDetectorFormatToHypercube() -> void
+{
+  emit UpdateStatusBar("Converting...");
+
+  // Construct  the  header
+  pugi::xml_document doc{};
+  auto root = doc.append_child("Analysis_Header");
+  auto node = root.append_child("Format");
+  node.append_child(pugi::node_pcdata).set_value("Hypercube");
+
+  root = root.append_child("Analysis_Info").append_child("Scan");
+
+  std::stringstream sstream;
+  sstream << std::fixed << std::setprecision(3);
+
+  struct ScanParameters {
+    int x_start;
+    int x_end;
+    int y_start;
+    int y_end;
+    int x_step;
+    int y_step;
+    int velocity;
+    int width;
+    int height;
+    int pixels;
+  } params;
+
+  // Extract all the header tokens into the ScanParameters struct
+  // Then append the formated string representation onto sstream
+  // We could've usen a loop, but using named parameters is less error-prone
+  data_file_  >> params.x_start;
+  sstream     << params.x_start / 1000. << std::endl;
+  data_file_  >> params.x_end;
+  sstream     << params.x_end / 1000. << std::endl;
+  data_file_  >> params.y_start;
+  sstream     << params.y_start / 1000. << std::endl;
+  data_file_  >> params.y_end;
+  sstream     << params.y_end / 1000. << std::endl;
+  data_file_  >> params.x_step;
+  sstream     << params.x_step / 1000. << std::endl;
+  data_file_  >> params.y_step;
+  sstream     << params.y_step / 1000. << std::endl;
+  data_file_  >> params.velocity;
+  sstream     << params.velocity / 1000. << std::endl;
+
+  std::string line;
+  // We add the header entries in the order we expect them
+  std::getline(sstream, line);
+  node = root.append_child("Physical_X_Start");
+  node.append_child(pugi::node_pcdata).set_value(line.c_str());
+  std::getline(sstream, line);
+  node = root.append_child("Physical_X_End");
+  node.append_child(pugi::node_pcdata).set_value(line.c_str());
+  std::getline(sstream, line);
+  node = root.append_child("Physical_Y_Start");
+  node.append_child(pugi::node_pcdata).set_value(line.c_str());
+  std::getline(sstream, line);
+  node = root.append_child("Physical_Y_End");
+  node.append_child(pugi::node_pcdata).set_value(line.c_str());
+  std::getline(sstream, line);
+  node = root.append_child("Physical_X_Step");
+  node.append_child(pugi::node_pcdata).set_value(line.c_str());
+  std::getline(sstream, line);
+  node = root.append_child("Physical_Y_Step");
+  node.append_child(pugi::node_pcdata).set_value(line.c_str());
+  std::getline(sstream, line);
+  node = root.append_child("Velocity");
+  node.append_child(pugi::node_pcdata).set_value(line.c_str());
+
+
+  // Navigate to the 'Image' node up the tree
+  root = root.parent().append_child("Image");
+
+  node = root.append_child("Width");
+  params.width =
+      static_cast<double>(params.x_end - params.x_start) / params.x_step;
+  line = std::to_string(params.width);
+  node.append_child(pugi::node_pcdata).set_value(line.c_str());
+
+  node = root.append_child("Height");
+  params.height =
+      static_cast<double>(params.y_end - params.y_start) / params.y_step;
+  ++params.height;  // We account for the fact that the zeroth line is also counted
+  line = std::to_string(params.height);
+  node.append_child(pugi::node_pcdata).set_value(line.c_str());
+
+  node = root.append_child("Pixels");
+  params.pixels = params.height * params.width; // width times height
+  line = std::to_string(params.pixels);
+  node.append_child(pugi::node_pcdata).set_value(line.c_str());
+
+
+  // Navigate to the Analysis_Header XML node (two nodes up the tree)
+  // i.e. Analysis_Header <-- Analysis_Info <-- Velocity
+  root = root.parent().append_child("Histogram");
+  // We add some empty nodes for alignment and calibration parameters
+  // Though we'll not populate the values, they're added for user convenience
+  node = root.append_child("Detector_Identifier");
+  node = root.append_child("Calibration");
+  node.append_child("Param_0");
+  node.append_child("Param_1");
+  node.append_child("Param_2");
+
+
+  // We are done with the header, now we open the output files
+  // There is an output file for each detector (for this format, always 2)
+  std::ofstream output0{filename_ + "_det0.hyperc"};
+  std::ofstream output1{filename_ + "_det1.hyperc"};
+
+  // Abort the operation if we cannot open the output file
+  if (!output0.is_open() || !output1.is_open()) {
+    err_message_ = "[!] Can't open output files";
+    error = true;
+    return;
+  }
+
+  // We declare a lambda which we'll use to print the files header after
+  //  setting the correct value for the detector identifier entry
+  auto print_header = [&] (std::ofstream & output) {
+    // Write the node declaration on the output file
+    output << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << std::endl;
+    output << "<XRFAnalysis>" << std::endl;
+    // Then we paste the XML file generated by puxi
+    doc.print(output);
+    // Then we start the data node
+    output << "<Analysis_Data>" << std::endl;
+  };
+
+  // Navigate to the 'Detector/Identifier' node under 'Histogram'
+  node = node.parent().child("Detector").child("Identifier");
+  node = node.append_child(pugi::node_pcdata);
+
+  node.set_value("0");
+  print_header(output0);
+  node.set_value("1");
+  print_header(output1);
+
+  output0.close();
+  output1.close();
+
+  // Now we have two files with the correct headers and detector identifiers
+
+  // For this format we're gonna need to declare some bit mask
+  struct DatumMasks {
+    int const x = 50000000; // Mask to extract the x coordinate
+    int const y = 60000000; // Mask to extract the y coordinate
+    int const a = 20000000; // Mask to extract data from the 1st detector
+    int const b = 30000000; // Mask to extract data from the 2nd detector
+  } masks;
+  // These masks are particular though, their value is meant to be substracted
+  // from the value of a given datum (as opposed to via the usual bitwise AND)
+
+  constexpr int bins_total = 16384;
+  std::array<int, bins_total> pixel_spectrum0;
+  pixel_spectrum0.fill(0);
+  std::array<int, bins_total> pixel_spectrum1;
+  pixel_spectrum1.fill(0);
+
+//  std::vector<std::string> line_buffer0(params.width);
+//  std::vector<std::string> line_buffer1(params.width);
+  std::vector<std::basic_string<uchar>> line_buffer0(params.width);
+  std::vector<std::basic_string<uchar>> line_buffer1(params.width);
+
+  auto flags = std::ios_base::in | std::ios_base::out | std::ios_base::binary |
+      std::ios_base::ate;
+
+  output0.open(filename_ + "_det0.hyperc", flags);
+  output1.open(filename_ + "_det1.hyperc", flags);
+  if (!output0.is_open() || !output1.is_open()) {
+    err_message_ = "[!] Can't open output files";
+    error = true;
+    return;
+  }
+
+  auto process_positions = [&] (int val) -> int {
+    // Process the x-coordinate
+    static int index;
+    index = (val - masks.x - params.x_start) / params.x_step;
+//    line = std::to_string(index);
+    // The x-coordinate will be independent of odd/even lines so we write
+    // to the line buffer at the position of the x pixel coordinate
+//    line_buffer0.at(index).append(line + ',');
+//    line_buffer1.at(index).append(line + ',');
+    line_buffer0.at(index).append((uchar *) &index, 4);
+    line_buffer1.at(index).append((uchar *) &index, 4);
+
+    // Process the y-coordinate
+    data_file_ >> val;
+
+    val = (val - masks.y - params.y_start) / params.y_step;
+//    line = std::to_string(val);
+//    line_buffer0.at(index).append(line + ',');
+//    line_buffer1.at(index).append(line + ',');
+    line_buffer0.at(index).append((uchar *) &val, 4);
+    line_buffer1.at(index).append((uchar *) &val, 4);
+    return index;
+  };
+
+  auto write_preceding_pixel = [&] (int index) {
+    static int pixels_in_line_written{0};
+    static bool skip_first_call{true};
+    constexpr static uchar end_flag = 0xFF;
+
+    if (skip_first_call) {
+      skip_first_call = false;
+      return;
+    }
+
+    int expected_bin{0}, bin{0};
+    auto & pix_buff0 = line_buffer0.at(index);
+    auto & pix_buff1 = line_buffer1.at(index);
+
+    for (auto & i : pixel_spectrum0) {
+      if (i == 0) {
+        ++bin;
+        continue;
+      }
+
+      if (bin != expected_bin) {
+        pix_buff0.append(2, end_flag);
+        --bin;
+        pix_buff0.append((uchar *) &bin, 2);
+        ++bin;
+//        pix_buff0.append(std::to_string(bin - 1));
+//        pix_buff0.push_back('R');
+//        pix_buff0.push_back(',');
+      }
+      // This will write the correct values in little-endian platforms
+      pix_buff0.append((uchar *) &i, 2);
+
+//      pix_buff0.append(std::to_string(i));
+//      pix_buff0.push_back(',');
+      expected_bin = ++bin;
+      i = 0;
+    }
+    pix_buff0.append(4, end_flag);
+//    pix_buff0.back() = '\n';
+
+    bin = 0 ;
+    expected_bin = 0;
+    for (auto & i : pixel_spectrum1) {
+      if (i == 0) {
+        ++bin;
+        continue;
+      }
+
+      if (bin != expected_bin) {
+        pix_buff1.append(2, end_flag);
+        --bin;
+        pix_buff1.append((uchar *) &bin, 2);
+        ++bin;
+
+//        pix_buff1.append(std::to_string(bin - 1));
+//        pix_buff1.push_back('R');
+//        pix_buff1.push_back(',');
+      }
+      pix_buff1.append((uchar *) &i, 2);
+//      pix_buff1.append(std::to_string(i));
+//      pix_buff1.push_back(',');
+      expected_bin = ++bin;
+      i = 0;
+    }
+    pix_buff1.append(4, end_flag);
+//    pix_buff1.back() = '\n';
+
+    ++pixels_in_line_written;
+    if (pixels_in_line_written == params.width) {
+      for (auto & str : line_buffer0) {
+        output0.write((char *)str.data(), str.size());
+//        output0 << str;
+        str.clear();
+      }
+      for (auto & str : line_buffer1) {
+        output1.write((char *)str.data(), str.size());
+//        output1 << str;
+        str.clear();
+      }
+      pixels_in_line_written = 0;
+    }
+  };
+
+  struct stat stat_buf;
+  int rc = stat(filename_.c_str(), &stat_buf);
+  double factor = (rc == 0) ? stat_buf.st_size : -1;
+  factor = 100. / factor;
+  double progress{0};
+
+  // Parse the data
+  int index{0}, val;
+  while  (data_file_ >> val)
+  {
+//    val = std::stoi(line);
+    if (val >= masks.x) {
+      // The lambda returns on first call before using buff_index
+      write_preceding_pixel(index);
+      index = process_positions(val);
+
+      progress = factor * data_file_.tellg();
+      emit UpdateProgressBar(static_cast<int>(progress));
+    }
+    else if (val >= masks.b) {
+      val = val - masks.b;
+      pixel_spectrum1.at(val)++;
+    }
+    else if (val >= masks.a) {
+      val = val - masks.a;
+      pixel_spectrum0.at(val)++;
+    }
+  }
+  write_preceding_pixel(index);
+
+  output0 << "</Analysis_Data>" << std::endl;
+  output0 << "</XRFAnalysis>" << std::endl;
+
+  output1 << "</Analysis_Data>" << std::endl;
+  output1 << "</XRFAnalysis>" << std::endl;
+
+  UpdateStatusBar("Succesfully converted!");
+}
+
+#else
+auto FileConverter::MultiDetectorFormatToHypercube() -> void
+{
+  emit UpdateStatusBar("Converting...");
+
+  // Construct  the  header
+  pugi::xml_document doc{};
+  auto root = doc.append_child("Analysis_Header");
+  auto node = root.append_child("Format");
+  node.append_child(pugi::node_pcdata).set_value("Hypercube");
+
+  root = root.append_child("Analysis_Info").append_child("Scan");
+
+  std::stringstream sstream;
+  sstream << std::fixed << std::setprecision(3);
+
+  struct ScanParameters {
+    int x_start;
+    int x_end;
+    int y_start;
+    int y_end;
+    int x_step;
+    int y_step;
+    int velocity;
+    int width;
+    int height;
+    int pixels;
+  } params;
+
+  // Extract all the header tokens into the ScanParameters struct
+  // Then append the formated string representation onto sstream
+  // We could've usen a loop, but using named parameters is less error-prone
+  data_file_  >> params.x_start;
+  sstream     << params.x_start / 1000. << std::endl;
+  data_file_  >> params.x_end;
+  sstream     << params.x_end / 1000. << std::endl;
+  data_file_  >> params.y_start;
+  sstream     << params.y_start / 1000. << std::endl;
+  data_file_  >> params.y_end;
+  sstream     << params.y_end / 1000. << std::endl;
+  data_file_  >> params.x_step;
+  sstream     << params.x_step / 1000. << std::endl;
+  data_file_  >> params.y_step;
+  sstream     << params.y_step / 1000. << std::endl;
+  data_file_  >> params.velocity;
+  sstream     << params.velocity / 1000. << std::endl;
+
+  std::string line;
+  // We add the header entries in the order we expect them
+  std::getline(sstream, line);
+  node = root.append_child("Physical_X_Start");
+  node.append_child(pugi::node_pcdata).set_value(line.c_str());
+  std::getline(sstream, line);
+  node = root.append_child("Physical_X_End");
+  node.append_child(pugi::node_pcdata).set_value(line.c_str());
+  std::getline(sstream, line);
+  node = root.append_child("Physical_Y_Start");
+  node.append_child(pugi::node_pcdata).set_value(line.c_str());
+  std::getline(sstream, line);
+  node = root.append_child("Physical_Y_End");
+  node.append_child(pugi::node_pcdata).set_value(line.c_str());
+  std::getline(sstream, line);
+  node = root.append_child("Physical_X_Step");
+  node.append_child(pugi::node_pcdata).set_value(line.c_str());
+  std::getline(sstream, line);
+  node = root.append_child("Physical_Y_Step");
+  node.append_child(pugi::node_pcdata).set_value(line.c_str());
+  std::getline(sstream, line);
+  node = root.append_child("Velocity");
+  node.append_child(pugi::node_pcdata).set_value(line.c_str());
+
+
+  // Navigate to the 'Image' node up the tree
+  root = root.parent().append_child("Image");
+
+  node = root.append_child("Width");
+  params.width =
+      static_cast<double>(params.x_end - params.x_start) / params.x_step;
+  line = std::to_string(params.width);
+  node.append_child(pugi::node_pcdata).set_value(line.c_str());
+
+  node = root.append_child("Height");
+  params.height =
+      static_cast<double>(params.y_end - params.y_start) / params.y_step;
+  ++params.height;  // We account for the fact that the zeroth line is also counted
+  line = std::to_string(params.height);
+  node.append_child(pugi::node_pcdata).set_value(line.c_str());
+
+  node = root.append_child("Pixels");
+  params.pixels = params.height * params.width; // width times height
+  line = std::to_string(params.pixels);
+  node.append_child(pugi::node_pcdata).set_value(line.c_str());
+
+
+  // Navigate to the Analysis_Header XML node (two nodes up the tree)
+  // i.e. Analysis_Header <-- Analysis_Info <-- Velocity
+  root = root.parent().append_child("Histogram");
+  // We add some empty nodes for alignment and calibration parameters
+  // Though we'll not populate the values, they're added for user convenience
+  node = root.append_child("Detector_Identifier");
+  node = root.append_child("Calibration");
+  node.append_child("Param_0");
+  node.append_child("Param_1");
+  node.append_child("Param_2");
+
+
+  // We are done with the header, now we open the output files
+  // There is an output file for each detector (for this format, always 2)
+  std::ofstream output0{filename_ + "_det0.hyperc"};
+  std::ofstream output1{filename_ + "_det1.hyperc"};
+
+  // Abort the operation if we cannot open the output file
+  if (!output0.is_open() || !output1.is_open()) {
+    err_message_ = "[!] Can't open output files";
+    error = true;
+    return;
+  }
+
+  // We declare a lambda which we'll use to print the files header after
+  //  setting the correct value for the detector identifier entry
+  auto print_header = [&] (std::ofstream & output) {
+    // Write the node declaration on the output file
+    output << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << std::endl;
+    output << "<XRFAnalysis>" << std::endl;
+    // Then we paste the XML file generated by puxi
+    doc.print(output);
+    // Then we start the data node
+    output << "<Analysis_Data>" << std::endl;
+  };
+
+  // Navigate to the 'Detector/Identifier' node under 'Histogram'
+  node = node.parent().child("Detector").child("Identifier");
+  node = node.append_child(pugi::node_pcdata);
+
+  node.set_value("0");
+  print_header(output0);
+  node.set_value("1");
+  print_header(output1);
+
+  // Now we have two files with the correct headers and detector identifiers
+
+  // For this format we're gonna need to declare some bit mask
+  struct DatumMasks {
+    int const x = 50000000; // Mask to extract the x coordinate
+    int const y = 60000000; // Mask to extract the y coordinate
+    int const a = 20000000; // Mask to extract data from the 1st detector
+    int const b = 30000000; // Mask to extract data from the 2nd detector
+  } masks;
+  // These masks are particular though, their value is meant to be substracted
+  // from the value of a given datum (as opposed to via the usual bitwise AND)
+
+  constexpr int bins_total = 16384;
+  std::array<int, bins_total> pixel_spectrum0;
+  pixel_spectrum0.fill(0);
+  std::array<int, bins_total> pixel_spectrum1;
+  pixel_spectrum1.fill(0);
+
+//  std::vector<std::string> line_buffer0(params.width);
+//  std::vector<std::string> line_buffer1(params.width);
+
+
+  std::vector<std::stringstream> line_buffer0(params.width);
+  std::vector<std::stringstream> line_buffer1(params.width);
+  for (auto & sstream : line_buffer0) {
+    sstream.flags(std::ios::hex | std::ios::uppercase);
+  }
+  for (auto & sstream : line_buffer1) {
+    sstream.flags(std::ios::hex | std::ios::uppercase);
+  }
+
+  auto process_positions = [&] (int val) -> int {
+    // Process the x-coordinate
+    static int index;
+    index = (val - masks.x - params.x_start) / params.x_step;
+    line_buffer0.at(index) << index << ',';
+    line_buffer1.at(index) << index << ',';
+
+//    line = std::to_string(index);
+//    // The x-coordinate will be independent of odd/even lines so we write
+//    // to the line buffer at the position of the x pixel coordinate
+//    line_buffer0.at(index).append(line + ',');
+//    line_buffer1.at(index).append(line + ',');
+
+    // Process the y-coordinate
+    data_file_ >> val;
+    val = (val - masks.y - params.y_start) / params.y_step;
+    line_buffer0.at(index) << val;
+    line_buffer1.at(index) << val;
+//    line = std::to_string(val);
+//    line_buffer0.at(index).append(line + ',');
+//    line_buffer1.at(index).append(line + ',');
+    return index;
+  };
+
+  auto write_preceding_pixel = [&] (int index) {
+    static int pixels_in_line_written{0};
+    static bool skip_first_call{true};
+    constexpr static uchar end_flag = 0xFF;
+
+    if (skip_first_call) {
+      skip_first_call = false;
+      return;
+    }
+
+    int expected_bin{0}, bin{0};
+    auto & pix_buff0 = line_buffer0.at(index);
+    auto & pix_buff1 = line_buffer1.at(index);
+
+    for (auto & i : pixel_spectrum0) {
+      if (i == 0) {
+        ++bin;
+        continue;
+      }
+
+      pix_buff0 << ',';
+      if (bin != expected_bin) {
+        pix_buff0 << bin - 1 << "R,";
+//        pix_buff0.append(std::to_string(bin - 1));
+//        pix_buff0.push_back('R');
+//        pix_buff0.push_back(',');
+      }
+      pix_buff0 << i;
+//      pix_buff0.append(std::to_string(i));
+//      pix_buff0.push_back(',');
+      expected_bin = ++bin;
+      i = 0;
+    }
+    pix_buff0 << '\n';
+//   pix_buff0.back() = '\n';
+
+    bin = 0 ;
+    expected_bin = 0;
+    for (auto & i : pixel_spectrum1) {
+      if (i == 0) {
+        ++bin;
+        continue;
+      }
+
+      if (bin != expected_bin) {
+        pix_buff1 << ',' << bin - 1 << 'R';
+//        pix_buff0.append(std::to_string(bin - 1));
+//        pix_buff0.push_back('R');
+//        pix_buff0.push_back(',');
+      }
+      pix_buff1 << ',' << i;
+//      pix_buff0.append(std::to_string(i));
+//      pix_buff0.push_back(',');
+//      if (bin != expected_bin) {
+//        pix_buff1.append(std::to_string(bin - 1));
+//        pix_buff1.push_back('R');
+//        pix_buff1.push_back(',');
+//      }
+//      pix_buff1.append(std::to_string(i));
+//      pix_buff1.push_back(',');
+      expected_bin = ++bin;
+      i = 0;
+    }
+    pix_buff1 << '\n';
+//    pix_buff1.back() = '\n';
+    std::string line = line_buffer0.at(index).str();
+    line = line_buffer1.at(index).str();
+
+    ++pixels_in_line_written;
+    if (pixels_in_line_written == params.width) {
+      for (auto & str : line_buffer0) {
+        output0 << str.rdbuf();
+        str.str("");
+        str.clear();
+//        output0.write((char *)str.data(), str.size());
+//        output0 << str;
+      }
+      for (auto & str : line_buffer1) {
+        output1 << str.rdbuf();
+        str.str("");
+        str.clear();
+//        output1.write((char *)str.data(), str.size());
+//        output1 << str;
+      }
+      pixels_in_line_written = 0;
+    }
+  };
+
+  struct stat stat_buf;
+  int rc = stat(filename_.c_str(), &stat_buf);
+  double factor = (rc == 0) ? stat_buf.st_size : -1;
+  factor = 100. / factor;
+  double progress{0};
+
+  // Parse the data
+  int index{0}, val;
+  int calls_to_write{0};
+  while  (data_file_ >> val)
+  {
+//    val = std::stoi(line);
+    if (val >= masks.x) {
+      // The lambda returns on first call before using buff_index
+      ++calls_to_write;
+      write_preceding_pixel(index);
+      index = process_positions(val);
+
+      progress = factor * data_file_.tellg();
+      emit UpdateProgressBar(static_cast<int>(progress));
+    }
+    else if (val >= masks.b) {
+      val = val - masks.b;
+      pixel_spectrum1.at(val)++;
+    }
+    else if (val >= masks.a) {
+      val = val - masks.a;
+      pixel_spectrum0.at(val)++;
+    }
+  }
+  write_preceding_pixel(index);
+
+  output0 << "</Analysis_Data>" << std::endl;
+  output0 << "</XRFAnalysis>" << std::endl;
+
+  output1 << "</Analysis_Data>" << std::endl;
+  output1 << "</XRFAnalysis>" << std::endl;
+
+  UpdateStatusBar("Succesfully converted!");
+}
+
+
+#endif
+} //namespace maxrf

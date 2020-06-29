@@ -61,9 +61,9 @@ DEPENDPATH += $$PROJECT_DIR/libs
 
 unix:!macx {
   # Shared and static libraries search directory
-  LIBS += -L$$PROJECT_DIR/libs/
+  LIBS += -L$$PROJECT_DIR/libs
   # Libraries used in the project (and dynamically linked)
-  LIBS += -lsharedmemory -lqcustomplot -lpugixml
+  LIBS += -lsharedmemory -lqcustomplot -lpugixml -lfileconverter -lfilemanagement
 }
 
 # ---------------------------------------------------------------------------- #
@@ -75,19 +75,21 @@ unix:!macx {
 INCLUDEPATH += $$PWD/include
 
 HEADERS += \
-  include/MAXRF/palettes.h \
   include/MAXRF/types.h \
-  include/MAXRF/conversion_routines.h \
   include/MAXRF/image_display.h \
   include/MAXRF/utility.hpp \
+  include/MAXRF/xrf_image_plot.h \
   include/MAXRF/xrf_image_widget.h \
-  include/MAXRF/xrfimage.h
+  include/MAXRF/xrfimage.h \
+  src/palettes.h
 SOURCES += \
   src/main.cpp \
+  src/mouse_events_handle.cpp \
+  src/processing_algorithms.cpp \
+  src/xrf_image_plot.cpp \
   src/xrfimage_data.cpp \
   src/xrfimage_qlabel.cpp \
-  src/xrfimage_widget.cpp \
-  src/conversion_routines.cpp
+  src/xrfimage_widget.cpp
 RESOURCES += \
   resources/resource.qrc
 

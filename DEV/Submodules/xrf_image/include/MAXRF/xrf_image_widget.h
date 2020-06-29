@@ -19,9 +19,10 @@
 
 #include "MAXRF/image_display.h"
 #include "MAXRF/shared_memory.h"
+#include "MAXRF/xrf_image_plot.h"
 #include "qcustomplot.h"
 
-namespace xrfimage
+namespace maxrf
 {
 
 class XRFImageWidget : public QWidget
@@ -41,7 +42,6 @@ private:
 
 private:
   shmarray<double> shared_memory5;
-//  shm::array<double> shared_memory5;
 
   // STATIC methods. Internal methods only seen in this translation unit
   // TODO variable below must be implemented as a user preference variable
@@ -52,8 +52,11 @@ private:
   static int const histogram_highest_bin = 16383;
 
   ImgLabel * image_label_;
+//  XRFImagePlot * image_plot;
+  PlotMediator * image_plot;
   QToolBar * toolbar_;
   QCustomPlot * image_histogram_;
 };
 } // namespace xrfimage
+
 #endif // XRFIMAGEWIDGET_H

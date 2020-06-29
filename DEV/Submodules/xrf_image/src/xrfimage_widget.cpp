@@ -1,12 +1,16 @@
 #include "MAXRF/xrf_image_widget.h"
-namespace xrfimage
+
+extern template class shmarray<double>;
+
+namespace maxrf
 {
 
 XRFImageWidget::XRFImageWidget(QWidget * parent)
 {
   Q_UNUSED(parent)
   shared_memory5.initialize(Segments::SHARED_MEMORY_5);
-  image_label_ = new ImgLabel{this};
+  image_label_ = new ImgLabel   {this};
+  image_plot = new PlotMediator {this};
 
   CreateActions();
   CreateWidget();
@@ -61,13 +65,64 @@ void XRFImageWidget::CreateActions()
   toolbar_->addAction(reload_button);
 
 
+//  connect(open_action, &QAction::triggered,
+//          image_plot, &XRFImagePlot::AddImageToBuffer);
   connect(open_action, &QAction::triggered,
-          image_label_, &ImgLabel::AddImageToBuffer);
+          image_plot, &PlotMediator::LoadDataFile);
+//  connect(open_action, &QAction::triggered,
+//          image_label_, &ImgLabel::AddImageToBuffer);
   connect(export_action, &QAction::triggered,
           this, &XRFImageWidget::ExportImageToPNG);
   // TODO pixel_action slot
-  connect(reload_button, &QAction::triggered,
-          image_label_, &ImgLabel::RenderImage);
+//  connect(reload_button, &QAction::triggered,
+//          image_label_, &ImgLabel::ProcessImage);
+//  connect(reload_button, &QAction::triggered,
+//          image_plot, &XRFImagePlot::DrawBackground);
+//  connect(integral_action, &QAction::triggered,
+//          [=](){
+//    bool valid_selection;
+//    auto low = QInputDialog::getInt(this, "Choose Limits", "Lower limit:", 0, 0,
+//                         16383, 1, &valid_selection);
+//    if (!valid_selection) {
+//      return;
+//    }
+//    auto high = QInputDialog::getInt(this, "Choose Limits", "Higher limit:", 16383,
+//                                     0, 16383, 1, &valid_selection);
+//    if (!valid_selection) {
+//      return;
+//    }
+
+//    auto filter = QInputDialog::getInt(this, "Choose filter", "Filter:",
+//                                       1, 0, 3, 1, &valid_selection);
+//    if (!valid_selection) {
+//      return;
+//    }
+
+//    EnergyFilter enumfilter;
+//    switch (filter)
+//    {
+//    case 0:
+//      enumfilter = EnergyFilter::kUnfiltered;
+//      break;
+//    case 1:
+//      enumfilter = EnergyFilter::kFilterRange1;
+//      break;
+//    case 2:
+//      enumfilter = EnergyFilter::kFilterRange2;
+//      break;
+//    case 3:
+//      enumfilter = EnergyFilter::kFilterRange3;
+//      break;
+//    }
+//    image_plot->SetEnergyFilter(enumfilter, low, high);
+//    image_plot->PaintImage(enumfilter);
+
+////    image_label_->SelectFilter(enumfilter, low, high);
+////    image_label_->RenderImage(enumfilter);
+////    image_label_->ProcessImage();
+//  });
+
+//  connect(pixel_action, &QAction::triggered, image_plot, &XRFImagePlot::overlay_test);
 
 }
 
@@ -157,47 +212,38 @@ void XRFImageWidget::CreateWidget()
   image_label_->setPixmap(QPixmap::fromImage(image));
   image_label_->setBackgroundRole(QPalette::Base);
 
-  auto scroll_area_ = new QScrollArea;
-  scroll_area_->setBackgroundRole(QPalette::Dark);
-  scroll_area_->setMinimumSize(450, 450);
-  scroll_area_->setWidget(image_label_);
-  scroll_area_->setAlignment(Qt::AlignCenter);
-  \
+
+//  auto scroll_area_ = new QScrollArea;
+//  scroll_area_->setBackgroundRole(QPalette::Dark);
+//  scroll_area_->setMinimumSize(450, 450);
+//  scroll_area_->setWidget(image_label_);
+//  scroll_area_->setAlignment(Qt::AlignCenter);
+
+ \
 
   auto tab_widget = new QTabWidget;
-  tab_widget->setEnabled(false);
+  tab_widget->setEnabled(true);
 
   //  // ---------- TAB1 WIDGET DEFINITION ---------- //
   auto tab1 = new QWidget;
-
-  QVector<double> x(256), y(256);
-  for (int i=0; i <x.size(); ++i)
-  {
-    x[i] = i;
-    y[i] = i;
-  }
-
   image_histogram_ = new QCustomPlot{};
 
-  auto bars1 = new QCPBars(image_histogram_->xAxis, image_histogram_->yAxis);
-  bars1->setWidth(1);
-  bars1->setData(x, y, true);
-  bars1->setPen(Qt::NoPen);
-  bars1->setBrush(QColor("Orange"));
 
 
-  connect(image_label_, &ImgLabel::UpdateImageHistogram,
-          this, [=](QVector<uint> histogram) {
-    auto it = histogram.begin();
-    for (auto & i : *bars1->data())
-    {
-      i.value = *it;
-      ++it;
-    }
-    auto max = *std::max_element(histogram.begin(), histogram.end());
-    image_histogram_->yAxis->setRange(0, max);
-    image_histogram_->replot();
-  });
+
+
+//  connect(image_label_, &ImgLabel::UpdateImageHistogram,
+//          this, [=](QVector<uint> histogram) {
+//    auto it = histogram.begin();
+//    for (auto & i : *bars1->data())
+//    {
+//      i.value = *it;
+//      ++it;
+//    }
+//    auto max = *std::max_element(histogram.begin(), histogram.end());
+//    image_histogram_->yAxis->setRange(0, max);
+//    image_histogram_->replot();
+//  });
 
 
   image_histogram_->yAxis->setRange(0, 255);
@@ -251,15 +297,17 @@ void XRFImageWidget::CreateWidget()
 
   QObject::connect(brightness_slider, &QSlider::valueChanged,
                    image_label_, &ImgLabel::set_brightness);
-  QObject::connect(equalize_button, &QRadioButton::toggled,
-                   image_label_, &ImgLabel::ToggleEqualization);
-  QObject::connect(stretch_button,  &QRadioButton::toggled,
-                  image_label_, &ImgLabel::ToggleStretching);
+//  QObject::connect(equalize_button, &QRadioButton::toggled,
+//                   image_label_, &ImgLabel::ToggleEqualization);
+//  QObject::connect(stretch_button,  &QRadioButton::toggled,
+//                  image_label_, &ImgLabel::ToggleStretching);
+//  connect(equalize_button, &QRadioButton::toggled,
+//          image_plot, &XRFImagePlot::EqualizeHistogram);
 
 
   auto tab1_layout = new QVBoxLayout;
   tab1_layout->addWidget(checklist1);
-  tab1_layout->addWidget(image_histogram_);
+//  tab1_layout->addWidget(customPlot);
   tab1_layout->setStretchFactor(image_histogram_, 2);
   tab1_layout->addLayout(brightness_controls);
   tab1_layout->addLayout(contrast_opts);
@@ -278,10 +326,10 @@ void XRFImageWidget::CreateWidget()
 
   auto showing_layout = new QHBoxLayout;
   showing_layout->addWidget(new QLabel{"Currently Showing:"}, Qt::AlignRight);
-  showing_layout->addWidget(image_select);
+  showing_layout->addWidget(image_select, 1);
 
   QVBoxLayout * layout = new QVBoxLayout;
-  layout->addWidget(scroll_area_);
+  layout->addWidget(image_plot, 3);
   layout->addWidget(toolbar_);
   layout->addLayout(showing_layout);
   layout->addWidget(tab_widget);

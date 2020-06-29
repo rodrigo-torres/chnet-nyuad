@@ -15,24 +15,28 @@
 
 #include "MAXRF/xrfimage.h"
 #include "MAXRF/shared_memory.h"
-
+#include "qcustomplot.h"
 
 extern template class shmarray<int>;
+
+namespace maxrf {
+
 
 // -------------------- USER CONFIGURATION -------------------- //
 // These fields will eventually need to be populated from a configuration file
 static QString data_directory = "/home/frao/Documents/Workspaces/MAXRF/Data";
 
-
+/// \class ImgLabel
+/// \brief The ImgLabel class
+///
+/// \var displayed_image_ holds 32 bit color reprensentation of the image
+///
 class ImgLabel : public QLabel
 {
   // INHERITED PUBLIC METHODS
   // Mutator function for the label's QPixmap
   // void setPixmap(const QPixmap &)
   Q_OBJECT
-
-  using Renderer	= std::unique_ptr<XRFImage>;
-
   using ColorTable = QVector<QRgb>;
   using Palettes = std::map<QString, ColorTable>;
 
@@ -62,32 +66,35 @@ public:
   void RemoveImageFromBuffer();
   void ChangeImage(int index);
 
+//  void SelectFilter(EnergyFilter filter, int low, int high) {
+//    renderer_.SetIntegralLimits(filter, low, high);
+//  }
 
-  void RenderImage();
+//  void RenderImage(EnergyFilter filter = EnergyFilter::kUnfiltered);
+  void PaintImage();
   void ProcessImage();
 
 
   // ACCESOR methods
   bool is_map_opened() const;
-	QImage qimage() const;
+  QImage qimage() const;
 
-  // MUTATOR methods
-  void set_pixel_dim(int);
+  // MUTATOR methodsprocessed
+//  void set_pixel_dim(int);
   void ToggleEqualization(bool state);
   void ToggleStretching(bool state);
   void set_brightness(int percentage);
 
 private:
-  void CreatePalettes();
+//  void CreatePalettes();
   void AdjustContrast();
-  void AdjustBrightness();
-  void EqualizeHistogram();
-  void PaintImage();
-  void ResizeImage();
+//  void AdjustBrightness();
+//  void EqualizeHistogram();
+//  void ResizeImage();
 
   void mousePressEvent(QMouseEvent * event);
   void mouseReleaseEvent(QMouseEvent * event);
-  void wheelEvent(QWheelEvent * event);
+//  void wheelEvent(QWheelEvent * event);
 
 private:
   shmarray<int> shared_memory_cmd;
@@ -105,14 +112,18 @@ private:
   Palettes palettes_;
   QString selected_palette;
 
-  std::vector<std::unique_ptr<XRFImage>> renderers_;
-  std::vector<std::unique_ptr<UnprocessedImage>> images_;
-  decltype (renderers_)::size_type active_index_;
+  Renderer renderer_;
+  std::vector<std::unique_ptr<IndexedImage>> images_;
+  int image_index_;
+
 
   QImage displayed_image_;
+  QVector<uint> displayed_histo_;
 
   QWidget * parent_;
 };
+
+}
 
 #endif // IMAGE_DISPLAY_H
 

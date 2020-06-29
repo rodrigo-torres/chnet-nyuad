@@ -27,18 +27,28 @@ auto GetDefaultFields() -> std::vector<HeaderEntry>
 
   // ---------- DEVICE ---------- //
   add_entry(true, "//Device/Identifier");
+  // A model number for the device, maybe internally assigned
   add_entry(true, "//Device/Make");
+  // CHNET-UNSAM, CHNET-LABEC, CHNET-NYUAD
 
   // ---------- SESSION ---------- //
   add_entry(true, "//Session/Identifier");
+  // Session for a given series of analysis on an object
   add_entry(true, "//Session/Investigation_Type");
+  // Test, Calibration, Point DAQ, Scan DAQ
+  // Or maybe like purpose
 
   // ---------- ANALYSIS METADATA ---------- //
   add_entry(true, "//Metadata/Analysis_Identifier");
+  // Specific analysis done
   add_entry(true, "//Metadata/Operator");
+
+  // Entered by the program
   add_entry(true, "//Metadata/Date");
   add_entry(true, "//Metadata/Time");
-  add_entry(true, "//Metadata/Measurement_Unit");
+
+//  add_entry(true, "//Metadata/Measurement_Unit");
+  // No idea what these next ones are
   add_entry(true, "//Metadata/Sample_Area_File");
   add_entry(true, "//Metadata/Sampling_Note");
   add_entry(true, "//Metadata/Note");
@@ -47,24 +57,29 @@ auto GetDefaultFields() -> std::vector<HeaderEntry>
   add_entry(true, "//Info/Tube/Voltage");
   add_entry(true, "//Info/Tube/Current");
   add_entry(true, "//Info/Tube/Anode", "Molybdenum");
+
+  // ---------- HISTOGRAM ---------- //
+  //  Histogram alignment will use the calibration parameters of the detectors
+  add_entry(true, "//Histogram/Detector_Identifier");
+  add_entry(true, "//Histogram/Calibration_Param_0");
+  add_entry(true, "//Histogram/Calibration_Param_1");
+  add_entry(true, "//Histogram/Calibration_Param_2");
+
+  // These parameters are entered by the program -------------------- //
+  // Parameters only relevant for DAQ
   add_entry(true, "//Info/Scan/Physical_X_Start");
   add_entry(true, "//Info/Scan/Physical_Y_Start");
-  add_entry(true, "//Info/Scan/Physical_X_Dimension");
-  add_entry(true, "//Info/Scan/Physical_Y_Dimension");
+  add_entry(true, "//Info/Scan/Physical_X_Step");
+  add_entry(true, "//Info/Scan/Physical_Y_Step");
   add_entry(true, "//Info/Scan/Velocity");
   add_entry(true, "//Info/Scan/Dwell_Time");
   add_entry(true, "//Info/Image/Width");
   add_entry(true, "//Info/Image/Height");
   add_entry(true, "//Info/Image/Pixels");
 
-  // ---------- HISTOGRAM ---------- //
-  add_entry(true, "//Histogram/Detector/Identifier");
-  add_entry(true, "//Histogram/Detector/Alignment_Param_0");
-  add_entry(true, "//Histogram/Detector/Alignment_Param_1");
-  add_entry(true, "//Histogram/Detector/Alignment_Param_2");
-  add_entry(true, "//Histogram/Calibration/Param_0");
-  add_entry(true, "//Histogram/Calibration/Param_1");
-  add_entry(true, "//Histogram/Calibration/Param_2");
+
+
+  // We need a units attribute
 
   // We return by copy elision
   return list;
@@ -113,7 +128,7 @@ auto XMLHeader::MakeDefault() -> void
     {
       node.append_attribute("units").set_value(fields.units.c_str());
     }
-    if (fields.required)
+    if ((int)(fields.flags & EntryFlags::IS_REQUIRED))
     {
       node.append_attribute("required").set_value("true");
     }

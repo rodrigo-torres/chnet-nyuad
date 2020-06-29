@@ -16,21 +16,7 @@ static constexpr int const lowest_bin = 0;
 static constexpr int const highest_bin = 16383;
 static constexpr int const total_bins = 16384;
 
-struct Pixel;
-
-using PixelData   = std::unique_ptr<Pixel>;
-using ImageData   = std::vector<PixelData>;
 using Histogram   = std::array<int32_t, total_bins>;
-
-struct Pixel
-{
-  std::streamoff first_datum_pos;
-  int pixel_no;
-  int x_coord;
-  int y_coord;
-  int integral;
-  std::array<int, 3> roi_integrals;
-};
 
 enum ProcessingFlags : char
 {
@@ -43,39 +29,31 @@ enum ProcessingFlags : char
 };
 DECLARE_BITWISE_OPERATORS(ProcessingFlags);
 
-
-struct UnprocessedImage
+/// \struct
+/// \brief The IndexedImage struct
+///
+/// \var matrix
+/// \var dimensions
+/// \var flags
+/// \var brightness
+/// \var pixel_replication
+/// \var histogram
+///
+struct IndexedImage
 {
-  UnprocessedImage() : matrix{}, flags{kNone}, brightness{0},
+  IndexedImage() : flags{kNone}, brightness{0},
     pixel_replication{1}
   {}
   // An 8-bit grayscale representation of the rendered matrix by XRFImage
-  QImage matrix;
-  QImage processed;
+//  QImage matrix;
+  std::vector<uint32_t> indexed_data;
   QSize dimensions;
   // Attributes necessary to determine how the image will be painted
   ProcessingFlags flags;
   int brightness;
   int pixel_replication;
   std::array<int32_t, 256> histogram;
-  std::vector<uint> nhisto;
 };
 
-struct DataFile
-{
-  std::fstream file;
-  std::string err_msg;
-  bool valid;
-
-  ImageData image_data;
-  Histogram sum_spectrum;
-
-  uint x_length_;
-  uint y_length_;
-  uint pixels_in_image_;
-
-  int minimum_integral_;
-  int maximum_integral_;
-};
 
 #endif // TYPES_H

@@ -27,22 +27,29 @@ public:
   FileConverter(std::string const & filename);
 
   // Check operations
-  auto IsHyperCube(std::ifstream & file) -> bool;
+  auto IsHypercube() -> bool;
+
+  // Help Operations
+  auto AdvanceToEndOfHeader() -> void;
 
 	// Conversion methods
-	auto ConvertToHypercube() -> std::string;
+  auto ConvertToHypercube() -> bool;
 	auto ConvertToPyMcaSPE() -> std::string;
 	auto ConvertToPyMcaEDF() -> std::string;
 	auto ComputeHistograms() -> std::string;
 
+  auto file() -> std::ifstream;
+  auto converted_filepath() -> std::string;
 	auto err_message() -> std::string;
-
 signals:
   // The Qt Meta-Object compiler (moc) does not like trailing return types
   void UpdateProgressBar(int value);
   void UpdateStatusBar(std::string message);
 
 private:
+  // Helper Methods
+  auto OpenFile(std::string filename) -> void;
+
 	// XRF Image Data formats to other XRF Image Data formats
 	auto LegacyFormatToHypercube() -> void;
 	auto MultiDetectorFormatToHypercube() -> void;
@@ -61,6 +68,7 @@ private:
   std::string filename_;
   std::ifstream data_file_;
 
+  std::fstream::pos_type end_of_header_pos_;
   std::string header_;
 };
 

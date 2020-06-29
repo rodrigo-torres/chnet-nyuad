@@ -1,374 +1,290 @@
 #include "MAXRF/xrfimage.h"
-#include"MAXRF/conversion_routines.h"
+#include "MAXRF/conversion_routines.h"
+#include "pugi/pugixml.hpp"
 
 #define MAXRF_DEBUG 1
 
-XRFImage::XRFImage(QWidget* parent) : roi_low{lowest_bin}, roi_high{highest_bin}
+Renderer::Renderer(QWidget * parent) : QObject{parent}
 {
-  Q_UNUSED(parent)
+//  maximum_integrals_.fill(0);
+
+//  integral_limits_.fill({0, 0});
+//  integral_limits_.front() = std::make_pair(0, 16383);
 }
 
-XRFImage::~XRFImage() {}
+Renderer::~Renderer() {}
 
 
-bool XRFImage::is_valid()
+bool Renderer::is_valid()
 {
-  return file_.valid;
+  return valid_;
 }
 
 
-auto XRFImage::err_mesg() -> std::string
+auto Renderer::err_mesg() -> std::string
 {
-  return  file_.err_msg;
+  return message_;
 }
 
-auto XRFImage::roi_spectrum() -> Histogram &
+auto Renderer::roi_spectrum() -> Histogram &
 {
   return roi_spectrum_;
 }
 
-auto XRFImage::IsPixelOnImage(size_t x, size_t y) -> bool
+auto Renderer::IsPixelOnImage(int x, int y) -> bool {
+  return ( state_.width > x || state_.height > y) ? true : false;
+}
+
+
+static struct ROIOperator
 {
-  if ( file_.x_length_ > x || file_.y_length_ > y)
-  {
-    return true;
+  ROIOperator() {
+    spectrum.fill(0);
   }
-  else
-  {
+  auto operator() (int bin, int value) -> bool  {
+    spectrum[bin] += value;
     return false;
   }
+  std::array<int, 16384> spectrum;
+} roi_operator;
 
-}
-
-
-auto XRFImage::FindPixelWithCoordinates(size_t x, size_t y) -> size_t
+void Renderer::ComputeROISpectrum(std::vector<int>&& pixels_selected)
 {
-  // Checks for a valid state of the buffer, i.e., the iterator is valid
-  // Checks if pixel is in bounds
-  if (IsPixelOnImage(x, y))
-  {
-    return y * file_.x_length_ + x;
+  double progress = 0;
+  auto & file = state_.file->DataFile();
+  file >> std::hex >> std::noskipws;
+
+  for (auto & i : pixels_selected) {
+    state_.file->GoToPixel(i);
+    state_.file->ParsePixel(roi_operator);
+
+    progress = state_.progress_factor * i;
+    emit UpdateProgressBar(static_cast<int>(progress));
   }
-  else
-  {
-    return std::numeric_limits<size_t>::max();
-  }
-}
+  file >> std::dec;
 
-void XRFImage::ComputeROISpectrum(std::vector<int>&& pixels_selected)
-{
-  std::fill(roi_spectrum_.begin(), roi_spectrum_.end(), 0);
-  for (auto val : pixels_selected)
-  {
-    std::string line;
-    auto & p = file_.image_data.at(val);
-    auto & file = file_.file;
-    int i_line = 0, channel = 0, count = 0;
-
-    file.seekg(p->first_datum_pos);
-    getline(file, line);
-    while (line.front() != 'P' && !file.eof())
-    {
-      i_line = stoi(line);
-      channel = (i_line & 0xFFFC000) >> 14;
-      count = (i_line & 0x3FFF);
-      roi_spectrum_.at(channel) += count;
-      getline(file, line);
-    }
-  }
-}
-
-void XRFImage::UpdatePixelIntegrals()
-{
-  auto & maximum_integral_ = file_.maximum_integral_;
-  auto & minimum_integral_ = file_.minimum_integral_;
-  auto & image_data_ = file_.image_data;
-  auto & file = file_.file;
-
-
-  // TODO get values of integral limits from somwehere else other than SHM
-  minimum_integral_ = std::numeric_limits<int>::max();
-  maximum_integral_ = 0;
-
-  constexpr int32_t bin_mask = 0xFFFC000;
-  constexpr int32_t counts_mask = 0x0003FFF;
-
-  // We omit a check for division by zero becase the LoadDataFile method should
-  //  check for the validity of the ImageData buffer and abort if needed.
-  double progress_step = 100. / image_data_.size();
-
-  std::string line{};
-  for (auto & p: image_data_)
-  {
-    p->integral = 0;
-
-    file.seekg(p->first_datum_pos);
-    while (true)
-    {
-      getline(file, line);
-      if (line.front() == 'P' || file.eof())
-      {
-        break;
-      }
-
-      int datum  = stoi(line);
-      int bin    = (datum & bin_mask) >> 14;
-      int counts = (datum & counts_mask);
-      if (bin > roi_low && bin < roi_high)
-      {
-        p->integral += counts;
-      }
-    }
-
-    // Update the image intensity maxima if needed
-    if (p->integral < minimum_integral_)
-    {
-      minimum_integral_ = p->integral;
-    }
-    else if (p->integral > maximum_integral_)
-    {
-      maximum_integral_ = p->integral;
-    }
-
-    emit UpdateProgressBar(static_cast<int>(progress_step));
-    progress_step += progress_step;
-  }
+  roi_spectrum_.swap(roi_operator.spectrum);
   emit UpdateProgressBar(0);
+
 }
 
-auto XRFImage::RenderQImage() -> std::unique_ptr<UnprocessedImage>
+static struct IntegralFilteredParse
 {
-  auto & file = file_;
-  auto width = static_cast<int>(file.x_length_);
-  auto height = static_cast<int>(file.y_length_);
+  IntegralFilteredParse() : result{0} {}
+  auto operator() (int bin, int value) -> bool  {
+    if (limits.first < bin && bin < limits.second) {
+      result += value;
+    }
+    return false;
+  }
+  int result;
+  std::pair<int, int> limits;
+} filtered_operator;
 
-  auto image = std::make_unique<UnprocessedImage>();
-  image->matrix = QImage{width, height, QImage::Format_Indexed8};
-  image->matrix.setColorCount(256);
+static struct IntegralParse
+{
+  IntegralParse() : result{0} {}
+  auto operator() (int bin, int value) -> bool  {
+    result += value;
+    return false;
+  }
+  int result;
+} integral_operator;
+
+void Renderer::UpdatePixelIntegrals(EnergyFilter filter)
+{
+#ifdef MAXRF_DEBUG
+  using namespace std::chrono;
+  auto t1 = high_resolution_clock::now();
+#endif
+  static bool kRenderUnfilteredImageOnce {true};
+
+  double progress = 0;
+//  auto & index = integral_operator.index ;
+  size_t index;
+
+  switch (filter)
+  {
+  case EnergyFilter::kUnfiltered :
+    filtered_operator.result = 0;
+    filtered_operator.limits.first = 0;
+    filtered_operator.limits.second = 16384;
+    index = 0;
+    break;
+  case EnergyFilter::kFilterRange1 :
+    filtered_operator.result = 0;
+    filtered_operator.limits.first = state_.integral_limits.at(0).first;
+    filtered_operator.limits.second = state_.integral_limits.at(0).second;
+    index = 1;
+    break;
+  case EnergyFilter::kFilterRange2 :
+    filtered_operator.result = 0;
+    filtered_operator.limits.first = state_.integral_limits.at(1).first;
+    filtered_operator.limits.second = state_.integral_limits.at(1).second;
+    index = 2;
+    break;
+  case EnergyFilter::kFilterRange3 :
+    filtered_operator.result = 0;
+    filtered_operator.limits.first = state_.integral_limits.at(2).first;
+    filtered_operator.limits.second = state_.integral_limits.at(2).second;
+    index = 3;
+    break;
+  }
+
+
+  image_info_.resize(state_.pixels);
+
+  auto & file = state_.file->DataFile();
+  file >> std::hex >> std::noskipws;
+
+  for (size_t i = 0; i < state_.pixels; ++i) {
+    state_.file->GoToPixel(i);
+    state_.file->ParsePixel(filtered_operator);
+
+    if (filtered_operator.result > state_.maximum_integrals[index]) {
+      state_.maximum_integrals[index] = filtered_operator.result;
+    }
+    image_info_[i] = filtered_operator.result;
+    filtered_operator.result = 0;
+
+    progress += state_.progress_factor;
+    emit UpdateProgressBar(static_cast<int>(progress));
+  }
+
+  file >> std::dec;
+  emit UpdateProgressBar(0);
+
+#ifdef MAXRF_DEBUG
+  auto t2 = high_resolution_clock::now();
+  auto duration = duration_cast<milliseconds>(t2 -t1);
+  std::cout <<"Render time duration (ms): "<< duration.count() << std::endl;
+#endif
+}
+
+auto Renderer::RenderQImage(EnergyFilter filter) -> std::unique_ptr<IndexedImage>
+{
+#ifdef MAXRF_DEBUG
+  using namespace std::chrono;
+  auto t1 = high_resolution_clock::now();
+#endif
+
+//  if (filter != EnergyFilter::kUnfiltered) {
+//    UpdatePixelIntegrals(filter);
+//  } switch (filter)
+  int index;
+  switch(filter)
+  {
+  case EnergyFilter::kUnfiltered :
+    index = 0;
+    break;
+  case EnergyFilter::kFilterRange1 :
+    index = 1;
+    break;
+  case EnergyFilter::kFilterRange2 :
+    index = 2;
+    break;
+  case EnergyFilter::kFilterRange3 :
+    index = 3;
+    break;
+  }
+  UpdatePixelIntegrals(filter);
+
+  auto image = std::make_unique<IndexedImage>();
+//  image->matrix = QImage{state_.width, state_.height, QImage::Format_Indexed8};
+//  image->matrix.setColorCount(256);
   std::fill(image->histogram.begin(), image->histogram.end(), 0);
 
-  UpdatePixelIntegrals();
-  if (file.maximum_integral_ == 0)
-  {
-    // The maximum integral of any given pixel is 0, so the image is null
-    //  We return a black image (which reflects the fact above)
-    image->matrix.fill(Qt::black);
-    return image;
-  }
+//  if (state_.maximum_integrals[index] == 0) {
+//    image->matrix.fill(Qt::black);
+//    return image;
+//  }
 
   double intensity = 0;
-  for (auto & pixel : file.image_data)
+  double const coefficient = 255. / state_.maximum_integrals[index];
+
+//  std::pair<int, int> coords;
+//  int counter{0};
+//  auto data_ptr = image->matrix.bits();
+////  for (auto & pixel : data_->vector())
+//  // The image is 64 bit aligned, and each pixel writes 8 bits, alignment comes at end?
+//  auto alignment_bytes = image->matrix.bytesPerLine() - state_.width;
+  auto padded_size = static_cast<size_t>(std::ceil(state_.pixels / 4.0));
+
+
+  image->indexed_data.reserve(padded_size);
+  auto data_ptr = reinterpret_cast<uint8_t *>(image->indexed_data.data());
+
+  for (auto & integral : image_info_)
   {
-    intensity = static_cast<double>(pixel->integral) / file.maximum_integral_;
-    intensity = intensity * 255;
+ //   intensity = pixel.integrals[0] * coefficient;
+    intensity = integral * coefficient;
 
     ++image->histogram.at(static_cast<size_t>(intensity));
 
-    image->matrix.setPixel(pixel->x_coord, pixel->y_coord,
-                          static_cast<uint>(intensity));
+    *data_ptr = static_cast<unsigned char>(intensity);
+    ++data_ptr;
+//    if (state_.width == ++counter) {
+//      // Skip the null character termination for the line
+//      //++data_ptr;
+//      data_ptr += alignment_bytes;
+//      counter = 0;
+//    }
   }
-  image->processed = image->matrix;
-  image->nhisto.assign(image->histogram.begin(), image->histogram.end());
-  // We can return by 'value' because of copy elision
-  image->dimensions = QSize{image->matrix.width(), image->matrix.height()};
+
+#ifdef MAXRF_DEBUG
+  auto t2 = high_resolution_clock::now();
+  auto duration = duration_cast<milliseconds>(t2 -t1);
+  std::cout <<"Rendering time duration (ms): "<< duration.count() << std::endl;
+#endif
+  image->dimensions = QSize{state_.width, state_.height};
   return image;
 }
 
-void XRFImage::LoadHyperCube(std::string filename)
+
+void Renderer::LoadHypercube(std::string filename)
 {
-  std::ifstream file{filename};
-  if (!file.is_open()) {
-    // Signal error
+  message_  = "[!] This file is not an XML file with Hypercube data";
+  valid_ = false;
+
+  auto ptr = maxrf::DataFileHander::GetFile(filename);
+  RendererState state;
+
+  switch (ptr->GetFormat())
+  {
+  case maxrf::DataFormat::kInvalid :
+    // The file is invalid
+    return;
+  case maxrf::DataFormat::kHypercube :
+    // If the file is a Hypercube, it's safe to cast to derived class pointer
+    state.file = std::static_pointer_cast<maxrf::HypercubeFile>(ptr);
+    break;
+  default:
+    // For all other cases attempt a conversion
     return;
   }
 
-  FileConverter converter{};
-  if (converter.IsHyperCube(file) == false) {
-    // The file is not in Hypercube format
-    // We should inform the user and trigger a conversion
+
+  state.file->ExtractHeader();
+  try {
+    // Temporary object is moved by copy elision
+    state.file->ComputeLookupTable();
+  } catch (...) {
     return;
   }
-  // The FileConverter instance extract the header and forwarded the fstream
-  // to the position of the first data line
 
-  // We declare a reference to the data structure where
-  auto & image_data = file_.image_data;
-
-  char character;
-  std::string line;
-  while (file >> std::noskipws >> character)
-  {
-    // We start at  the beginning of the line
-    // We first check if we have reached the end of Analysis_Data XML node...
-    if (character == '<') {
-      // ... and if we have we exit the loop
-      break;
-    }
+  state.width  =
+      std::stoi(state.file->GetTokenValue(maxrf::HeaderTokens::kImageWidth));
+  state.height =
+      std::stoi(state.file->GetTokenValue(maxrf::HeaderTokens::kImageHeight));
+  state.pixels =
+      std::stoul(state.file->GetTokenValue(maxrf::HeaderTokens::kImagePixels));
+  state.progress_factor = (100. / state.pixels);
 
 
+  // The state is valid so we assing it as the current state
+  state_ = state;
+  // And we add a snapshot to the list
+  snapshots_.push_back(state);
 
-    // The first two comma-separated values are the pixel x and y coordinates
-    std::getline(file, line, ',');
-    line.insert(0, 1, character);
-
-    switch (val)
-    {
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-    case 'A':
-    case 'B':
-    case 'C':
-    case 'D':
-    case 'E':
-    case 'F':
-      break;
-    case ',':
-    case 'R':
-
-    case '\n':
-      break;
-    }
-  }
-
-}
-
-// Starting contents of source file
-void XRFImage::LoadDataFile(std::string filename)
-{
-  auto &  file_bundle = file_;
-  auto & file_ = file_bundle.file;
-  auto & err_msg_ = file_bundle.err_msg;
-  auto & valid_ = file_bundle.valid;
-  auto & image_data_ = file_bundle.image_data;
-  auto & sum_spectrum_ = file_bundle.sum_spectrum;
-
-  // Some information about the file first
-  struct stat stat_buf;
-  int rc = stat(filename.c_str(), &stat_buf);
-  auto size_bytes = (rc == 0) ? stat_buf.st_size : -1;
-
-
-  FileConverter converter{filename};
-  converter.ConvertToHypercube();
-
-  file_ = std::fstream{filename, std::fstream::in};
-  if (file_.is_open())
-  {
-    std::string line{};
-    getline(file_, line);
-
-    if (line.compare("{") != 0)
-    {
-      err_msg_ = "The file you have chosen is in a format that cannot be parsed.";
-      // TODO trigger a file conversion
-      valid_ = false;
-      return;
-    }
-
-    getline(file_, line);
-    while (line.compare("}") != 0)
-    {
-      // Parse the header
-      // Populate the scan parameters
-      getline(file_, line);
-    }
-
-    int integral = 0;
-    auto write_pixel = [&](const QString& pixel_header){
-      // The lambda captures the pixel integral, and file position
-
-      // TODO ascert no. of tokens
-      auto tokens = pixel_header.split('\t');
-      auto pixel = std::make_unique<Pixel>();
-      pixel->first_datum_pos = file_.tellg();
-      pixel->integral = 0;
-      pixel->pixel_no = tokens.at(1).toInt();
-      pixel->x_coord = tokens.at(2).toInt();
-      pixel->y_coord = tokens.at(3).toInt();
-
-      double progress = static_cast<double>(pixel->first_datum_pos) / size_bytes;
-      progress *= 100;
-
-      emit UpdateProgressBar(static_cast<int>(progress));
-
-      image_data_.push_back(std::move(pixel));
-      if (image_data_.size() > 1)
-      {
-        auto& ptr = *(image_data_.rbegin() + 1);
-        ptr->integral = integral;
-        integral = 0;
-      }
-    };
-
-    uint channel = 0, count = 0;
-    int_least32_t line_int = 0;
-
-    std::fill(sum_spectrum_.begin(), sum_spectrum_.end(), 0);
-    getline(file_, line);
-    while (!file_.eof())
-    {
-      if (line.front() == 'P')
-      {
-        write_pixel(QString::fromStdString(line));
-      }
-      else
-      {
-        line_int = stoi(line);
-        channel = (line_int & 0xFFFC000) >> 14;
-        count = (line_int & 0x3FFF);
-        integral += count;
-        sum_spectrum_.at(channel) += count;
-      }
-      getline(file_, line);
-    }
-    image_data_.back()->integral = integral;
-
-    valid_ = true;
-
-
-    // COMPUTE X LENGTH
-    // TODO error checking
-    auto & it  = file_bundle;
-    it.x_length_ = 0;
-    for (uint i = 1; i <image_data_.size(); ++i)
-    {
-      // We start the loop from index 1, as index 0 should already have x_coord  = 0
-      if (image_data_.at(i)->x_coord == 0)
-      {
-        it.x_length_ = i;
-        break;
-      }
-    }
-
-    // COMPUTE X LENGTH
-    // TODO error checking
-    it.y_length_ = image_data_.back()->y_coord + 1;
-
-    it.pixels_in_image_ = it.x_length_ * it.y_length_;
-
-    std::vector<int> integrals;
-    for (auto & i : it.image_data)
-    {
-      integrals.push_back(i->integral);
-    }
-    it.maximum_integral_ = *std::max_element(integrals.begin(), integrals.end());
-    it.minimum_integral_ = *std::min_element(integrals.begin(), integrals.end());
-
-    emit UpdateProgressBar(0);
-  }
-
-  else
-  {
-    err_msg_ = "The file cannot be opened.\n"
-               "Check format and access privileges.";
-    valid_ = false;
-  }
+  valid_ = true;
 }

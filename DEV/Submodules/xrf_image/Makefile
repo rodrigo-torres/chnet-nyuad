@@ -40,7 +40,7 @@ DISTNAME      = XRF_image0.0.5
 DISTDIR = /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image/build/XRF_image0.0.5
 LINK          = g++
 LFLAGS        = 
-LIBS          = $(SUBLIBS) -L/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/libs/ -lsharedmemory -lqcustomplot -lpugixml -lpthread /usr/lib64/libQt5PrintSupport.so /usr/lib64/libQt5Widgets.so /usr/lib64/libQt5Gui.so /usr/lib64/libQt5Core.so /usr/lib64/libGL.so   
+LIBS          = $(SUBLIBS) -L/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/libs -lsharedmemory -lqcustomplot -lpugixml -lfileconverter -lfilemanagement -lpthread /usr/lib64/libQt5PrintSupport.so /usr/lib64/libQt5Widgets.so /usr/lib64/libQt5Gui.so /usr/lib64/libQt5Core.so /usr/lib64/libGL.so   
 AR            = ar cqs
 RANLIB        = 
 SED           = sed
@@ -53,22 +53,26 @@ OBJECTS_DIR   = build/
 ####### Files
 
 SOURCES       = src/main.cpp \
+		src/mouse_events_handle.cpp \
+		src/processing_algorithms.cpp \
+		src/xrf_image_plot.cpp \
 		src/xrfimage_data.cpp \
 		src/xrfimage_qlabel.cpp \
-		src/xrfimage_widget.cpp \
-		src/conversion_routines.cpp build/qrc_resource.cpp \
-		build/moc_conversion_routines.cpp \
+		src/xrfimage_widget.cpp build/qrc_resource.cpp \
 		build/moc_image_display.cpp \
+		build/moc_xrf_image_plot.cpp \
 		build/moc_xrf_image_widget.cpp \
 		build/moc_xrfimage.cpp
 OBJECTS       = build/main.o \
+		build/mouse_events_handle.o \
+		build/processing_algorithms.o \
+		build/xrf_image_plot.o \
 		build/xrfimage_data.o \
 		build/xrfimage_qlabel.o \
 		build/xrfimage_widget.o \
-		build/conversion_routines.o \
 		build/qrc_resource.o \
-		build/moc_conversion_routines.o \
 		build/moc_image_display.o \
+		build/moc_xrf_image_plot.o \
 		build/moc_xrf_image_widget.o \
 		build/moc_xrfimage.o
 DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
@@ -233,17 +237,19 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib64/qt5/mkspecs/features/exceptions.prf \
 		/usr/lib64/qt5/mkspecs/features/yacc.prf \
 		/usr/lib64/qt5/mkspecs/features/lex.prf \
-		XRF_image.pro include/MAXRF/palettes.h \
-		include/MAXRF/types.h \
-		include/MAXRF/conversion_routines.h \
+		XRF_image.pro include/MAXRF/types.h \
 		include/MAXRF/image_display.h \
 		include/MAXRF/utility.hpp \
+		include/MAXRF/xrf_image_plot.h \
 		include/MAXRF/xrf_image_widget.h \
-		include/MAXRF/xrfimage.h src/main.cpp \
+		include/MAXRF/xrfimage.h \
+		src/palettes.h src/main.cpp \
+		src/mouse_events_handle.cpp \
+		src/processing_algorithms.cpp \
+		src/xrf_image_plot.cpp \
 		src/xrfimage_data.cpp \
 		src/xrfimage_qlabel.cpp \
-		src/xrfimage_widget.cpp \
-		src/conversion_routines.cpp
+		src/xrfimage_widget.cpp
 QMAKE_TARGET  = XRF_image
 DESTDIR       = bin/
 TARGET        = bin/XRF_image
@@ -601,8 +607,8 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents resources/resource.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib64/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents include/MAXRF/palettes.h include/MAXRF/types.h include/MAXRF/conversion_routines.h include/MAXRF/image_display.h include/MAXRF/utility.hpp include/MAXRF/xrf_image_widget.h include/MAXRF/xrfimage.h $(DISTDIR)/
-	$(COPY_FILE) --parents src/main.cpp src/xrfimage_data.cpp src/xrfimage_qlabel.cpp src/xrfimage_widget.cpp src/conversion_routines.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents include/MAXRF/types.h include/MAXRF/image_display.h include/MAXRF/utility.hpp include/MAXRF/xrf_image_plot.h include/MAXRF/xrf_image_widget.h include/MAXRF/xrfimage.h src/palettes.h $(DISTDIR)/
+	$(COPY_FILE) --parents src/main.cpp src/mouse_events_handle.cpp src/processing_algorithms.cpp src/xrf_image_plot.cpp src/xrfimage_data.cpp src/xrfimage_qlabel.cpp src/xrfimage_widget.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -655,30 +661,47 @@ compiler_moc_predefs_clean:
 build/moc_predefs.h: /usr/lib64/qt5/mkspecs/features/data/dummy.cpp
 	g++ -pipe -g -std=gnu++1z -D_REENTRANT -Wall -W -dM -E -o build/moc_predefs.h /usr/lib64/qt5/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: build/moc_conversion_routines.cpp build/moc_image_display.cpp build/moc_xrf_image_widget.cpp build/moc_xrfimage.cpp
+compiler_moc_header_make_all: build/moc_image_display.cpp build/moc_xrf_image_plot.cpp build/moc_xrf_image_widget.cpp build/moc_xrfimage.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) build/moc_conversion_routines.cpp build/moc_image_display.cpp build/moc_xrf_image_widget.cpp build/moc_xrfimage.cpp
-build/moc_conversion_routines.cpp: include/MAXRF/conversion_routines.h \
-		build/moc_predefs.h \
-		/usr/lib64/qt5/bin/moc
-	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image/include -I/usr/include/qt5 -I/usr/include/qt5/QtPrintSupport -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/MAXRF/conversion_routines.h -o build/moc_conversion_routines.cpp
-
+	-$(DEL_FILE) build/moc_image_display.cpp build/moc_xrf_image_plot.cpp build/moc_xrf_image_widget.cpp build/moc_xrfimage.cpp
 build/moc_image_display.cpp: include/MAXRF/image_display.h \
 		include/MAXRF/xrfimage.h \
 		include/MAXRF/types.h \
 		include/MAXRF/utility.hpp \
+		../../include/MAXRF/file_management.hpp \
+		../../include/MAXRF/maxrf_libraries_config.h \
+		../../include/pugi/pugixml.hpp \
 		../../include/MAXRF/shared_memory.h \
+		../../include/qcustomplot.h \
 		build/moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
 	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image/include -I/usr/include/qt5 -I/usr/include/qt5/QtPrintSupport -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/MAXRF/image_display.h -o build/moc_image_display.cpp
+
+build/moc_xrf_image_plot.cpp: include/MAXRF/xrf_image_plot.h \
+		../../include/qcustomplot.h \
+		include/MAXRF/xrfimage.h \
+		include/MAXRF/types.h \
+		include/MAXRF/utility.hpp \
+		../../include/MAXRF/file_management.hpp \
+		../../include/MAXRF/maxrf_libraries_config.h \
+		../../include/pugi/pugixml.hpp \
+		src/palettes.h \
+		build/moc_predefs.h \
+		/usr/lib64/qt5/bin/moc
+	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image/include -I/usr/include/qt5 -I/usr/include/qt5/QtPrintSupport -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/MAXRF/xrf_image_plot.h -o build/moc_xrf_image_plot.cpp
 
 build/moc_xrf_image_widget.cpp: include/MAXRF/xrf_image_widget.h \
 		include/MAXRF/image_display.h \
 		include/MAXRF/xrfimage.h \
 		include/MAXRF/types.h \
 		include/MAXRF/utility.hpp \
+		../../include/MAXRF/file_management.hpp \
+		../../include/MAXRF/maxrf_libraries_config.h \
+		../../include/pugi/pugixml.hpp \
 		../../include/MAXRF/shared_memory.h \
 		../../include/qcustomplot.h \
+		include/MAXRF/xrf_image_plot.h \
+		src/palettes.h \
 		build/moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
 	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image/include -I/usr/include/qt5 -I/usr/include/qt5/QtPrintSupport -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/MAXRF/xrf_image_widget.h -o build/moc_xrf_image_widget.cpp
@@ -686,6 +709,9 @@ build/moc_xrf_image_widget.cpp: include/MAXRF/xrf_image_widget.h \
 build/moc_xrfimage.cpp: include/MAXRF/xrfimage.h \
 		include/MAXRF/types.h \
 		include/MAXRF/utility.hpp \
+		../../include/MAXRF/file_management.hpp \
+		../../include/MAXRF/maxrf_libraries_config.h \
+		../../include/pugi/pugixml.hpp \
 		build/moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
 	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image/include -I/usr/include/qt5 -I/usr/include/qt5/QtPrintSupport -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/MAXRF/xrfimage.h -o build/moc_xrfimage.cpp
@@ -711,13 +737,54 @@ build/main.o: src/main.cpp include/MAXRF/xrf_image_widget.h \
 		include/MAXRF/xrfimage.h \
 		include/MAXRF/types.h \
 		include/MAXRF/utility.hpp \
+		../../include/MAXRF/file_management.hpp \
+		../../include/MAXRF/maxrf_libraries_config.h \
+		../../include/pugi/pugixml.hpp \
+		../../include/MAXRF/shared_memory.h \
+		../../include/qcustomplot.h \
+		include/MAXRF/xrf_image_plot.h \
+		src/palettes.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/main.o src/main.cpp
+
+build/mouse_events_handle.o: src/mouse_events_handle.cpp include/MAXRF/image_display.h \
+		include/MAXRF/xrfimage.h \
+		include/MAXRF/types.h \
+		include/MAXRF/utility.hpp \
+		../../include/MAXRF/file_management.hpp \
+		../../include/MAXRF/maxrf_libraries_config.h \
+		../../include/pugi/pugixml.hpp \
 		../../include/MAXRF/shared_memory.h \
 		../../include/qcustomplot.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/main.o src/main.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/mouse_events_handle.o src/mouse_events_handle.cpp
+
+build/processing_algorithms.o: src/processing_algorithms.cpp include/MAXRF/image_display.h \
+		include/MAXRF/xrfimage.h \
+		include/MAXRF/types.h \
+		include/MAXRF/utility.hpp \
+		../../include/MAXRF/file_management.hpp \
+		../../include/MAXRF/maxrf_libraries_config.h \
+		../../include/pugi/pugixml.hpp \
+		../../include/MAXRF/shared_memory.h \
+		../../include/qcustomplot.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/processing_algorithms.o src/processing_algorithms.cpp
+
+build/xrf_image_plot.o: src/xrf_image_plot.cpp include/MAXRF/xrf_image_plot.h \
+		../../include/qcustomplot.h \
+		include/MAXRF/xrfimage.h \
+		include/MAXRF/types.h \
+		include/MAXRF/utility.hpp \
+		../../include/MAXRF/file_management.hpp \
+		../../include/MAXRF/maxrf_libraries_config.h \
+		../../include/pugi/pugixml.hpp \
+		src/palettes.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/xrf_image_plot.o src/xrf_image_plot.cpp
 
 build/xrfimage_data.o: src/xrfimage_data.cpp include/MAXRF/xrfimage.h \
 		include/MAXRF/types.h \
 		include/MAXRF/utility.hpp \
+		../../include/MAXRF/file_management.hpp \
+		../../include/MAXRF/maxrf_libraries_config.h \
+		../../include/pugi/pugixml.hpp \
 		include/MAXRF/conversion_routines.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/xrfimage_data.o src/xrfimage_data.cpp
 
@@ -725,8 +792,12 @@ build/xrfimage_qlabel.o: src/xrfimage_qlabel.cpp include/MAXRF/image_display.h \
 		include/MAXRF/xrfimage.h \
 		include/MAXRF/types.h \
 		include/MAXRF/utility.hpp \
+		../../include/MAXRF/file_management.hpp \
+		../../include/MAXRF/maxrf_libraries_config.h \
+		../../include/pugi/pugixml.hpp \
 		../../include/MAXRF/shared_memory.h \
-		include/MAXRF/palettes.h
+		../../include/qcustomplot.h \
+		src/palettes.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/xrfimage_qlabel.o src/xrfimage_qlabel.cpp
 
 build/xrfimage_widget.o: src/xrfimage_widget.cpp include/MAXRF/xrf_image_widget.h \
@@ -734,22 +805,23 @@ build/xrfimage_widget.o: src/xrfimage_widget.cpp include/MAXRF/xrf_image_widget.
 		include/MAXRF/xrfimage.h \
 		include/MAXRF/types.h \
 		include/MAXRF/utility.hpp \
+		../../include/MAXRF/file_management.hpp \
+		../../include/MAXRF/maxrf_libraries_config.h \
+		../../include/pugi/pugixml.hpp \
 		../../include/MAXRF/shared_memory.h \
-		../../include/qcustomplot.h
+		../../include/qcustomplot.h \
+		include/MAXRF/xrf_image_plot.h \
+		src/palettes.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/xrfimage_widget.o src/xrfimage_widget.cpp
-
-build/conversion_routines.o: src/conversion_routines.cpp include/MAXRF/conversion_routines.h \
-		../../include/pugi/pugixml.hpp
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/conversion_routines.o src/conversion_routines.cpp
 
 build/qrc_resource.o: build/qrc_resource.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/qrc_resource.o build/qrc_resource.cpp
 
-build/moc_conversion_routines.o: build/moc_conversion_routines.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/moc_conversion_routines.o build/moc_conversion_routines.cpp
-
 build/moc_image_display.o: build/moc_image_display.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/moc_image_display.o build/moc_image_display.cpp
+
+build/moc_xrf_image_plot.o: build/moc_xrf_image_plot.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/moc_xrf_image_plot.o build/moc_xrf_image_plot.cpp
 
 build/moc_xrf_image_widget.o: build/moc_xrf_image_widget.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/moc_xrf_image_widget.o build/moc_xrf_image_widget.cpp
@@ -772,18 +844,18 @@ install_includes: first FORCE
 	@test -d $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF || mkdir -p $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF
 	-$(QINSTALL) /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image/include/MAXRF/conversion_routines.h $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/conversion_routines.h
 	-$(QINSTALL) /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image/include/MAXRF/image_display.h $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/image_display.h
-	-$(QINSTALL) /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image/include/MAXRF/palettes.h $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/palettes.h
 	-$(QINSTALL) /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image/include/MAXRF/types.h $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/types.h
 	-$(QINSTALL) /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image/include/MAXRF/utility.hpp $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/utility.hpp
+	-$(QINSTALL) /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image/include/MAXRF/xrf_image_plot.h $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/xrf_image_plot.h
 	-$(QINSTALL) /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image/include/MAXRF/xrf_image_widget.h $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/xrf_image_widget.h
 	-$(QINSTALL) /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/xrf_image/include/MAXRF/xrfimage.h $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/xrfimage.h
 
 uninstall_includes: FORCE
 	-$(DEL_FILE) -r $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/xrfimage.h
 	-$(DEL_FILE) -r $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/xrf_image_widget.h
+	-$(DEL_FILE) -r $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/xrf_image_plot.h
 	-$(DEL_FILE) -r $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/utility.hpp
 	-$(DEL_FILE) -r $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/types.h
-	-$(DEL_FILE) -r $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/palettes.h
 	-$(DEL_FILE) -r $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/image_display.h
 	-$(DEL_FILE) -r $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/conversion_routines.h
 	-$(DEL_DIR) $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/ 
