@@ -2,22 +2,66 @@
 
 namespace maxrf {
 
-HypercubeFile::HypercubeFile(std::fstream && f) :
-  MAXRFDataFile{DataFormat::kHypercube}, file_{std::move(f)} {}
-
-
-auto HypercubeFile::WritePixel(PixelData & data) -> bool
-{
-  static std::stringstream ss;
-  static int16_t bin {0};
-
-  ss.str("");
-  ss.clear();
-
+HypercubeFile::HypercubeFile(std::fstream && _f) {
+  SetFormat(DataFormat::kHypercube);
+  SetFileDevice(std::move(_f));
 }
 
 auto HypercubeFile::GetTokenValue(HeaderTokens token) -> std::string
 {
+  static struct SearchPredicate {
+    auto operator() [[maybe_unused]] (pugi::xml_node  _n) const -> bool {
+      return strcmp(_n.name(), search_token.c_str()) == 0;
+    }
+    std::string search_token;
+  } search;
+
+  switch (token)
+  {
+  case HeaderTokens::kImageWidth  :
+    search.search_token = "Width";
+    break;
+  case HeaderTokens::kImageHeight :
+    search.search_token = "Height";
+    break;
+  case HeaderTokens::kImagePixels :
+    search.search_token = "Pixels";
+    break;
+  case HeaderTokens::kDAQStartTimestamp :
+    search.search_token = "DAQ_Start_Timestamp";
+    break;
+  }
+
+  auto node = header_node_.find_node(search);
+  if (node.type() == pugi::xml_node_type::node_null) {
+    return "";
+  }
+  else {
+    return node.child_value();
+  }
+}
+
+auto HypercubeFile::GetTokenValue(std::string search_term) -> std::string
+{
+  static struct SearchPredicate {
+    auto operator() [[maybe_unused]] (pugi::xml_node  _n) const -> bool {
+      return strcmp(_n.name(), search_token.c_str()) == 0;
+    }
+    std::string search_token;
+  } search;
+
+  search.search_token = search_term;
+
+  auto node = header_node_.find_node(search);
+  if (node.type() == pugi::xml_node_type::node_null) {
+    return "";
+  }
+  else {
+    return node.child_value();
+  }
+}
+
+auto HypercubeFile::EditToken(HeaderTokens token, std::string val) -> bool {
   static struct SearchPredicate {
     auto operator() (pugi::xml_node  _n) const -> bool {
       return strcmp(_n.name(), search_token.c_str()) == 0;
@@ -36,14 +80,37 @@ auto HypercubeFile::GetTokenValue(HeaderTokens token) -> std::string
   case HeaderTokens::kImagePixels :
     search.search_token = "Pixels";
     break;
+  case HeaderTokens::kDAQStartTimestamp :
+    search.search_token = "DAQ_Start_Timestamp";
+    break;
   }
 
   auto node = header_node_.find_node(search);
   if (node.type() == pugi::xml_node_type::node_null) {
-    return "";
+    return false;
   }
   else {
-    return node.child_value();
+    node.text().set(val.c_str());
+    return true;
+  }
+}
+
+auto HypercubeFile::EditToken(std::string search_term, std::string val) -> bool {
+  static struct SearchPredicate {
+    auto operator() (pugi::xml_node  _n) const -> bool {
+      return strcmp(_n.name(), search_token.c_str()) == 0;
+    }
+    std::string search_token;
+  } search;
+  search.search_token = search_term;
+
+  auto node = header_node_.find_node(search);
+  if (node.type() == pugi::xml_node_type::node_null) {
+    return false;
+  }
+  else {
+    node.text().set(val.c_str());
+    return true;
   }
 }
 

@@ -8,7 +8,7 @@ namespace maxrf {
 class MAXRF_LIBRARIES_SHARED_EXPORT NullFile : public MAXRFDataFile
 {
 public:
-  NullFile() : MAXRFDataFile{DataFormat::kInvalid} {}
+  NullFile() {}
   auto CheckIntegrity() -> std::string override {
     std::cout << "This functionality is not yet implemented"
               << std::endl;
@@ -24,7 +24,7 @@ class MAXRF_LIBRARIES_SHARED_EXPORT EDFFile : public MAXRFDataFile
 class MAXRF_LIBRARIES_SHARED_EXPORT XMLFile : public MAXRFDataFile
 {
 public:
-  XMLFile() : MAXRFDataFile{DataFormat::kXMLFile} {}
+  XMLFile() {}
 
 
   /// HEADER MANIPULATION API
@@ -44,7 +44,7 @@ private:
 class MAXRF_LIBRARIES_SHARED_EXPORT MaskedDumpFile : public MAXRFDataFile
 {
 public:
-  MaskedDumpFile() : MAXRFDataFile{DataFormat::kMultiDetectorMaskedDump} {}
+  MaskedDumpFile() {}
 
   /// HEADER MANIPULATION API
   auto ExtractHeader() -> std::string override;
@@ -62,66 +62,6 @@ private:
 };
 
 //class MAXRF_LIBRARIES_SHARED_EXPORT HypercubeFile : public MAXRFDataFile
-//{
-//public:
-
-//  HypercubeFile(std::fstream && f);
-
-//  /// DIRECT ACCESS
-//  auto DataFile() -> std::fstream & override {
-//    return file_;
-//  }
-
-//  /// FILE WRITING API
-//  auto WritePixel(PixelData & data) -> bool override;
-
-//  /// HEADER MANIPULATION API
-//  auto MakeDefaultHeader() ->  bool override {
-//    std::cout << "This functionality is not yet implemented"
-//              << std::endl;
-//    return false;
-//  }
-//  auto ExtractHeader() -> std::string override;
-//  auto GetTokenValue(HeaderTokens token) -> std::string override;
-//  auto EditToken(HeaderTokens token, std::string val) -> bool override {
-//    std::cout << "This functionality is not yet implemented"
-//              << std::endl;
-//    return false;
-//  }
-
-//  /// FILE CONVERSION API
-//  auto ConvertToPyMcaEDF() -> bool override {
-//    std::cout << "This functionality is not yet implemented"
-//              << std::endl;
-//    return false;
-//  }
-//  auto ConvertToHDF5() -> bool override {
-//    std::cout << "This functionality is not yet implemented"
-//              << std::endl;
-//    return false;
-//  }
-//  auto ExtractHistograms() -> bool override {
-//    std::cout << "This functionality is not yet implemented"
-//              << std::endl;
-//    return false;
-//  }
-
-//  /// LOOK-UP TABLE COMPUTATION
-//  auto ComputeLookupTable() -> LookupTable override;
-
-//  /// INTEGRITY CHECKS
-//  auto CheckIntegrity() -> std::string override {
-//    std::cout << "This functionality is not yet implemented"
-//              << std::endl;
-//    return "";
-//  }
-//private:
-//  std::fstream file_;
-//  std::fstream::pos_type first_datum_pos_;
-
-//  pugi::xml_document header_node_;
-//};
-
 
 }
 

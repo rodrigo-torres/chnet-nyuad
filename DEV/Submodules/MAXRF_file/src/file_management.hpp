@@ -28,12 +28,7 @@
  
  namespace maxrf {
 
- class DataFileHandler;
  class MAXRFDataFile;
- class MAXRFConfigFile;
- class LookupTable;
-
- struct LUTEntry;
 
  enum class MAXRF_LIBRARIES_SHARED_EXPORT DataFormat : int
  {
@@ -49,10 +44,17 @@
 
  enum class MAXRF_LIBRARIES_SHARED_EXPORT HeaderTokens : int
  {
+   kDAQStartTimestamp,
    kImageWidth,
    kImageHeight,
    kImagePixels
  };
+
+ enum class MAXRF_LIBRARIES_SHARED_EXPORT WriteMode : int {
+   kDAQInvalid  = 0x0,
+   kDAQPoint    = 0x1,
+   kDAQScan     = 0x2
+};
 
  // 24 bytes per pixel -> 24 MB for a 1 mega-pixel image
  struct MAXRF_LIBRARIES_SHARED_EXPORT LUTEntry
@@ -60,11 +62,7 @@
    LUTEntry() :
      datum_pos{std::numeric_limits<std::fstream::pos_type>::max()},
      integrals {0, 0, 0, 0} {}
- //    pixel_no{0},  x_coord{0}, y_coord{0}, integrals{0, 0, 0, 0} {}
    std::streampos datum_pos;
- //  int pixel_no;
- //  int x_coord;
- //  int y_coord;
    std::array<int, 4> integrals;
  };
 
@@ -72,7 +70,7 @@
  /// \brief An interface to navigate a 2D matrix laid out as a 1D vector
  ///
  /// The function provides safer data access to a 2D coordinate on a matrix whose
- /// underlying implementation is a 1D vector, while reducint the overhead of
+ /// underlying implementation is a 1D vector, while reducing the overhead of
  /// a std::vector of std::vector
  ///
  class MAXRF_LIBRARIES_SHARED_EXPORT LookupTable
@@ -154,6 +152,7 @@
 
    /// FORMAT IDENTIFICATION
    static auto GetFile(std::string filepath) -> std::shared_ptr<MAXRFDataFile>;
+   static auto GetFileForDAQ(std::string filepath) -> std::shared_ptr<MAXRFDataFile>;
    /// MULTIDETECTOR SUMMATION METHODS
  private:
    DataFileHander();
@@ -166,46 +165,41 @@ class MAXRF_LIBRARIES_SHARED_EXPORT MAXRFDataFile
   friend DataFileHander;
 
 protected:
-  MAXRFDataFile(DataFormat const format);
-public:
-  using PixelData   = std::vector<uint_least16_t>;
+  MAXRFDataFile() = default;
 
+  void SetFormat(DataFormat const _format) {
+    format_ = _format;
+  }
+
+  void SetFileDevice(std::fstream && _file) {
+    file_ = std::move(_file);
+  }
+
+  DataFormat format_ { DataFormat::kInvalid };
+  std::fstream file_ {};
+
+public:
   virtual ~MAXRFDataFile();
 
   ///  CHECK OPERATIONS
   auto GetFormat() const noexcept ->  DataFormat;
 
-  /// DIRECT ACCESS
-//  virtual auto DataFile() -> std::fstream & {}
-
-  /// FILE WRITING API
-//  virtual auto WritePixel(PixelData & data) -> bool;
-
   /// HEADER MANIPULATION API
-//  virtual auto MakeDefaultHeader() ->  bool;
   virtual auto ExtractHeader() -> std::string;
-//  virtual auto GetTokenValue(HeaderTokens token) -> std::string;
-//  virtual auto EditToken(HeaderTokens token, std::string val) -> bool;
 
   /// FILE CONVERSION API
   virtual auto ConvertToHypercube() -> bool;
-//  virtual auto ConvertToPyMcaSPE() -> bool;
-//  virtual auto ConvertToPyMcaEDF() -> bool;
-//  virtual auto ConvertToHDF5() -> bool;
   virtual auto ExtractHistograms() -> bool;
-
-  /// LOOK-UP TABLE COMPUTATION
-//  virtual auto ComputeLookupTable() -> LookupTable;
-
   /// INTEGRITY CHECKS
   virtual auto CheckIntegrity() -> std::string;
-private:
-  DataFormat const format_;
 };
 
 class MAXRF_LIBRARIES_SHARED_EXPORT HypercubeFile : public MAXRFDataFile
 {
+  friend DataFileHander;
+
 public:
+  using PixelData   = std::vector<uint32_t>;
 
   HypercubeFile(std::fstream && f);
 
@@ -215,38 +209,65 @@ public:
   }
 
   /// FILE WRITING API
-  auto WritePixel(PixelData & data) -> bool;
+
+  ///
+  /// \brief SetWriteMode sets the write mode to either Scan DAQ, or Point DAQ
+  ///
+  inline void SetWriteMode(WriteMode mode) {
+    write_mode = mode;
+  }
+  ///
+  /// \brief MakeDefaultHeader looks at the configuration file and tries to fill
+  /// in as much header fields as possible with their default values. No data
+  /// is actually written onto the file
+  /// \return
+  ///
+  bool MakeDefaultHeader();
+  ///
+  /// \brief WriteHeader confirms the user edits of the header fields and
+  /// actually writes the header onto the file
+  /// \return a boolean value, true if succesful, false otherwise
+  /// This function is meant to be called after the user has use the Header API,
+  /// such as \see EditToken, to confirm the changes and write the header
+  ///
+  bool WriteHeader();
+  ///
+  /// \brief WritePixel write a single spectrum in the specified format
+  /// \param data
+  /// \return
+  ///
+  bool WritePixel(PixelData const & data);
+  ///
+  /// \brief WritePixel overload specific for writing XRF scan data
+  /// \param data
+  /// \param x
+  /// \param y
+  /// \return
+  ///
+  bool WritePixel(PixelData const & data, size_t x, size_t y);
+  ///
+  /// \brief MakeDefaultFooter
+  /// \return
+  ///
+  bool MakeDefaultFooter() { return false; }
+  ///
+  /// \brief WriteFooter
+  /// \return
+  ///
+  bool WriteFooter();
+
 
   /// HEADER MANIPULATION API
-  auto MakeDefaultHeader() ->  bool {
-    std::cout << "This functionality is not yet implemented"
-              << std::endl;
-    return false;
-  }
   auto ExtractHeader() -> std::string override;
   auto GetTokenValue(HeaderTokens token) -> std::string;
-  auto EditToken(HeaderTokens token, std::string val) -> bool {
-    std::cout << "This functionality is not yet implemented"
-              << std::endl;
-    return false;
-  }
+  auto GetTokenValue(std::string search_term) -> std::string;
+  auto EditToken(HeaderTokens token, std::string val) -> bool;
+  auto EditToken(std::string search_term, std::string val) -> bool;
 
   /// FILE CONVERSION API
-  auto ConvertToPyMcaEDF() -> bool {
-    std::cout << "This functionality is not yet implemented"
-              << std::endl;
-    return false;
-  }
-  auto ConvertToHDF5() -> bool {
-    std::cout << "This functionality is not yet implemented"
-              << std::endl;
-    return false;
-  }
-  auto ExtractHistograms() -> bool override {
-    std::cout << "This functionality is not yet implemented"
-              << std::endl;
-    return false;
-  }
+  auto ConvertToPyMcaEDF() -> bool;
+  auto ConvertToHDF5() -> bool;
+  auto ExtractHistograms() -> bool override;
 
   /// LOOK-UP TABLE COMPUTATION
   auto ComputeLookupTable() -> std::shared_ptr<LookupTable>;
@@ -305,14 +326,15 @@ public:
   }
 
 
-  /// INTEGRITY CHECKS
-  auto CheckIntegrity() -> std::string override {
-    std::cout << "This functionality is not yet implemented"
-              << std::endl;
-    return "";
-  }
+  ///
+  /// \brief CheckIntegrity parse the file looking for format errors
+  /// \return
+  ///
+  auto CheckIntegrity() -> std::string override;
 private:
-  std::fstream file_;
+  WriteMode write_mode  { WriteMode::kDAQInvalid };
+
+//  std::fstream file_;
   std::fstream::pos_type first_datum_pos_;
 
   pugi::xml_document header_node_;
