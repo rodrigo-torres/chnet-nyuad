@@ -1,4 +1,7 @@
 ﻿#include "MAXRF/tty.h"
+#include "MAXRF/types.h"
+
+DAQScanParameters scan_parameters {};
 
 tty_agent::tty_agent() {
     update_timer = new QTimer(this);
@@ -68,11 +71,13 @@ void tty_agent::relay_command(int com, QString qstr)
 }
 
 void tty_agent::abort() {
+    for (auto &i : p_stage)
+        i->stop();
+
+
     if (*(shared_memory_cmd+300))
         *(shared_memory_cmd+300) = 0;
 
-    for (auto &i : p_stage)
-        i->stop();
 
     QMutex mutex;
     QMutexLocker locker(&mutex);
@@ -149,20 +154,6 @@ void tty_agent::move_stage(int id) {
     }
 }
 
-void tty_agent::move_double_click() {
-    // To be implemented as a slot, signal implemented in map_mouse
-
-    if (!p_stage[0]->is_inited || !p_stage[1]->is_inited) return;
-    if (!p_stage[0]->on_target || !p_stage[1]->on_target) return;
-    if (scanning) return;
-
-    p_stage[0]->tar = static_cast<double>(*(shared_memory_cmd+64));
-    p_stage[0]->tar = static_cast<double>(*(shared_memory_cmd+65));
-    p_stage[0]->move_totarget();
-    p_stage[1]->move_totarget();
-
-    printf("[!] Moving motors to the position clicked\n");
-}
 
 void tty_agent::enable_servo(bool val) {
     if (p_interface[3] != nullptr)
@@ -183,7 +174,8 @@ void tty_agent::start_servo(bool active) {
 
 void tty_agent::set_velocity(double vel) {
     s_vel = vel;
-    *(shared_memory5+6) = vel;
+    scan_parameters.motor_velocity = vel;
+ //   *(shared_memory5+6) = vel;
 
     p_stage[0]->sendtty("VEL 1" + to_string(vel));
     p_stage[1]->sendtty("VEL 1" + to_string(vel));
@@ -236,13 +228,20 @@ void tty_agent::scan() {
     sem_reply = sem_open("/daq_reply", O_CREAT, 0644, 0);
 
     /* Getting the scan parameter */
-    x_min = *(shared_memory5);
-    x_max = *(shared_memory5+1);
-    y_min = *(shared_memory5+2);
-    y_max = *(shared_memory5+3);
-    x_step= *(shared_memory5+4);
-    y_step= *(shared_memory5+5);
-    s_vel = *(shared_memory5+6);
+//    x_min = *(shared_memory5);
+//    x_max = *(shared_memory5+1);
+//    y_min = *(shared_memory5+2);
+//    y_max = *(shared_memory5+3);
+//    x_step= *(shared_memory5+4);
+//    y_step= *(shared_memory5+5);
+//    s_vel = *(shared_memory5+6);
+    x_min   = scan_parameters.x_start_coordinate;
+    x_max   = scan_parameters.x_end_coordinate;
+    x_step  = scan_parameters.x_motor_step;
+    y_min   = scan_parameters.y_start_coordinate;
+    y_max   = scan_parameters.y_end_coordinate;
+    y_step  = scan_parameters.y_motor_step;
+    s_vel   = scan_parameters.motor_velocity;
 
     /* Calculating the compensation variables */
 

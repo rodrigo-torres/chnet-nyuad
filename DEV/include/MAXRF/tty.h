@@ -27,7 +27,7 @@
 
 
 extern int *shared_memory_cmd, *shared_memory;
-extern double *shared_memory5;
+//extern double *shared_memory5;
 
 using namespace std;
 
@@ -166,7 +166,6 @@ public slots:
     void set_target(int, double);
     void set_velocity(double);
     void move_stage(int);
-    void move_double_click();
     void enable_servo(bool);
     void start_servo(bool);
     void scan();

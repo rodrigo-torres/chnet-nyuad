@@ -60,7 +60,7 @@ enum class actions : int
     daq_channel0,
     daq_channel1,
     daq_channel0and1,
-    daq_detectorparams,
+//    daq_detectorparams,
     daq_start,
     daq_stop,
     daq_rate,

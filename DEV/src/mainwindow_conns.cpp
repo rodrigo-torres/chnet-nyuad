@@ -18,7 +18,7 @@ void MainWindow::CreateConnections() {
 // Connections for tab4
     int size = sizeof (scan_params) / sizeof (scan_params[0]);
     for (int i = 0; i < size; i++)
-    connect(scan_params[i], QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::scan_parameters);
+    connect(scan_params[i], QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::SetScanParameters);
 }
 
 void MainWindow::handle_pushbuttons()

@@ -58,6 +58,8 @@ SOURCES += \
         src/shared_memory.cpp
 
 HEADERS += \
+        include/MAXRF/ipc_methods.h \
+        include/MAXRF/ipc_shm_mapping.h \
         include/MAXRF/shared_memory.h
 
 # ---------------------------------------------------------------------------- #

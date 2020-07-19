@@ -214,7 +214,9 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib64/qt5/mkspecs/features/exceptions.prf \
 		/usr/lib64/qt5/mkspecs/features/yacc.prf \
 		/usr/lib64/qt5/mkspecs/features/lex.prf \
-		shared_memory.pro include/MAXRF/shared_memory.h src/shared_memory.cpp
+		shared_memory.pro include/MAXRF/ipc_methods.h \
+		include/MAXRF/ipc_shm_mapping.h \
+		include/MAXRF/shared_memory.h src/shared_memory.cpp
 QMAKE_TARGET  = sharedmemory
 DESTDIR       = bin/
 TARGET        = libsharedmemory.so.1.1.0
@@ -590,7 +592,7 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib64/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents include/MAXRF/shared_memory.h $(DISTDIR)/
+	$(COPY_FILE) --parents include/MAXRF/ipc_methods.h include/MAXRF/ipc_shm_mapping.h include/MAXRF/shared_memory.h $(DISTDIR)/
 	$(COPY_FILE) --parents src/shared_memory.cpp $(DISTDIR)/
 
 
@@ -639,7 +641,9 @@ compiler_clean: compiler_moc_predefs_clean
 
 ####### Compile
 
-build/shared_memory.o: src/shared_memory.cpp include/MAXRF/shared_memory.h
+build/shared_memory.o: src/shared_memory.cpp include/MAXRF/shared_memory.h \
+		include/MAXRF/ipc_methods.h \
+		include/MAXRF/ipc_shm_mapping.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/shared_memory.o src/shared_memory.cpp
 
 ####### Install
@@ -661,10 +665,14 @@ uninstall_target: FORCE
 
 install_includes: first FORCE
 	@test -d $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF || mkdir -p $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF
+	-$(QINSTALL) /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/shared_memory/include/MAXRF/ipc_methods.h $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/ipc_methods.h
+	-$(QINSTALL) /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/shared_memory/include/MAXRF/ipc_shm_mapping.h $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/ipc_shm_mapping.h
 	-$(QINSTALL) /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/shared_memory/include/MAXRF/shared_memory.h $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/shared_memory.h
 
 uninstall_includes: FORCE
 	-$(DEL_FILE) -r $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/shared_memory.h
+	-$(DEL_FILE) -r $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/ipc_shm_mapping.h
+	-$(DEL_FILE) -r $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/ipc_methods.h
 	-$(DEL_DIR) $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include/MAXRF/ 
 
 

@@ -65,15 +65,13 @@ signals:
 
 private slots:
 
-  void scan_parameters(double);
+  void SetScanParameters(double);
 
   void Info1_1();
   void Info1_2();
   void Info2_1();
 
   // Composed XRF_image methods
-  void LoadElementsMapSum();
-  void writeCompMapLimits(int);
   void start_point_daq();
   void stop_point_daq();
   void set_PMAcquisitionTime();
@@ -83,17 +81,13 @@ private slots:
 
   void ShowHistogram();
   void RateMeter();
-  void readmultidetcalpar();
-  void Changeparameters();
 
   void enable_keyence_reading();
-  void openDPPInter();
 
   void USB_DAQ(int);
   void OPTICAL_DAQ();
 
   void set_abort_flag();
-  void CheckSegFault();
   void XrayTable();
 
 private:
@@ -103,8 +97,6 @@ private:
   MainWindowDPP  *d_guiDPP;
   QImage *MyImage;
   QWidget *centralWidget;
-
-  QDialog *elementsdlg;
 
   /* Menu Options */
   wrapper<QMenu*, widgets::menus> w_menus;

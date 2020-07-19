@@ -1,5 +1,4 @@
 ﻿#include "MAXRF/mainwindow.h"
-#include "MAXRF/dpp.h"
 
 extern tty_agent tty_ptr;
 
@@ -90,19 +89,5 @@ void MainWindow::XrayTable()
   }
   else qDebug()<<"[!] X-Ray table window already opened";
 }
-
-
-void MainWindow::openDPPInter() {
-  if (*(shared_memory_cmd+72) == 0) {
-    d_guiDPP =  new MainWindowDPP();
-    d_guiDPP->setFixedSize(580,370);
-    d_guiDPP->setWindowTitle("Digitizer Settings");
-    d_guiDPP->show();
-
-    *(shared_memory_cmd+72) = 1; // DPP interface active
-  }
-  else qDebug()<<"[!] DPP window already opened";
-}
-
 
 

@@ -5,7 +5,7 @@
 TEMPLATE = app
 TARGET = rate
 DEPENDPATH += .
-INCLUDEPATH += /usr/local/qwt-6.1.3/include
+INCLUDEPATH += /usr/local/qwt-6.1.4/include
 
 QT += widgets\
       opengl \
@@ -13,14 +13,14 @@ QT += widgets\
       xml \
       gui
 
-CONFIG += c++11
+CONFIG += c++17
 CONFIG += qt warn_on thread
 
 
-LIBS += -L/usr/lib -L/usr/local/qwt-6.1.3/lib -L/usr/include/qwt5-qt4/ -lqwt 
+LIBS += -L/usr/local/qwt-6.1.4/lib -lqwt
 
 
 
 # Input
-HEADERS += Dial.h dialtab.h ../variables.h ../Shm.h
-SOURCES += Dial.cpp dialtab.cpp main.cpp
+HEADERS += Dial.h ../variables.h ../Shm.h
+SOURCES += Dial.cpp

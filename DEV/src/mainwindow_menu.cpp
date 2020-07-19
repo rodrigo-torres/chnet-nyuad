@@ -19,7 +19,6 @@ void MainWindow::create_menu_actions()
     w_actions.at(ac::daq_channel0)->setText("Acquire on MCA channel 0");
     w_actions.at(ac::daq_channel1)->setText("Acquire on MCA channel 1");
     w_actions.at(ac::daq_channel0and1)->setText("Acquire on all MCA channels");
-    w_actions.at(ac::daq_detectorparams)->setText("Change alignment parameters");
     w_actions.at(ac::daq_start)->setText("Start acquisition");
     w_actions.at(ac::daq_rate)->setText("Show count rate");
     w_actions.at(ac::daq_stop)->setText("Stop acquisition");
@@ -28,7 +27,6 @@ void MainWindow::create_menu_actions()
     connect(w_actions.at(ac::daq_channel0), &QAction::triggered, this, &MainWindow::SelDigiCh0);
     connect(w_actions.at(ac::daq_channel1), &QAction::triggered, this, &MainWindow::SelDigiCh1);
     connect(w_actions.at(ac::daq_channel0and1), &QAction::triggered, this, &MainWindow::SelDigiCh0and1);
-    connect(w_actions.at(ac::daq_detectorparams), &QAction::triggered, this, &MainWindow::Changeparameters);
     connect(w_actions.at(ac::daq_start), &QAction::triggered, this, &MainWindow::start_point_daq);
     connect(w_actions.at(ac::daq_rate), &QAction::triggered, this, &MainWindow::RateMeter);
     connect(w_actions.at(ac::daq_stop), &QAction::triggered, this, &MainWindow::stop_point_daq);
@@ -41,10 +39,8 @@ void MainWindow::create_menu_actions()
     connect(w_actions.at(ac::histo_openwindow), &QAction::triggered, this, &MainWindow::ShowHistogram);
 
     /* TOOLS Menu */
-    w_actions.at(ac::tools_daqparams)->setText("Set DPP-PHA parameters");
     w_actions.at(ac::tools_xraytable)->setText("Open the X-ray table");
 
-    connect(w_actions.at(ac::tools_daqparams), &QAction::triggered, this, &MainWindow::openDPPInter);
     connect(w_actions.at(ac::tools_xraytable), &QAction::triggered, this, &MainWindow::XrayTable);
 
     /* ABOUT Menu */
@@ -70,7 +66,6 @@ void MainWindow::CreateMenu() {
     w_menus.at(menus::daq_channel)->addAction(w_actions.at(ac::daq_channel0));
     w_menus.at(menus::daq_channel)->addAction(w_actions.at(ac::daq_channel1));
     w_menus.at(menus::daq_channel)->addAction(w_actions.at(ac::daq_channel0and1));
-    w_menus.at(menus::daq_channel)->addAction(w_actions.at(ac::daq_detectorparams));
     w_menus.at(menus::daq)->addAction(w_actions.at(ac::daq_start));
     w_menus.at(menus::daq)->addAction(w_actions.at(ac::daq_rate));
     w_menus.at(menus::daq)->addAction(w_actions.at(ac::daq_stop));
@@ -80,7 +75,6 @@ void MainWindow::CreateMenu() {
     w_menus.at(menus::histo)->addAction(w_actions.at(ac::histo_openwindow));
 
     w_menus.at(menus::tools) = menuBar()->addMenu(tr("Tools"));
-    w_menus.at(menus::tools)->addAction(w_actions.at(ac::tools_daqparams));
     w_menus.at(menus::tools)->addAction(w_actions.at(ac::tools_xraytable));
 
     w_menus.at(menus::about) = menuBar()->addMenu(tr("HowTo"));

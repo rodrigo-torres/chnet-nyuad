@@ -1,170 +1,164 @@
 #include "Dial.h"
-#include <qlabel.h>
-#include <qlayout.h>
-#include <qgridlayout.h>
-#include <qwt_dial.h>
-#include <qwt_dial_needle.h>
-#include <qwt_scale_engine.h>
-#include <qwt_transform.h>
-#include <qwt_round_scale_draw.h>
-#include <qcheckbox.h>
-#include <qtimer.h>
-#include <qfile.h>
-#include <qdebug.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <string.h>
-#include <termios.h>
-#include <signal.h>
-#include <sys/time.h>
-#include <time.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <sys/file.h>
-#include <signal.h>
-#include <sys/mman.h>
-#include <math.h>
-#include <sys/ioctl.h>
-#include <../variables.h>
-#include <../Shm.h>
 
-key_t key_cmd, key_rate;
-int *shared_memory_cmd, *shared_memory_rate;
+int main ( int argc, char **argv ) {
+  QApplication app(argc, argv);
 
-int rate=1;
-double vmin=10000, vmax=1;
-bool EventIsEnabled=false, ini=true;
+  maxrf::rate::DialBox dialbox {};
 
+  return app.exec();
+}
 
-template <typename T> T* assignSHM(key_t key, size_t size) {
-    int shmID = shmget(key, size, IPC_CREAT | 0666);
-    if (shmID == -1) {
-        printf("[!] Couldn't obtain a shared memory segment ID for key:\t%d\n", key);
-        printf("%s\n", strerror(errno));
-        return nullptr;
+namespace maxrf::rate {
+
+template <typename T>
+T * assignSHM(key_t key, size_t size) {
+  T * ptr {nullptr};
+
+  // Attempt to access the segment as if it existed first
+  int shmID = shmget(key, size, 0);
+  if (shmID == - 1 && errno != ENOENT) {
+    std::cout << "[!] Couldn't get SHM segment with key: " << key << std::endl;
+    std::cout << strerror(errno) << std::endl;
+  }
+  // If the segment doesn't exist, create it and tag it for removal
+  else {
+    shmID = shmget(key, size, IPC_CREAT | IPC_EXCL | 0666);
+    if (shmID != -1) {
+      ptr   = static_cast<T *>(shmat(shmID, nullptr, 0));
+      shmctl(shmID, IPC_RMID, nullptr);
     }
-    else return static_cast<T*>(shmat(shmID, nullptr, 0));
+    else {
+      std::cout << "[!] Couldn't get SHM segment with key: " << key << std::endl;
+      std::cout << strerror(errno) << std::endl;
+    }
+  }
+
+  return ptr;
 }
 
-DialBox::DialBox(QWidget *parent, int type): QWidget( parent ) {
-    key_cmd = 6900, key_rate = 7500;
-    shared_memory_cmd = assignSHM<int>(key_cmd, SHMSZ_CMD_STATUS);
-    shared_memory_rate = assignSHM<int>(key_rate, SHMSZRATE);
+DialBox::DialBox(QWidget * parent): QWidget {parent} {
+  key_t key_cmd = 6900;
+  shared_memory_cmd = assignSHM<int>(key_cmd, SHMSZ_CMD_STATUS);
 
-    *(shared_memory_cmd+83) = getpid();
-
-
-    d_dial = createDial( type );
-    d_CBox = new QCheckBox("Enable", this);
-
-    d_label = new QLabel( this );
-    d_label->setAlignment( Qt::AlignCenter );
-
-    d_label_max = new QLabel( this );
-    d_label_max->setAlignment( Qt::AlignRight );
-
-    QVBoxLayout *layout = new QVBoxLayout( this );;
-    layout->setSpacing( 0 );
-    layout->addWidget( d_CBox );
-    layout->addWidget( d_dial, 10 );
-    layout->addWidget( d_label );
-    layout->addWidget( d_label_max );
+  *(shared_memory_cmd+83) = getpid();
 
 
-    connect(d_dial, SIGNAL(valueChanged(double)), this, SLOT(setNum(double)));
-    connect(d_CBox, SIGNAL(stateChanged(int)), this, SLOT(EventEnable()));
+  createDial();
+  auto update_event_enable_ = new QCheckBox("Enable", this);
 
-    d_dial->setValue(0);
-    setNum( d_dial->value() );
+  rate_label_ = new QLabel( this );
+  rate_label_->setAlignment( Qt::AlignCenter );
 
-    QTimer *d_timer = new QTimer(this);
-    connect(d_timer, SIGNAL(timeout()), this, SLOT(TimerEvent()));
-    d_timer->start(1000);
+  max_rate_label_ = new QLabel( this );
+  max_rate_label_->setAlignment( Qt::AlignRight );
 
+  QVBoxLayout *layout = new QVBoxLayout {this};
+  layout->setSpacing( 0 );
+  layout->addWidget( update_event_enable_ );
+  layout->addWidget( rate_dial_, 10 );
+  layout->addWidget( rate_label_ );
+  layout->addWidget( max_rate_label_ );
+
+
+  connect(rate_dial_, &QwtDial::valueChanged, this, &DialBox::setNum);
+  connect(update_event_enable_, &QCheckBox::stateChanged,
+          this, &DialBox::EventEnable);
+
+  rate_dial_->setValue(0);
+  setNum( rate_dial_->value() );
+
+  update_event_timer_ = new QTimer {this};
+  connect(update_event_timer_, SIGNAL(timeout()), this, SLOT(TimerEvent()));
+
+  this->setAutoFillBackground(true);
+  this->setPalette(Qt::darkGray);
+
+  this->resize(this->sizeHint());
+  this->show();
+}
+
+void DialBox::createDial() {
+  rate_dial_ = new QwtDial();
+  rate_dial_->setTracking( true );
+  rate_dial_->setFocusPolicy( Qt::StrongFocus );
+
+  QColor needleColor( Qt::red );
+
+  rate_dial_->setOrigin( 135.0 );
+  rate_dial_->setScaleArc( 0.0, 270.0 );
+  rate_dial_->setScaleMaxMinor( 9 );
+  rate_dial_->setScaleEngine( new QwtLogScaleEngine );
+  rate_dial_->setScale( 1.0, 1.0e5 );
+
+  QwtDialSimpleNeedle *needle = new QwtDialSimpleNeedle(
+        QwtDialSimpleNeedle::Arrow, true, needleColor,
+        QColor( Qt::gray ).light( 130 ) ); //130
+  rate_dial_->setNeedle( needle );
+
+  const QColor base( QColor( Qt::darkGray ).dark( 150 ) );
+
+  QPalette palette;
+  palette.setColor( QPalette::Base, base );
+  palette.setColor( QPalette::Window, base.dark( 150 ) );
+  palette.setColor( QPalette::Mid, base.dark( 110 ) );
+  palette.setColor( QPalette::Light, base.light( 170 ) );
+  palette.setColor( QPalette::Dark, base.dark( 170 ) );
+  palette.setColor( QPalette::Text, base.dark( 200 ).light( 800 ) );
+  palette.setColor( QPalette::WindowText, base.dark( 200 ) );
+
+  rate_dial_->setPalette( palette );
+  rate_dial_->setLineWidth( 4 );
+  rate_dial_->setFrameShadow( QwtDial::Sunken );
 
 }
 
-QwtDial *DialBox::createDial( int type ) const {
-    QwtDial *dial = new QwtDial();
-    dial->setTracking( true );
-    dial->setFocusPolicy( Qt::StrongFocus );
-
-    QColor needleColor( Qt::red );
-
-    dial->setOrigin( 135.0 );
-    dial->setScaleArc( 0.0, 270.0 );
-    dial->setScaleMaxMinor( 9 );
-    dial->setScaleEngine( new QwtLogScaleEngine );
-    dial->setScale( 1.0, 1.0e5 );
-
-    QwtDialSimpleNeedle *needle = new QwtDialSimpleNeedle(
-                QwtDialSimpleNeedle::Arrow, true, needleColor,
-                QColor( Qt::gray ).light( 130 ) ); //130
-    dial->setNeedle( needle );
-
-    const QColor base( QColor( Qt::darkGray ).dark( 150 ) );
-
-    QPalette palette;
-    palette.setColor( QPalette::Base, base );
-    palette.setColor( QPalette::Window, base.dark( 150 ) );
-    palette.setColor( QPalette::Mid, base.dark( 110 ) );
-    palette.setColor( QPalette::Light, base.light( 170 ) );
-    palette.setColor( QPalette::Dark, base.dark( 170 ) );
-    palette.setColor( QPalette::Text, base.dark( 200 ).light( 800 ) );
-    palette.setColor( QPalette::WindowText, base.dark( 200 ) );
-
-    dial->setPalette( palette );
-    dial->setLineWidth( 4 );
-    dial->setFrameShadow( QwtDial::Sunken );
-
-    return dial;
-}
-
-void DialBox::setNum(double v) {
-    if (v >  vmax) vmax = v;
-
-    QString text;
-    text.setNum(v, 'f', 2);
-    d_label->setText(text);
-
-    text.setNum(vmax, 'f', 2);
-    text.prepend("max val: ");
-    d_label_max->setText( text );
-
+void DialBox::setNum(double rate) {
+  if (rate >  max_rate_) {
+    max_rate_ = rate;
+    max_rate_label_->setText( "Max. rate: " + QString::number(max_rate_, 'f', 2));
+  }
+  rate_label_->setText(QString::number(rate, 'f', 2));
 }
 
 void DialBox::TimerEvent() {
-    if (EventIsEnabled) {
-        rate = *(shared_memory_rate);
-        if (rate <= 0) rate = 1;
-    }
-    else rate = 1;
 
-    d_dial->setValue(rate);
+  auto rate = shared_memory_cmd[600];
+  if (rate <= 0) {
+    rate = 1;
+  }
+
+  rate_dial_->setValue(rate);
 }
 
 
 
-void DialBox::EventEnable() {
-    if (EventIsEnabled) EventIsEnabled = false;
-    else {
-        EventIsEnabled=true;
-        TimerEvent();
-    }
+void DialBox::EventEnable(int state) {
+  constexpr int kUpdateInterval = 1000;
+
+  switch (state) {
+  case Qt::PartiallyChecked :
+    [[fallthrough]];
+  case Qt::Checked :
+    update_event_timer_->start(kUpdateInterval);
+    break;
+  case Qt::Unchecked :
+    [[fallthrough]];
+  default:
+    update_event_timer_->stop();
+    break;
+  }
+
 }
 
 
 DialBox:: ~DialBox() {
-    *(shared_memory_cmd+73) = 0;
+  *(shared_memory_cmd+73) = 0;
+  shmdt(shared_memory_cmd);
 }
+
+}  //namespace maxrf::rate
+
+
 
 
 

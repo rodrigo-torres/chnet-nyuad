@@ -1,11 +1,11 @@
 #include "MAXRF/mainwindow.h"
 #include "MAXRF/tty.h"
+#include "MAXRF/types.h"
 
 extern int shmid[8];
-extern key_t key, key2, key3, key4, key5, key_cmd, key_rate;
-extern int *shared_memory, *shared_memory4;
-extern double *shared_memory5;
-extern int *shared_memory_cmd, *shared_memory_rate;
+extern int *shared_memory;
+//extern double *shared_memory5;
+extern int *shared_memory_cmd;
 
 tty_agent *tty_ptr;
 
@@ -23,7 +23,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     CreateGUI();
     CreateConnections();
 
-    readmultidetcalpar();
     StartThreadTTY();
 
     this->resize(this->sizeHint());
@@ -136,53 +135,6 @@ void MainWindow::set_abort_flag() { // raises a flag for abortion
     m.unlock();
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//                                MAINWINDOW: FURTHER ACTIONS
-//
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void MainWindow::Changeparameters()
-{
-    bool ok1, ok2, ok3;
-    
-    int calpar1 = QInputDialog::getInt(this, tr("Multidetector calibration parameters"),tr("Parameter A"), 0, -1000000, 1000000, 0.000001, &ok1);
-
-    int  calpar2 = QInputDialog::getInt(this, tr("Multidetector calibration parameters"),tr("Parameter B"), 0, -1000000, 1000000, 0.000001, &ok2);
-
-    int  scalefactor = QInputDialog::getInt(this, tr("Multidetector calibration parameters"),tr("Scale factor"), 0, 1, 1000000000, 1, &ok3);
-
-    FILE *filecalpar; //name of the file where the channel intervals are specified
-    filecalpar = fopen ("../multidetector_calibrationparameters.txt", "w+");
-    fprintf(filecalpar, "%d\n", calpar1);
-    fprintf(filecalpar, "%d\n", calpar2);
-    fprintf(filecalpar, "%d\n", scalefactor);
-    fclose(filecalpar);
-
-    *(shared_memory_cmd+101)=calpar1;
-    *(shared_memory_cmd+102)=calpar2;
-    *(shared_memory_cmd+103)=scalefactor;
-
-}
-
-void MainWindow::readmultidetcalpar() {
-    int calpar1 = 0, calpar2 = 0, scalefactor=1;
-
-    FILE *filecalpar;
-    filecalpar = fopen ("../multidetector_calibrationparameters.txt", "r");
-    if (filecalpar != nullptr) {
-        fscanf(filecalpar, "%d", &calpar1);
-        fscanf(filecalpar, "%d", &calpar2);
-        fscanf(filecalpar, "%d", &scalefactor);
-        fclose(filecalpar);
-    }
-
-    *(shared_memory_cmd+101) = calpar1;
-    *(shared_memory_cmd+102) = calpar2;
-    *(shared_memory_cmd+103) = scalefactor;
-
-    if ((calpar1 != 0 || calpar2 != 0) && scalefactor != 0) printf("... Multidetector parameters found\n");
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -190,7 +142,7 @@ void MainWindow::readmultidetcalpar() {
 //                                
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::scan_parameters(double val) {
+void MainWindow::SetScanParameters(double val) {
     /* Assign an index depending on the widget sending the signal */
     QDoubleSpinBox *temp = static_cast<QDoubleSpinBox*>(this->sender());
 
@@ -200,12 +152,34 @@ void MainWindow::scan_parameters(double val) {
 
     /* Pass the double value to shared memory at the assigned index */
 
-    *(shared_memory5+index) = val;
+//    *(shared_memory5+index) = val;
+    switch (index) {
+    case 0:
+      scan_parameters.x_start_coordinate = val;
+      break;
+    case 1:
+      scan_parameters.x_end_coordinate = val;
+      break;
+    case 2:
+      scan_parameters.y_start_coordinate = val;
+      break;
+    case 3:
+      scan_parameters.y_end_coordinate = val;
+      break;
+    case 4:
+      scan_parameters.x_motor_step = val;
+      break;
+    case 5:
+      scan_parameters.y_motor_step = val;
+      break;
+    case 6:
+      scan_parameters.motor_velocity = val;
+      break;
+    default:
+    break;
+    }
 
-    //Px=val*1000 (and Py)
-    //Xmin1=val*1000 (and Xmax1, Ymin1, Ymax1)
-    //pixel_Xstep=val (and pixel_Ystep)
-    //positionX=val (and positionY)
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -261,119 +235,7 @@ void MainWindow::SelDigiCh0and1()
     *(shared_memory_cmd+100)=2;
 }
 
-// Data is written directly to a file
-// Segmentation fault errors are handled by the DAQ protocol
-[[deprecated]] void MainWindow::CheckSegFault() {}
 
-
-// ////////////////////////////////////////////////////////////////////////// //
-// //////////////////// COMPOSED ELEMENTAL MAP //////////////////// //
-// ////////////////////////////////////////////////////////////////////////// //
-
-
-
-void MainWindow::LoadElementsMapSum() {
-    for (int i = 0; i < 6; i++)
-        *(shared_memory5+100+i) = 0;
-
-    elementsdlg = new QDialog;
-    elementsdlg->setFixedSize(400, 200);
-
-    QLabel *labelElement0 = new QLabel("<b>Choose limits for elements shown in,<\b>");
-    QLabel *labelElement1 = new QLabel("<b>red:<\b>");
-    QLabel *labelElement2 = new QLabel("<b>green:<\b>");
-    QLabel *labelElement3 = new QLabel("<b>blue:<\b>");
-
-    QSpinBox *spinboxArray[6];
-    QDoubleSpinBox *dspinboxArray[6];
-
-    if (*(shared_memory+24)) {
-        QSignalMapper *mapperElementSum = new QSignalMapper();
-        for (int i = 0; i < 6; i++) {
-            dspinboxArray[i] = new QDoubleSpinBox(this);
-            dspinboxArray[i]->setMinimum(0.00);
-            dspinboxArray[i]->setMaximum(60.00);
-            dspinboxArray[i]->setSingleStep(1.0);
-            if ((i % 2) == 0) dspinboxArray[i]->setPrefix("Min: ");
-            else dspinboxArray[i]->setPrefix("Max: ");
-
-            mapperElementSum->setMapping(dspinboxArray[i], i);
-            connect(dspinboxArray[i], SIGNAL(valueChanged(double)), mapperElementSum, SLOT(map()));
-        }
-        connect(mapperElementSum, SIGNAL(mapped(int)), this, SLOT(writeCompMapLimits(int)));
-    }
-
-    else {
-        QSignalMapper *mapperElementSum = new QSignalMapper();
-        for (int i = 0; i < 6; i++) {
-            spinboxArray[i] = new QSpinBox(this);
-            spinboxArray[i]->setMinimum(0);
-            spinboxArray[i]->setMaximum(16384);
-            spinboxArray[i]->setSingleStep(1);
-            if ((i % 2) == 0) spinboxArray[i]->setPrefix("Min: ");
-            else spinboxArray[i]->setPrefix("Max: ");
-
-            mapperElementSum->setMapping(spinboxArray[i], i);
-            connect(spinboxArray[i], SIGNAL(valueChanged(int)), mapperElementSum, SLOT(map()));
-        }
-        connect(mapperElementSum, SIGNAL(mapped(int)), this, SLOT(writeCompMapLimits(int)));
-    }
-
-    QDialogButtonBox *buttonBox = new QDialogButtonBox(Qt::Horizontal);
-
-    OKbutton = new QPushButton("Ok");
-    CANCELbutton = new QPushButton("Cancel");
-    buttonBox->addButton(OKbutton, QDialogButtonBox::AcceptRole);
-    buttonBox->addButton(CANCELbutton, QDialogButtonBox::AcceptRole);
-
-    connect(OKbutton, SIGNAL(clicked()), elementsdlg, SLOT(close()));
-    connect(CANCELbutton, SIGNAL(clicked()), elementsdlg, SLOT(close()));
-
-
-    QGridLayout *Layout = new QGridLayout(elementsdlg);
-    Layout->setSpacing(5);
-    Layout->addWidget(labelElement0, 0, 0, 1, 3);
-    Layout->addWidget(labelElement1, 1, 0);
-    Layout->addWidget(labelElement2, 2, 0);
-    Layout->addWidget(labelElement3, 3, 0);
-    if (*(shared_memory+24)) {
-        Layout->addWidget(dspinboxArray[0], 1, 1);
-        Layout->addWidget(dspinboxArray[1], 1, 2);
-        Layout->addWidget(dspinboxArray[2], 2, 1);
-        Layout->addWidget(dspinboxArray[3], 2, 2);
-        Layout->addWidget(dspinboxArray[4], 3, 1);
-        Layout->addWidget(dspinboxArray[5], 3, 2);
-    }
-    else {
-        Layout->addWidget(spinboxArray[0], 1, 1);
-        Layout->addWidget(spinboxArray[1], 1, 2);
-        Layout->addWidget(spinboxArray[2], 2, 1);
-        Layout->addWidget(spinboxArray[3], 2, 2);
-        Layout->addWidget(spinboxArray[4], 3, 1);
-        Layout->addWidget(spinboxArray[5], 3, 2);
-    }
-    Layout->addWidget(buttonBox, 4, 0, 1, 3, Qt::AlignRight);
-
-    elementsdlg->show();
-
-}
-
-
-void MainWindow::writeCompMapLimits(int id) {
-    QSignalMapper *temp = static_cast<QSignalMapper*>(this->sender());
-
-    double value;
-    if (*(shared_memory+24)) {
-        QDoubleSpinBox *obj = static_cast<QDoubleSpinBox*>(temp->mapping(id));
-        value = obj->value();
-    }
-    else {
-        QSpinBox *obj = static_cast<QSpinBox*>(temp->mapping(id));
-        value = obj->value();
-    }
-
-    *(shared_memory5+102+id) = value;
-}
 
 
 
@@ -400,9 +262,7 @@ MainWindow::~MainWindow() {
     printf("... Dettaching shared memory segments\n");
     for (int i = 0; i < 8; i++) if (shmid[i] != -1) shmctl(shmid[i], IPC_RMID, 0);
     shmdt(shared_memory);
-    shmdt(shared_memory4);
-    shmdt(shared_memory5);
-    shmdt(shared_memory_rate);
+//    shmdt(shared_memory5);
     shmdt(shared_memory_cmd);
 
     qDebug()<<"... Killing child processes";

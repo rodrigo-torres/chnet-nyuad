@@ -1,32 +1,50 @@
-#ifndef _DIAL_BOX_H_
-#define _DIAL_BOX_H_
+#ifndef DIAL_WIDGET_H_
+#define DIAL_WIDGET_H_
 
-#include <qwidget.h>
+#include <iostream>
+
+#include <QApplication>
+#include <QLabel>
 #include <QCheckBox>
 #include <QGridLayout>
+#include <QTimer>
+#include <QWidget>
 
-class QLabel;
-class QwtDial;
-class CheckBox;
+#include <qwt_dial.h>
+#include <qwt_dial_needle.h>
+#include <qwt_scale_engine.h>
+
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#include "../Shm.h"
+
+namespace maxrf::rate {
 
 class DialBox: public QWidget {
     Q_OBJECT
 public:
-    DialBox(QWidget *parent, int type);
+    DialBox(QWidget *parent = nullptr);
     ~DialBox();
 
 private Q_SLOTS:
     void setNum( double v );
-    void EventEnable( void );
+    void EventEnable(int state);
     void TimerEvent();
 private:
-    QwtDial *createDial( int type ) const;
+    void createDial();
 
-    QwtDial *d_dial;
-    QLabel *d_label;
-    QLabel *d_label_max;
-    QCheckBox *d_CBox;
-    QTimer *d_timer;
+    QLabel    * rate_label_;
+    QLabel    * max_rate_label_;
+    QTimer    * update_event_timer_;
+    QwtDial   * rate_dial_;
+
+    int * shared_memory_cmd {nullptr};
+    double max_rate_ {1};
 };
+
+}  //namespace maxrf::rate
 
 #endif

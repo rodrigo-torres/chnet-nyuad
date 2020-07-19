@@ -8,7 +8,7 @@ namespace maxrf
 XRFImageWidget::XRFImageWidget(QWidget * parent)
 {
   Q_UNUSED(parent)
-  shared_memory5.initialize(Segments::SHARED_MEMORY_5);
+  //shared_memory5.initialize(Segments::SHARED_MEMORY_5);
   image_label_ = new ImgLabel   {this};
   image_plot = new PlotMediator {this};
 
@@ -181,13 +181,13 @@ void XRFImageWidget::FilterImageDialog()
   auto action_sliderlow = [=](int i) {
     limits_low_edit->setText(QString::number(i));
     limits_high_slider->setMinimum(i);
-    shared_memory5.at(100) = i;
+    //shared_memory5.at(100) = i;
   };
 
   auto action_sliderhigh = [=](int i) {
     limits_high_edit->setText(QString::number(i));
     limits_low_slider->setMaximum(i);
-    shared_memory5.at(101) = i;
+    //shared_memory5.at(101) = i;
   };
 
   QVBoxLayout * layout = new QVBoxLayout;

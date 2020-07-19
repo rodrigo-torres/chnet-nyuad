@@ -25,6 +25,7 @@
 
 
 #include "MAXRF/shared_memory.h"
+#include "MAXRF/ipc_methods.h"
 
 template class shmarray<int>;
 template class shmarray<double>;

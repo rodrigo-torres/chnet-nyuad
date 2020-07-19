@@ -41,7 +41,7 @@ private:
   void FilterImageDialog();
 
 private:
-  shmarray<double> shared_memory5;
+//  shmarray<double> shared_memory5;
 
   // STATIC methods. Internal methods only seen in this translation unit
   // TODO variable below must be implemented as a user preference variable

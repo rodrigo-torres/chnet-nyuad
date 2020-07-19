@@ -23,17 +23,13 @@ DESTDIR = $$PWD/bin #Target file directory
 # Input
 HEADERS += \
   include/MAXRF/Shm.h \
-  include/MAXRF/daq_header.h \
-  include/MAXRF/dpp.h \
   include/MAXRF/enums_and_wrappers.h \
   include/MAXRF/mainwindow.h \
   include/MAXRF/tty.h \
+  include/MAXRF/types.h \
   include/MAXRF/utility_c.h
 SOURCES += \
-   src/daq_header.cpp \
-   src/dpp_main.cpp \
    src/external_programs.cpp \
-   src/gui_interface_dpp.cpp \
    src/gui_interface_tty.cpp \
    src/main.cpp \
    src/mainwindow.cpp \

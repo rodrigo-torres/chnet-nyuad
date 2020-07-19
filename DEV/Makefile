@@ -37,7 +37,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = maXRF-app1.0.0
-DISTDIR = /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/build/maXRF-app1.0.0
+DISTDIR = /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/build/maXRF-app1.0.0
 LINK          = g++
 LFLAGS        = 
 LIBS          = $(SUBLIBS) -lpthread /usr/lib64/libQt5OpenGL.so /usr/lib64/libQt5Widgets.so /usr/lib64/libQt5Gui.so /usr/lib64/libQt5Sql.so /usr/lib64/libQt5Xml.so /usr/lib64/libQt5Core.so /usr/lib64/libGL.so   
@@ -255,6 +255,7 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		include/MAXRF/enums_and_wrappers.h \
 		include/MAXRF/mainwindow.h \
 		include/MAXRF/tty.h \
+		include/MAXRF/types.h \
 		include/MAXRF/utility_c.h src/daq_header.cpp \
 		src/dpp_main.cpp \
 		src/external_programs.cpp \
@@ -625,7 +626,7 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents resources/resource.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib64/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents include/MAXRF/Shm.h include/MAXRF/daq_header.h include/MAXRF/dpp.h include/MAXRF/enums_and_wrappers.h include/MAXRF/mainwindow.h include/MAXRF/tty.h include/MAXRF/utility_c.h $(DISTDIR)/
+	$(COPY_FILE) --parents include/MAXRF/Shm.h include/MAXRF/daq_header.h include/MAXRF/dpp.h include/MAXRF/enums_and_wrappers.h include/MAXRF/mainwindow.h include/MAXRF/tty.h include/MAXRF/types.h include/MAXRF/utility_c.h $(DISTDIR)/
 	$(COPY_FILE) --parents src/daq_header.cpp src/dpp_main.cpp src/external_programs.cpp src/gui_interface_dpp.cpp src/gui_interface_tty.cpp src/main.cpp src/mainwindow.cpp src/mainwindow_conns.cpp src/mainwindow_gui.cpp src/mainwindow_menu.cpp src/shm.cpp src/tty_agent.cpp src/utility_c.c $(DISTDIR)/
 
 
@@ -673,24 +674,24 @@ compiler_moc_header_clean:
 build/moc_daq_header.cpp: include/MAXRF/daq_header.h \
 		build/moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
-	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/include -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/MAXRF/daq_header.h -o build/moc_daq_header.cpp
+	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/MAXRF/daq_header.h -o build/moc_daq_header.cpp
 
 build/moc_dpp.cpp: include/MAXRF/dpp.h \
 		build/moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
-	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/include -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/MAXRF/dpp.h -o build/moc_dpp.cpp
+	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/MAXRF/dpp.h -o build/moc_dpp.cpp
 
 build/moc_mainwindow.cpp: include/MAXRF/mainwindow.h \
 		include/MAXRF/Shm.h \
 		include/MAXRF/enums_and_wrappers.h \
 		build/moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
-	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/include -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/MAXRF/mainwindow.h -o build/moc_mainwindow.cpp
+	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/MAXRF/mainwindow.h -o build/moc_mainwindow.cpp
 
 build/moc_tty.cpp: include/MAXRF/tty.h \
 		build/moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
-	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/current-dev/include -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/MAXRF/tty.h -o build/moc_tty.cpp
+	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/build/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV -I/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/include -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/c++/9/x86_64-redhat-linux -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-redhat-linux/9/include -I/usr/local/include -I/usr/include include/MAXRF/tty.h -o build/moc_tty.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -737,7 +738,8 @@ build/main.o: src/main.cpp include/MAXRF/mainwindow.h \
 build/mainwindow.o: src/mainwindow.cpp include/MAXRF/mainwindow.h \
 		include/MAXRF/Shm.h \
 		include/MAXRF/enums_and_wrappers.h \
-		include/MAXRF/tty.h
+		include/MAXRF/tty.h \
+		include/MAXRF/types.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/mainwindow.o src/mainwindow.cpp
 
 build/mainwindow_conns.o: src/mainwindow_conns.cpp include/MAXRF/mainwindow.h \
@@ -760,7 +762,8 @@ build/shm.o: src/shm.cpp include/MAXRF/mainwindow.h \
 		include/MAXRF/enums_and_wrappers.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/shm.o src/shm.cpp
 
-build/tty_agent.o: src/tty_agent.cpp include/MAXRF/tty.h
+build/tty_agent.o: src/tty_agent.cpp include/MAXRF/tty.h \
+		include/MAXRF/types.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/tty_agent.o src/tty_agent.cpp
 
 build/utility_c.o: src/utility_c.c include/MAXRF/utility_c.h
