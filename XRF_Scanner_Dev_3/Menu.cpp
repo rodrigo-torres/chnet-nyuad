@@ -53,16 +53,6 @@ void MainWindow::createActions()
     PxAct = new QAction(tr("Change pixel size"), this);
     PxAct->setStatusTip(tr("Zoom the map by increasing pixel size"));
     connect(PxAct, SIGNAL(triggered()), this, SLOT(Pixels()));
- 
-    CutBordersAct = new QAction(tr("Cut borders"), this);
-    CutBordersAct->setStatusTip(tr("Removes saturated pixels at the edge of the image"));
-    connect(CutBordersAct, SIGNAL(triggered()), this, SLOT(CutB()));
-    CutBordersAct->setCheckable(true);
-
-    CorrectMapAct = new QAction(tr("Map correction"), this);
-    CorrectMapAct->setStatusTip(tr("Set X=1,Y=0 if ScanXY; X=0, Y=1 if ScanYX"));
-    connect(CorrectMapAct, SIGNAL(triggered()), this, SLOT(MapCorrection()));
-
 
     FileReloadAct_SHM = new QAction(tr("Reload file for map"), this);
     FileReloadAct_SHM->setStatusTip(tr("Click in order to process variations of the Show Map menu parameters"));
@@ -130,18 +120,16 @@ void MainWindow::createActions()
 
 /// In menu SPECTRUM
 
-    HistoAct = new QAction(tr("Open X-ray spectrum"), this);
+    HistoAct = new QAction(tr("Histogram display window"), this);
     HistoAct->setStatusTip(tr("Shows X-ray spectrum"));
     connect(HistoAct, SIGNAL(triggered()), this, SLOT(ShowHistogram()));
 
-/// In menu 3D
+//    DueDAct = new QAction(tr("2D XRF spectrum"), this);
+//    DueDAct->setStatusTip(tr("2D XRF spectrum"));
+//    connect(DueDAct, SIGNAL(triggered()), this, SLOT(DueD()));
+//    DueDAct->setCheckable(true);
 
-    DueDAct = new QAction(tr("2D XRF spectrum"), this);
-    DueDAct->setStatusTip(tr("2D XRF spectrum"));
-    connect(DueDAct, SIGNAL(triggered()), this, SLOT(DueD()));
-    DueDAct->setCheckable(true);
-
-    TreDAct = new QAction(tr("3D map"), this);
+    TreDAct = new QAction(tr("3D surface map"), this);
     TreDAct->setStatusTip(tr("Shows sample surface"));
 
 
@@ -185,8 +173,6 @@ void MainWindow::builder_Menu() {
     MapMenu = menuBar()->addMenu(tr("Show Map"));
     MapMenu->addAction(ChSelAct);
     MapMenu->addAction(PxAct);
-    MapMenu->addAction(CutBordersAct);
-    MapMenu->addAction(CorrectMapAct);
     MapMenu->addSeparator();
     MapMenu->addAction(FileReloadAct_SHM);
     MapMenu->addAction(MapSumReloadAct_SHM);
@@ -206,12 +192,14 @@ void MainWindow::builder_Menu() {
     AcqMenu->addAction(RateAct);
     AcqMenu->addAction(StopVme);
 
-    SpectrumMenu = menuBar()->addMenu(tr("Spectrum"));
+    SpectrumMenu = menuBar()->addMenu(tr("Data display"));
+    //SpectrumMenu->addAction(DueDAct);
+    SpectrumMenu->addAction(TreDAct);
     SpectrumMenu->addAction(HistoAct);
 
-    TreDMenu = menuBar()->addMenu(tr("3D Spectrum"));
-    TreDMenu->addAction(DueDAct);
-    TreDMenu->addAction(TreDAct);
+    //TreDMenu = menuBar()->addMenu(tr("3D Spectrum"));
+    //TreDMenu->addAction(DueDAct);
+    //TreDMenu->addAction(TreDAct);
 
     TOOLMenu = menuBar()->addMenu(tr("Tools"));
     TOOLMenu->addAction(actionOpen_settings);

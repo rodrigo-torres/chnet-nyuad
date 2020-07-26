@@ -35,7 +35,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = Spectrum1.0.0
-DISTDIR = /home/rtorres/XRF/chnet-nyuad/XRFMultidet_v11.0/Spectrum/.tmp/Spectrum1.0.0
+DISTDIR = /home/rtorres/Desktop/XRFMultidet_v10.9/Spectrum/.tmp/Spectrum1.0.0
 LINK          = g++
 LFLAGS        = -Wl,-O1
 LIBS          = $(SUBLIBS) -L/usr/local/qwt-6.1.3/lib -lqwt -lQt5PrintSupport -lQt5Widgets -lQt5Gui -lQt5Core -lGL -lpthread 
@@ -388,7 +388,7 @@ moc_mainwindow.cpp: /usr/local/qwt-6.1.3/include/qwt_counter.h \
 		mainwindow.h \
 		moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
-	/usr/lib64/qt5/bin/moc $(DEFINES) --include ./moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/rtorres/XRF/chnet-nyuad/XRFMultidet_v11.0/Spectrum -I/usr/local/qwt-6.1.3 -I/usr/local/qwt-6.1.3/include -I/usr/include/qt5 -I/usr/include/qt5/QtPrintSupport -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/6.3.1 -I/usr/include/c++/6.3.1/x86_64-redhat-linux -I/usr/include/c++/6.3.1/backward -I/usr/lib/gcc/x86_64-redhat-linux/6.3.1/include -I/usr/local/include -I/usr/include -I/usr/include/c++/7 -I/usr/include/c++/7/x86_64-redhat-linux -I/usr/include/c++/7/backward -I/usr/lib/gcc/x86_64-redhat-linux/7/include -I/usr/local/include -I/usr/include mainwindow.h -o moc_mainwindow.cpp
+	/usr/lib64/qt5/bin/moc $(DEFINES) --include ./moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/rtorres/Desktop/XRFMultidet_v10.9/Spectrum -I/usr/local/qwt-6.1.3 -I/usr/local/qwt-6.1.3/include -I/usr/include/qt5 -I/usr/include/qt5/QtPrintSupport -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/6.3.1 -I/usr/include/c++/6.3.1/x86_64-redhat-linux -I/usr/include/c++/6.3.1/backward -I/usr/lib/gcc/x86_64-redhat-linux/6.3.1/include -I/usr/local/include -I/usr/include -I/usr/include/c++/7 -I/usr/include/c++/7/x86_64-redhat-linux -I/usr/include/c++/7/backward -I/usr/lib/gcc/x86_64-redhat-linux/7/include -I/usr/local/include -I/usr/include mainwindow.h -o moc_mainwindow.cpp
 
 moc_plot.cpp: /usr/local/qwt-6.1.3/include/qwt_math.h \
 		/usr/local/qwt-6.1.3/include/qwt_global.h \
@@ -425,7 +425,7 @@ moc_plot.cpp: /usr/local/qwt-6.1.3/include/qwt_math.h \
 		plot.h \
 		moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
-	/usr/lib64/qt5/bin/moc $(DEFINES) --include ./moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/rtorres/XRF/chnet-nyuad/XRFMultidet_v11.0/Spectrum -I/usr/local/qwt-6.1.3 -I/usr/local/qwt-6.1.3/include -I/usr/include/qt5 -I/usr/include/qt5/QtPrintSupport -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/6.3.1 -I/usr/include/c++/6.3.1/x86_64-redhat-linux -I/usr/include/c++/6.3.1/backward -I/usr/lib/gcc/x86_64-redhat-linux/6.3.1/include -I/usr/local/include -I/usr/include -I/usr/include/c++/7 -I/usr/include/c++/7/x86_64-redhat-linux -I/usr/include/c++/7/backward -I/usr/lib/gcc/x86_64-redhat-linux/7/include -I/usr/local/include -I/usr/include plot.h -o moc_plot.cpp
+	/usr/lib64/qt5/bin/moc $(DEFINES) --include ./moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/rtorres/Desktop/XRFMultidet_v10.9/Spectrum -I/usr/local/qwt-6.1.3 -I/usr/local/qwt-6.1.3/include -I/usr/include/qt5 -I/usr/include/qt5/QtPrintSupport -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/6.3.1 -I/usr/include/c++/6.3.1/x86_64-redhat-linux -I/usr/include/c++/6.3.1/backward -I/usr/lib/gcc/x86_64-redhat-linux/6.3.1/include -I/usr/local/include -I/usr/include -I/usr/include/c++/7 -I/usr/include/c++/7/x86_64-redhat-linux -I/usr/include/c++/7/backward -I/usr/lib/gcc/x86_64-redhat-linux/7/include -I/usr/local/include -I/usr/include plot.h -o moc_plot.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:

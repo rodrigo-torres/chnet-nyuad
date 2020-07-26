@@ -13,7 +13,7 @@ extern int accelerationtimesleep;
 extern double Px;
 
 
-bool PixelCorrection=false;  bool CutBorders=false;   bool OnLine=false;         bool MapIsOpened=false;  bool CameraOn=false;
+bool PixelCorrection=false;  bool OnLine=false;         bool MapIsOpened=false;  bool CameraOn=false;
 bool okX=false;              bool okY=false;          bool energychanged=false;
 bool FirstRun=true;          bool opened=false;       bool XConnected=false;     bool YConnected=false;   bool TimerActive=false;
 bool XOnTarget=false;        bool YOnTarget=false;    bool XHasMoved=true;       bool Xmoving=false;      bool Ymoving=false;
@@ -36,8 +36,6 @@ double y_image;              double x_image2;         double y_image2;
 float Yo;                    float vy;                float Xo;                 float vx;                 float vz;
 float temp;                  
 
-long int iLine=0;
-
 char process[30];
 
 QString NowZ="Z= ";      QString current_posZ;     QString NowX="X= ";       QString NowY="Y= ";
@@ -49,24 +47,13 @@ struct Pixel_BIG *Pointer; //puntatore da far puntare a PixelsMappa una volta cr
 
 //////////// ADDED VARIABLES FOR DEVELOP VERSION (Bart_PE)
 
-int selected_Xmotor=3; int selected_Ymotor=3; int selected_Zmotor=1;
+int selected_Xmotor = 3, selected_Ymotor = 3, selected_Zmotor = 1;
+
 bool InitPhaseX=false; bool InitPhaseY=false; bool InitPhaseZ=false;
 int nxInit=0, nyInit=0, nzInit=0; // used for motor initialisation
 
 ///////////////Variables for the composed map visualization (sum of three different elements)///////////
-int ChMin1=0, ChMax1=0, ChMin2=0, ChMax2=0, ChMin3=0, ChMax3=0;
-int ChMinBa=0, ChMaxBa=0, ChMinCa=0, ChMaxCa=0, ChMinK=0, ChMaxK=0, ChMinCo=0, ChMaxCo=0, ChMinAg=0, ChMaxAg=0, ChMinCr=0, ChMaxCr=0, ChMinCu=0, ChMaxCu=0, ChMinPbL=0, ChMaxPbL=0, ChMinAu=0, ChMaxAu=0, ChMinHg=0, ChMaxHg=0, ChMinSi=0, ChMaxSi=0, ChMinTi=0, ChMaxTi=0, ChMinSn=0, ChMaxSn=0, ChMinFe=0, ChMaxFe=0, ChMinZn=0, ChMaxZn=0, ChMinPbM=0, ChMaxPbM=0;
-
-////Variables for multidetector expansion/////
-
-
-
-///////////variables for tests///////////////
-double millisec;
-struct timeval tv;
-
-
-
+double ChMin1=0, ChMax1=0, ChMin2=0, ChMax2=0, ChMin3=0, ChMax3=0;
 
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
@@ -102,27 +89,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     timerAutofocus =new QTimer(this);                                        // TIMER for RECORDING Z DISTANCE FROM TARGET
     connect(timerAutofocus, SIGNAL(timeout()), this, SLOT(Focustimer()));
 
-    ///Red channel intervals///
-    char element[3];
-    FILE *filech; //name of the file where the channel intervals are specified
-    filech = fopen ("../channel_intervals", "r");
-    fscanf(filech, "%s %d %d", element, &ChMinBa, &ChMaxBa);
-    fscanf(filech, "%s %d %d", element, &ChMinCa, &ChMaxCa);
-    fscanf(filech, "%s %d %d", element, &ChMinK, &ChMaxK);
-    fscanf(filech, "%s %d %d", element, &ChMinCo, &ChMaxCo);
-    fscanf(filech, "%s %d %d", element, &ChMinAg, &ChMaxAg);
-    fscanf(filech, "%s %d %d", element, &ChMinCr, &ChMaxCr);
-    fscanf(filech, "%s %d %d", element, &ChMinCu, &ChMaxCu);
-    fscanf(filech, "%s %d %d", element, &ChMinPbL, &ChMaxPbL);
-    fscanf(filech, "%s %d %d", element, &ChMinAu, &ChMaxAu);
-    fscanf(filech, "%s %d %d", element, &ChMinHg, &ChMaxHg);
-    fscanf(filech, "%s %d %d", element, &ChMinSi, &ChMaxSi);
-    fscanf(filech, "%s %d %d", element, &ChMinTi, &ChMaxTi);
-    fscanf(filech, "%s %d %d", element, &ChMinSn, &ChMaxSn);
-    fscanf(filech, "%s %d %d", element, &ChMinFe, &ChMaxFe);
-    fscanf(filech, "%s %d %d", element, &ChMinZn, &ChMaxZn);
-    fscanf(filech, "%s %d %d", element, &ChMinPbM, &ChMaxPbM);
-    fclose(filech);
 
     readmultidetcalpar();
 }
@@ -165,10 +131,12 @@ void MainWindow::readmultidetcalpar() {
 
     FILE *filecalpar;
     filecalpar = fopen ("../multidetector_calibrationparameters.txt", "r");
-    fscanf(filecalpar, "%d",&calpar1);
-    fscanf(filecalpar, "%d",&calpar2);
-    fscanf(filecalpar, "%d",&scalefactor);
-    fclose(filecalpar);
+    if (filecalpar != nullptr) {
+        fscanf(filecalpar, "%d",&calpar1);
+        fscanf(filecalpar, "%d",&calpar2);
+        fscanf(filecalpar, "%d",&scalefactor);
+        fclose(filecalpar);
+    }
 
     *(shared_memory_cmd+101)=calpar1;
     *(shared_memory_cmd+102)=calpar2;
@@ -675,24 +643,8 @@ void MainWindow::SelectChannels()                             // MAP: CHANNEL SE
         }
 }
 
-void MainWindow::CutB()                                           // MAP: CUT BORDERS
-{
-    if(CutBorders)CutBorders=false;
-    else CutBorders=true;
-}
 
-void MainWindow::MapCorrection()                                  // MAP: CORRECTION
-{
-    bool ok3;
-    int nX=QInputDialog::getInt(this, tr("Shift X"), tr("Positions to shift"), 0, -10, 10, 1, &ok3);
-    if(ok3)
-    {qDebug()<<"Shift of "<<nX<<"Positions\n"; pixel_Xstep=*(shared_memory_cmd+60); NshiftX=(nX*pixel_Xstep);}
-    bool ok4;
-    int nY=QInputDialog::getInt(this, tr("Shift Y"), tr("Positions to shift"), 0, -10, 10, 1, &ok4);
-    if(ok4)
-    {qDebug()<<"Shift of "<<nY<<"Positions\n"; pixel_Ystep=*(shared_memory_cmd+61); NshiftY=nY*pixel_Ystep;}
-    LoadNewFile_SHM(); // inserted on 30/12/2016
-}
+
 
 void MainWindow::Pixels()                                         // PIXEL: SET DIMENSION
 {
@@ -713,20 +665,6 @@ void MainWindow::Pixels()                                         // PIXEL: SET 
             qDebug()<<"Max number of points X"<<MaxNumberX<<'\n';
             qDebug()<<"Max number of points Y"<<MaxNumberY<<'\n';
         }
-    }
-}
-
-void MainWindow::PixelCrct()                                       // PIXEL: CORRECTION FOR MISSING PIXEL
-{
-    if(PixelCorrection)
-    {
-        PixelCorrection=false;
-        qDebug()<<"...pixel correction disabled..";
-    }
-    else
-    {
-        PixelCorrection=true;
-        qDebug()<<"...pixel correction on..";
     }
 }
 
@@ -763,223 +701,121 @@ void MainWindow::LoadNewFile_SHM() { // Loads a new file in memory
 
 void MainWindow::LoadElementsMapSum() {
 
+    ChMin1 = 0; ChMin2 = 0; ChMin3 = 0;
+    ChMax1 = 0; ChMax2 = 0; ChMax3 = 0;
+
     elementsdlg = new QDialog;
-    elementsdlg->resize(150,150);
-    QGroupBox *elementsgroupBox = new QGroupBox( "Select Elements" );
-    QLabel *element1label = new QLabel( "First Element (red)" );
-    QComboBox *element1comboBox = new QComboBox;
-    element1comboBox->insertItems(0, QStringList()
-                                  << QApplication::translate("Element 1", "None", nullptr)
-                                  << QApplication::translate("Element 1", "Ba", nullptr)
-                                  << QApplication::translate("Element 1", "Ca", nullptr)
-                                  << QApplication::translate("Element 1", "K", nullptr)
-                                  << QApplication::translate("Element 1", "Co", nullptr)
-                                  << QApplication::translate("Element 1", "Ag", nullptr)
-                                  << QApplication::translate("Element 1", "Mn", nullptr)
-                                  << QApplication::translate("Element 1", "Cu", nullptr)
-                                  << QApplication::translate("Element 1", "PbL", nullptr)
-                                  << QApplication::translate("Element 1", "Au", nullptr)
-                                  << QApplication::translate("Element 1", "Hg", nullptr)
-                                  << QApplication::translate("Element 1", "Si", nullptr)
-                                  << QApplication::translate("Element 1", "Ti", nullptr)
-                                  << QApplication::translate("Element 1", "Sn", nullptr)
-                                  << QApplication::translate("Element 1", "Fe", nullptr)
-                                  << QApplication::translate("Element 1", "Zn", nullptr)
-                                  << QApplication::translate("Element 1", "PbM", nullptr)
-                                  );
-    connect(element1comboBox, SIGNAL(activated(int)),this, SLOT(SelectionElement1(int)));
+    elementsdlg->setFixedSize(400, 200);
+
+    QLabel *labelElement0 = new QLabel("<b>Choose limits for elements shown in,<\b>");
+    QLabel *labelElement1 = new QLabel("<b>red:<\b>");
+    QLabel *labelElement2 = new QLabel("<b>green:<\b>");
+    QLabel *labelElement3 = new QLabel("<b>blue:<\b>");
+
+    QSpinBox *spinboxArray[6];
+    QDoubleSpinBox *dspinboxArray[6];
+
+    if (*(shared_memory+24)) {
+        QSignalMapper *mapperElementSum = new QSignalMapper();
+        for (int i = 0; i < 6; i++) {
+            dspinboxArray[i] = new QDoubleSpinBox(this);
+            dspinboxArray[i]->setMinimum(0.00);
+            dspinboxArray[i]->setMaximum(60.00);
+            dspinboxArray[i]->setSingleStep(1.0);
+            if ((i % 2) == 0) dspinboxArray[i]->setPrefix("Min: ");
+            else dspinboxArray[i]->setPrefix("Max: ");
+
+            mapperElementSum->setMapping(dspinboxArray[i], i);
+            connect(dspinboxArray[i], SIGNAL(valueChanged(double)), mapperElementSum, SLOT(map()));
+        }
+        connect(mapperElementSum, SIGNAL(mapped(int)), this, SLOT(writeCompMapLimits(int)));
+    }
+
+    else {
+        QSignalMapper *mapperElementSum = new QSignalMapper();
+        for (int i = 0; i < 6; i++) {
+            spinboxArray[i] = new QSpinBox(this);
+            spinboxArray[i]->setMinimum(0);
+            spinboxArray[i]->setMaximum(16384);
+            spinboxArray[i]->setSingleStep(1);
+            if ((i % 2) == 0) spinboxArray[i]->setPrefix("Min: ");
+            else spinboxArray[i]->setPrefix("Max: ");
+
+            mapperElementSum->setMapping(spinboxArray[i], i);
+            connect(spinboxArray[i], SIGNAL(valueChanged(int)), mapperElementSum, SLOT(map()));
+        }
+        connect(mapperElementSum, SIGNAL(mapped(int)), this, SLOT(writeCompMapLimits(int)));
+    }
+
+    QDialogButtonBox *buttonBox = new QDialogButtonBox(Qt::Horizontal);
+
+    OKbutton = new QPushButton("Ok");
+    CANCELbutton = new QPushButton("Cancel");
+    buttonBox->addButton(OKbutton, QDialogButtonBox::AcceptRole);
+    buttonBox->addButton(CANCELbutton, QDialogButtonBox::AcceptRole);
+
+    connect(OKbutton, SIGNAL(clicked()), elementsdlg, SLOT(close()));
+    connect(OKbutton, SIGNAL(clicked()), this, SLOT(LoadSHM_SumMap()));
+    connect(CANCELbutton, SIGNAL(clicked()), elementsdlg, SLOT(close()));
 
 
-    QLabel *element2label = new QLabel( "Second Element (green)" );
-    QComboBox *element2comboBox = new QComboBox;
-    element2comboBox->insertItems(0, QStringList()
-                                  << QApplication::translate("Element 2", "None", nullptr)
-                                  << QApplication::translate("Element 2", "Ba", nullptr)
-                                  << QApplication::translate("Element 2", "Ca", nullptr)
-                                  << QApplication::translate("Element 2", "K", nullptr)
-                                  << QApplication::translate("Element 2", "Co", nullptr)
-                                  << QApplication::translate("Element 2", "Ag", nullptr)
-                                  << QApplication::translate("Element 2", "Mn", nullptr)
-                                  << QApplication::translate("Element 2", "Cu", nullptr)
-                                  << QApplication::translate("Element 2", "PbL", nullptr)
-                                  << QApplication::translate("Element 2", "Au", nullptr)
-                                  << QApplication::translate("Element 2", "Hg", nullptr)
-                                  << QApplication::translate("Element 2", "Si", nullptr)
-                                  << QApplication::translate("Element 2", "Ti", nullptr)
-                                  << QApplication::translate("Element 2", "Sn", nullptr)
-                                  << QApplication::translate("Element 2", "Fe", nullptr)
-                                  << QApplication::translate("Element 2", "Zn", nullptr)
-                                  << QApplication::translate("Element 2", "PbM", nullptr)
-                                  );
-    connect(element2comboBox, SIGNAL(activated(int)),this, SLOT(SelectionElement2(int)));
-
-    QLabel *element3label = new QLabel( "Third Element (blue)" );
-    QComboBox *element3comboBox = new QComboBox;
-    element3comboBox->insertItems(0, QStringList()
-                                  << QApplication::translate("Element 3", "None", nullptr)
-                                  << QApplication::translate("Element 3", "Ba", nullptr)
-                                  << QApplication::translate("Element 3", "Ca", nullptr)
-                                  << QApplication::translate("Element 3", "K", nullptr)
-                                  << QApplication::translate("Element 3", "Co", nullptr)
-                                  << QApplication::translate("Element 3", "Ag", nullptr)
-                                  << QApplication::translate("Element 3", "Mn", nullptr)
-                                  << QApplication::translate("Element 3", "Cu", nullptr)
-                                  << QApplication::translate("Element 3", "PbL", nullptr)
-                                  << QApplication::translate("Element 3", "Au", nullptr)
-                                  << QApplication::translate("Element 3", "Hg", nullptr)
-                                  << QApplication::translate("Element 3", "Si", nullptr)
-                                  << QApplication::translate("Element 3", "Ti", nullptr)
-                                  << QApplication::translate("Element 3", "Sn", nullptr)
-                                  << QApplication::translate("Element 3", "Fe", nullptr)
-                                  << QApplication::translate("Element 3", "Zn", nullptr)
-                                  << QApplication::translate("Element 3", "PbM", nullptr)
-                                  );
-    connect(element3comboBox, SIGNAL(currentIndexChanged(int)),this, SLOT(SelectionElement3(int)));
-
-    QDialogButtonBox *buttonBox = new QDialogButtonBox( Qt::Horizontal );
-    OKbutton = new QPushButton( "Ok" );
-
-    connect( OKbutton, SIGNAL( clicked() ), elementsdlg, SLOT( close() ));
-    connect( OKbutton, SIGNAL( clicked() ), this, SLOT( LoadSHM_SumMap() ));
-
-    buttonBox->addButton( OKbutton, QDialogButtonBox::AcceptRole );
-
-    CANCELbutton = new QPushButton( "Cancel" );
-
-    connect( CANCELbutton, SIGNAL(clicked() ), elementsdlg, SLOT( close() ));
-    buttonBox->addButton( CANCELbutton, QDialogButtonBox::AcceptRole );
-
-    QGridLayout *Layout = new QGridLayout( elementsgroupBox );
-    Layout->setSpacing(0);
-    Layout->addWidget( element1label,0,0 );
-    Layout->addWidget( element1comboBox,0,1 );
-    Layout->addWidget( element2label,1,0 );
-    Layout->addWidget( element2comboBox,1,1 );
-    Layout->addWidget( element3label,2,0 );
-    Layout->addWidget( element3comboBox,2,1 );
-
-
-    QVBoxLayout *elementsLayout = new QVBoxLayout( elementsdlg );
-    elementsLayout->addWidget( elementsgroupBox );
-    elementsLayout->addStretch();
-    elementsLayout->addWidget(buttonBox);
+    QGridLayout *Layout = new QGridLayout(elementsdlg);
+    Layout->setSpacing(5);
+    Layout->addWidget(labelElement0, 0, 0, 1, 3);
+    Layout->addWidget(labelElement1, 1, 0);
+    Layout->addWidget(labelElement2, 2, 0);
+    Layout->addWidget(labelElement3, 3, 0);
+    if (*(shared_memory+24)) {
+        Layout->addWidget(dspinboxArray[0], 1, 1);
+        Layout->addWidget(dspinboxArray[1], 1, 2);
+        Layout->addWidget(dspinboxArray[2], 2, 1);
+        Layout->addWidget(dspinboxArray[3], 2, 2);
+        Layout->addWidget(dspinboxArray[4], 3, 1);
+        Layout->addWidget(dspinboxArray[5], 3, 2);
+    }
+    else {
+        Layout->addWidget(spinboxArray[0], 1, 1);
+        Layout->addWidget(spinboxArray[1], 1, 2);
+        Layout->addWidget(spinboxArray[2], 2, 1);
+        Layout->addWidget(spinboxArray[3], 2, 2);
+        Layout->addWidget(spinboxArray[4], 3, 1);
+        Layout->addWidget(spinboxArray[5], 3, 2);
+    }
+    Layout->addWidget(buttonBox, 4, 0, 1, 3, Qt::AlignRight);
 
     elementsdlg->show();
 
 }
 
 
-void MainWindow::SelectionElement1(int element1) {
-    //QSignalMapper *tmp = new static_cast<QSignalMapper*>(this->sender());
+void MainWindow::writeCompMapLimits(int id) {
+    QSignalMapper *temp = static_cast<QSignalMapper*>(this->sender());
+    if (*(shared_memory+24)) {
+        QDoubleSpinBox *spnbox = static_cast<QDoubleSpinBox*>(temp->mapping(id));
+        double value = spnbox->value();
 
+        if (id == 0) ChMin1 = value;
+        else if (id == 1) ChMax1 = value;
+        else if (id == 2) ChMin2 = value;
+        else if (id == 3) ChMax2 = value;
+        else if (id == 4) ChMin3 = value;
+        else if (id == 5) ChMax3 = value;
+        else printf("[!] Unknown sender to the composed map limits function");
+    }
+    else {
+        QSpinBox *spnbox = static_cast<QSpinBox*>(temp->mapping(id));
+        int value = spnbox->value();
 
-
-
-    if(element1==0){ChMin1=0; ChMax1=0;}
-    else
-        if(element1==1){ChMin1=ChMinBa; ChMax1=ChMaxBa;}
-        else
-            if(element1==2){ChMin1=ChMinCa; ChMax1=ChMaxCa;}
-            else
-                if(element1==3){ChMin1=ChMinK; ChMax1=ChMaxK;}
-                else
-                    if(element1==4){ChMin1=ChMinCo; ChMax1=ChMaxCo;}
-                    else
-                        if(element1==5){ChMin1=ChMinAg; ChMax1=ChMaxAg;}
-                        else
-                            if(element1==6){ChMin1=ChMinCr; ChMax1=ChMaxCr;}
-                            else
-                                if(element1==7){ChMin1=ChMinCu; ChMax1=ChMaxCu;}
-                                else
-                                    if(element1==8){ChMin1=ChMinPbL; ChMax1=ChMaxPbL;}
-                                    else
-                                        if(element1==9){ChMin1=ChMinAu; ChMax1=ChMaxAu;}
-                                        else
-                                            if(element1==10){ChMin1=ChMinHg; ChMax1=ChMaxHg;}
-                                            else
-                                                if(element1==11){ChMin1=ChMinSi; ChMax1=ChMaxSi;}
-                                                else
-                                                    if(element1==12){ChMin1=ChMinTi; ChMax1=ChMaxTi;}
-                                                    else
-                                                        if(element1==13){ChMin1=ChMinSn; ChMax1=ChMaxSn;}
-                                                        else
-                                                            if(element1==14){ChMin1=ChMinFe; ChMax1=ChMaxFe;}
-                                                            else
-                                                                if(element1==15){ChMin1=ChMinZn; ChMax1=ChMaxZn;}
-                                                                else
-                                                                    if(element1==16){ChMin1=ChMinPbM; ChMax1=ChMaxPbM;}
+        if (id == 0) ChMin1 = static_cast<double>(value);
+        else if (id == 1) ChMax1 = static_cast<double>(value);
+        else if (id == 2) ChMin2 = static_cast<double>(value);
+        else if (id == 3) ChMax2 = static_cast<double>(value);
+        else if (id == 4) ChMin3 = static_cast<double>(value);
+        else if (id == 5) ChMax3 = static_cast<double>(value);
+        else printf("[!] Unknown sender to the composed map limits function");
+    }
 }
 
-void MainWindow::SelectionElement2(int element2) {
-    if (element2 == 0) { ChMin2 = 0; ChMax2 = 0; }
-    else if(element2==1){ChMin2=ChMinBa; ChMax2=ChMaxBa;}
-    else if(element2==2){ChMin2=ChMinCa; ChMax2=ChMaxCa;}
-    else if(element2==3){ChMin2=ChMinK; ChMax2=ChMaxK;}
-                else
-                    if(element2==4){ChMin2=ChMinCo; ChMax2=ChMaxCo;}
-                    else
-                        if(element2==5){ChMin2=ChMinAg; ChMax2=ChMaxAg;}
-                        else
-                            if(element2==6){ChMin2=ChMinCr; ChMax2=ChMaxCr;}
-                            else
-                                if(element2==7){ChMin2=ChMinCu; ChMax2=ChMaxCu;}
-                                else
-                                    if(element2==8){ChMin2=ChMinPbL; ChMax2=ChMaxPbL;}
-                                    else
-                                        if(element2==9){ChMin2=ChMinAu; ChMax2=ChMaxAu;}
-                                        else
-                                            if(element2==10){ChMin2=ChMinHg; ChMax2=ChMaxHg;}
-                                            else
-                                                if(element2==11){ChMin2=ChMinSi; ChMax2=ChMaxSi;}
-                                                else
-                                                    if(element2==12){ChMin2=ChMinTi; ChMax2=ChMaxTi;}
-                                                    else
-                                                        if(element2==13){ChMin2=ChMinSn; ChMax2=ChMaxSn;}
-                                                        else
-                                                            if(element2==14){ChMin2=ChMinFe; ChMax2=ChMaxFe;}
-                                                            else
-                                                                if(element2==15){ChMin2=ChMinZn; ChMax2=ChMaxZn;}
-                                                                else
-                                                                    if(element2==16){ChMin2=ChMinPbM; ChMax2=ChMaxPbM;}
-}
-
-void MainWindow::SelectionElement3(int element3)
-{
-    if(element3==0){ChMin3=0; ChMax3=0;}
-    else
-        if(element3==1){ChMin3=ChMinBa; ChMax3=ChMaxBa;}
-        else
-            if(element3==2){ChMin3=ChMinCa; ChMax3=ChMaxCa;}
-            else
-                if(element3==3){ChMin3=ChMinK; ChMax3=ChMaxK;}
-                else
-                    if(element3==4){ChMin3=ChMinCo; ChMax3=ChMaxCo;}
-                    else
-                        if(element3==5){ChMin3=ChMinAg; ChMax3=ChMaxAg;}
-                        else
-                            if(element3==6){ChMin3=ChMinCr; ChMax3=ChMaxCr;}
-                            else
-                                if(element3==7){ChMin3=ChMinCu; ChMax3=ChMaxCu;}
-                                else
-                                    if(element3==8){ChMin3=ChMinPbL; ChMax3=ChMaxPbL;}
-                                    else
-                                        if(element3==9){ChMin3=ChMinAu; ChMax3=ChMaxAu;}
-                                        else
-                                            if(element3==10){ChMin3=ChMinHg; ChMax3=ChMaxHg;}
-                                            else
-                                                if(element3==11){ChMin3=ChMinSi; ChMax3=ChMaxSi;}
-                                                else
-                                                    if(element3==12){ChMin3=ChMinTi; ChMax3=ChMaxTi;}
-                                                    else
-                                                        if(element3==13){ChMin3=ChMinSn; ChMax3=ChMaxSn;}
-                                                        else
-                                                            if(element3==14){ChMin3=ChMinFe; ChMax3=ChMaxFe;}
-                                                            else
-                                                                if(element3==15){ChMin3=ChMinZn; ChMax3=ChMaxZn;}
-                                                                else
-                                                                    if(element3==16){ChMin3=ChMinPbM; ChMax3=ChMaxPbM;}
-
-}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //                                FILES MANAGEMENT

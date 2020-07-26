@@ -10,7 +10,7 @@ using namespace std;
 
 
 /////////variabili e funzioni definite altrove ma necessarie/////////////////////////
-extern bool MapIsOpened, CutBorders;
+extern bool MapIsOpened;
 extern int ChMin, ChMax,Nshift,point,OffsetX, OffsetY,PixelX,PixelY,Pixeldim,i,j;
 extern int Xmap[20000],Ymap[20000],MaxX,MaxY,MinX,MinY,Xminvero,Yminvero,MaxX_ori,MinX_ori,MaxY_ori,MinY_ori;
 extern double X[20000],Y[20000];

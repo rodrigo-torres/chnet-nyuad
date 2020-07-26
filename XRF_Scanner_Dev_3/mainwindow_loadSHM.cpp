@@ -48,7 +48,7 @@ long ranqd1(long *idum, double jlo, double jhi) {
 
 extern bool MapIsOpened;
 extern int *shared_memory, *shared_memory2, *shared_memory3, *shared_memory_cmd;
-extern int ChMin1, ChMax1, ChMin2, ChMax2, ChMin3, ChMax3;
+extern double ChMin1, ChMax1, ChMin2, ChMax2, ChMin3, ChMax3;
 extern double ChMin, ChMax;
 
 long codePosX = 50000000, codePosY = 60000000, codeDetA = 20000000, codeDetB = 30000000;
@@ -197,6 +197,27 @@ void MainWindow::LoadNewFileWithNoCorrection_SHM() {
 
 void MainWindow::LoadSHM_SumMap() {
 
+
+    if (*(shared_memory+24)) {// Called if energy calibration is active in the spectrum visualization program.
+        QFile file("Calibration.txt");
+        file.open(QIODevice::ReadOnly);
+        QString a,b;
+        a = file.readLine();
+        b = file.readLine();
+        double const_a = a.toDouble();
+        double const_b = b.toDouble();
+        file.close();
+
+        ChMin1 = (ChMin1 - const_b) / const_a;
+        ChMax1 = (ChMax1 - const_b) / const_a;
+        ChMin2 = (ChMin2 - const_b) / const_a;
+        ChMax2 = (ChMax2 - const_b) / const_a;
+        ChMin3 = (ChMin3 - const_b) / const_a;
+        ChMax3 = (ChMax3 - const_b) / const_a;
+    }
+
+
+
     double jlo = 0, jhi = 0;
     double calGrad = static_cast<double>(*(shared_memory_cmd+101)) / static_cast<double>(*(shared_memory_cmd+103));
     double calOffs = static_cast<double>(*(shared_memory_cmd+102)) / static_cast<double>(*(shared_memory_cmd+103));
@@ -205,7 +226,7 @@ void MainWindow::LoadSHM_SumMap() {
     int dataread = 0, vectorMap[20000]= { 0 };
     int numdati = 0;
 
-    if (MapIsOpened == true) hideImage();
+    if (MapIsOpened) hideImage();
 
     int j = 0, casenumber = 10;
     while (j < *(shared_memory2+4)) {
@@ -282,7 +303,7 @@ void MainWindow::LoadSHM_SumMap() {
 
             if (dataread >= ChMin && dataread <= ChMax) vectorMap[dataread+5] += 1;
 
-            if (dataread >= ChMin1 && dataread <= ChMax1 )      vectorMap[2] += 1;
+            if (dataread >= ChMin1 && dataread <= ChMax1)       vectorMap[2] += 1;
             else if (dataread >= ChMin2 && dataread <= ChMax2 ) vectorMap[3] += 1;
             else if (dataread >= ChMin3 && dataread <= ChMax3 ) vectorMap[4] += 1;
 
@@ -293,13 +314,6 @@ void MainWindow::LoadSHM_SumMap() {
             break;
         }
     }
-
-    qDebug()<<ChMin1;
-    qDebug()<<ChMin2;
-    qDebug()<<ChMin3;
-    qDebug()<<ChMax1;
-    qDebug()<<ChMax2;
-    qDebug()<<ChMax3;
 
     for (int vectorSize = 0; vectorSize < 20000; vectorSize++) {
         if (vectorSize < 5) {

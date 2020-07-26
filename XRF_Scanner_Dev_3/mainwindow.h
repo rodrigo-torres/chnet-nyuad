@@ -141,9 +141,7 @@ private slots:
     void hideImage();
     void LoadNewFile_SHM();
     void LoadElementsMapSum();
-    void SelectionElement1(int);
-    void SelectionElement2(int);
-    void SelectionElement3(int);
+    void writeCompMapLimits(int);
     void SelectChannels();
     void StartVme();
     void Stop_Vme();
@@ -156,10 +154,10 @@ private slots:
 
     void Pixels();
     void ShowHistogram();
-    void MapCorrection();
-    void PixelCrct();
+    //void MapCorrection();
+    //void PixelCrct();
     void RateMeter();
-    void CutB();
+    //void CutB();
     void LoadTxt();
     void MergeTxt();
     void readmultidetcalpar();
@@ -303,8 +301,6 @@ private:
     //MapMenu
     QAction *ChSelAct;
     QAction *PxAct;
-    QAction *CutBordersAct;
-    QAction *CorrectMapAct;
     QAction *FileReloadAct_SHM;
     QAction *MapSumReloadAct_SHM;
     QAction *MapShowAct_SHM;

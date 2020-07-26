@@ -30,7 +30,7 @@ void MainWindow::GUI_CREATOR() {
     LASER_Button = new QPushButton(centralWidget);
     DAQ_label = new QLabel(centralWidget);
     Digitizer_Button = new QPushButton(centralWidget);
-    Detector_Button = new QPushButton(centralWidget);
+    //Detector_Button = new QPushButton(centralWidget);
     SW_treshold_Button = new QPushButton(centralWidget);
     TTY_label= new QLabel(centralWidget);
     CurrentActionX = new QLineEdit(centralWidget);
@@ -147,7 +147,7 @@ void MainWindow::GUI_CREATOR() {
 
     XRAY_TABLE_Button->setObjectName(QString::fromUtf8("pushButton_X"));
     XRAY_TABLE_Button->setText(QApplication::translate("MainWindow", "X-Ray Table", 0));
-    XRAY_TABLE_Button->setGeometry(QRect(865, 620, 120, 40));
+    XRAY_TABLE_Button->setGeometry(QRect(637, 210, 182, 40));
 
     ///////////////////////////////////////////////// BOTTONI E LINE_EDIT A DX
 
@@ -171,9 +171,9 @@ void MainWindow::GUI_CREATOR() {
     Digitizer_Button->setGeometry(QRect(637, 157, 182, 41));
     Digitizer_Button->setText(QApplication::translate("MainWindow", "Digitizer", 0));
 
-    Detector_Button->setObjectName(QString::fromUtf8("pushButton_2"));
-    Detector_Button->setGeometry(QRect(637, 210, 182, 41));
-    Detector_Button->setText(QApplication::translate("MainWindow", "Detector", 0));
+    //Detector_Button->setObjectName(QString::fromUtf8("pushButton_2"));
+    //Detector_Button->setGeometry(QRect(637, 210, 182, 41));
+    //Detector_Button->setText(QApplication::translate("MainWindow", "Detector", 0));
 
     SW_treshold_Button->setObjectName(QString::fromUtf8("pushButton_2"));
     SW_treshold_Button->setGeometry(QRect(637, 262, 182, 41));
@@ -571,7 +571,7 @@ void MainWindow::GUI_CREATOR() {
 
 
     connect(Digitizer_Button, SIGNAL(clicked()), this, SLOT(openDPPInter()));
-    connect(Detector_Button, SIGNAL(clicked()), this, SLOT(Detector()));
+    //connect(Detector_Button, SIGNAL(clicked()), this, SLOT(Detector()));
     connect(LASER_Button, SIGNAL(clicked()), this, SLOT(Laser_interface()));
     //connect(HELIUM_Button, SIGNAL(clicked()), this, SLOT(Helium_interface()));
     connect(VLC_Button, SIGNAL(clicked()), this, SLOT(VLC_interface()));

@@ -258,9 +258,10 @@ void MainWindow::toggleEnergy(bool active) {
         Energy->setText("Toggle\nChannels");
         Energy->setChecked(true);
 
+        *(shared_memory+24) = 1;
+        qDebug()<<*(shared_memory+24);
         cntDamp->blockSignals(true); cntDamp->setValue(cal_gradient);
         cntDamp->blockSignals(false);
-
         cntDamp2->blockSignals(true); cntDamp2->setValue(cal_offset);
         cntDamp2->blockSignals(false);
     }
@@ -268,6 +269,9 @@ void MainWindow::toggleEnergy(bool active) {
         EnergyOn = active;
         Energy->setText("Toggle\nEnergy");
         Energy->setChecked(false);
+
+        *(shared_memory+24) = 0;
+        qDebug()<<*(shared_memory+24);
     }
     if (!liveOn) d_plot->showPixelHisto();
 }
