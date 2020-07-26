@@ -10,31 +10,30 @@ QT += widgets\
       sql \
       xml \
       gui
-CONFIG += c++11
+CONFIG += c++14
 CONFIG += qt warn_on thread
 CONFIG += console
 
 # Input
-HEADERS += mainwindow.h all_tty.h DppGui.h ../Header.h ../Shm.h ../variables.h ../QT_variables.h \
-    all_tty.h
-SOURCES += autofocus.cpp \
-           Connections_Creator.cpp \
-           export.cpp \
-           external_programs.cpp \
-           GUI_Creator.cpp \
-           main.cpp \
+HEADERS += mainwindow.h tty.h dpp.h ../Header.h ../Shm.h \
+    ../qt_dependencies.h \
+    enums_and_wrappers.h \
+    map.h \
+    enums_and_wrappers.h
+SOURCES += main.cpp \
+           dpp_gui.cpp \
+           dpp_main.cpp \
            mainwindow.cpp \
-           mainwindow_DefinePixels.cpp \
-           mainwindow_loadSHM.cpp \
-           mainwindow_mouse.cpp \
-           mainwindow_online.cpp \
-           mainwindow_showMap.cpp \
-           Menu.cpp \
-           motors_move.cpp \
-           ScanYX_XY.cpp \
-           SHM_Creator.cpp \
-           TTY_motors.cpp \
-           motors_init.cpp \
-	   defDppGui.cpp \ 
-	   creatorDppGui.cpp
+           mainwindow_gui.cpp \
+           mainwindow_menu.cpp \
+           mainwindow_conns.cpp \
+           external_programs.cpp \
+           map_load.cpp \
+           map_pixels.cpp \
+           map_render.cpp \
+           map_mouse.cpp \
+           map_online.cpp \
+           shm.cpp \
+           tty_agent.cpp \
+           tty_interface.cpp
 RESOURCES += Resource.qrc

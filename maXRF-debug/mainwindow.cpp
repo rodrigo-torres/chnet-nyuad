@@ -1,83 +1,156 @@
 #include "../Header.h"
 #include "mainwindow.h"
 #include "../variables.h"
-#include "../QT_variables.h"
-#include <../Shm.h>
 #include <unistd.h>
 #include <QThread>
-#include <all_tty.h>
+#include <tty.h>
+#include <algorithm>
 
-extern int shmid[];
-extern double posXforacceleration;
-extern double accelerationtime;
-extern int accelerationtimesleep;
-extern double Px;
+extern int shmid[8];
+extern key_t key, key2, key3, key4, key5, key_cmd, key_rate;
+extern int *shared_memory, *shared_memory2, *shared_memory3, *shared_memory4;
+extern double *shared_memory5;
+extern int *shared_memory_cmd, *shared_memory_rate;
 
-extern controller *controller_ptr;
+tty_agent *tty_ptr;
 
 bool MapIsOpened = false;
 bool CameraOn = false;
-bool energychanged = false;
 
-extern bool stage_on_target[3];
-bool stage_on_target[] = { false };
 
-bool XYscanning = false, YHasMoved = true;
-
-bool AutofocusOn=false;
-
+int DAQ_TYPE = 1;
 int measuring_time = 300; // for single-spectrum DAQ
-int point, OffsetX, OffsetY, Pixeldim = 1; // for XRF map display
-
-double positionX = 100, positionY = 100, scan_velocity = 1, time_per_pixel = 1000; // for scan limits
-double ZPosition = 25.0;
-double ChMin = 3, ChMax = 16384; // for spectrum scale
-double Pz = 250;
-double x_image, y_image, x_image2, y_image2;
+int Pixeldim = 1; // for XRF map display
 
 char process[30];
 
-struct Pixel_BIG *Pointer; //puntatore da far puntare a PixelsMappa una volta creato
-
-double ChMin1=0, ChMax1=0, ChMin2=0, ChMax2=0, ChMin3=0, ChMax3=0;
-
-
-QString stylesheet3 = "QLineEdit {background-color: #2DC937; font-weight: bold; color: white;}";
-
-
-
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
-
-    PixelX=595;
-    PixelY=595;
-
     SHM_CREATOR();                 /// CREATING SHARED MEMORY SEGMENT
-    createActions();
-    builder_Menu();            	    /// CREATING MENU from Menu.cpp
+    create_menu_actions();
+    create_menus();            	    /// CREATING MENU from Menu.cpp
     GUI_CREATOR();
-    CONNECTIONS_CREATOR();
+    handle_connections();
 
     imageLabel = new ImgLabel;
 
-    QImage image1("IMG/TT_CHNet_res1.png");
+    QImage image1("IMG/TT_CHNet_res2.png");
     imageLabel->setPixmap(QPixmap::fromImage(image1));
     imageLabel->setBackgroundRole(QPalette::Base);
 
     scrollArea->setWidget(imageLabel);
     scrollArea->setAlignment(Qt::AlignCenter);
 
-    timer = new QTimer(this);                                                // TIMER for program control
-    connect(timer, SIGNAL(timeout()), this, SLOT(tty_timer()));
-
-    timerAutofocus =new QTimer(this);                                        // TIMER for RECORDING Z DISTANCE FROM TARGET
-    connect(timerAutofocus, SIGNAL(timeout()), this, SLOT(Focustimer()));
-
-
     readmultidetcalpar();
+    start_thread_tty();
 }
 
 
+void MainWindow::start_thread_tty() {
+
+    tty_ptr = new tty_agent();
+    tty_ptr->moveToThread(&test_thread);
+
+    connect(&test_thread, &QThread::finished, tty_ptr, &QObject::deleteLater);
+    connect(tty_ptr, &tty_agent::toggle_tab1, this, &MainWindow::toggle_tab1);
+    connect(tty_ptr, &tty_agent::toggle_widgets, this, &MainWindow::toggle_widgets);
+    connect(tty_ptr, &tty_agent::update_monitor, this, &MainWindow::update_monitor);
+    connect(tty_ptr, &tty_agent::save_file, this, &MainWindow::SaveTxt);
+
+    connect(this, &MainWindow::set_target, tty_ptr, &tty_agent::set_target);
+    connect(this, &MainWindow::keyence_reading, tty_ptr, &tty_agent::enable_servo);
+    connect(this, &MainWindow::start_servo, tty_ptr, &tty_agent::start_servo);
+
+
+    connect(tab4_start_scan, &QPushButton::clicked, tty_ptr, &tty_agent::scan);
+
+
+    connect(this, &MainWindow::request_tty_action, tty_ptr, &tty_agent::relay_command);
+
+
+    QSignalMapper *mapperMoveStages = new QSignalMapper();
+    for (int i = 0; i < 9; i++) {
+        mapperMoveStages->setMapping(buttonTab3[i], i);
+        connect(buttonTab3[i], SIGNAL(released()), mapperMoveStages, SLOT(map()));
+    }   connect(mapperMoveStages, SIGNAL(mapped(int)), tty_ptr, SLOT(move_stage(int)));
+
+
+
+    test_thread.start();
+
+};
+
+/* Signals */
+
+void MainWindow::enable_keyence_reading() {
+    QCheckBox *tmp = static_cast<QCheckBox*>(this->sender());
+    bool active = tmp->checkState();
+
+    servo_checkbox->setEnabled(active);
+    emit keyence_reading(active);
+}
+
+void MainWindow::enable_servo()
+{
+    QCheckBox *tmp = static_cast<QCheckBox*>(this->sender());
+    bool active = tmp->checkState();
+
+    typedef widgets::spinboxes en_pb;
+
+    //buttonTab3[2]->setEnabled(active);
+    //buttonTab3[7]->setEnabled(active);
+    //buttonTab3[8]->setEnabled(active);
+
+    //dspinboxes.at(en_pb::targetz)->setEnabled(active);
+    //spinboxTab3[2]->setEnabled(active);
+
+    emit start_servo(active);
+}
+
+
+/* Public slots */
+
+
+void MainWindow::toggle_tab1(bool state)
+{
+    tab1->setEnabled(state);
+
+}
+
+void MainWindow::toggle_widgets(int id) {
+    switch (id) {
+    case 0: case 1:
+        tab2->setEnabled(true);
+        break;
+    case 2:
+        break;
+    case 3:
+        laser_checkbox->setEnabled(true);
+    }
+}
+
+void MainWindow::update_monitor(QString message, QString style, int id){
+    dev_monitor[id]->setText(message);
+    dev_monitor[id]->setStyleSheet(style);
+}
+
+void MainWindow::tab3_set_target() {
+    QDoubleSpinBox *tmp = static_cast<QDoubleSpinBox*>(this->sender());
+    double number = tmp->value();
+
+    ulong base = widgets::index_of<widgets::spinboxes>(widgets::spinboxes::targetx);
+    for (int id = 0; id < 3; id++) {
+        if (tmp == dspinboxes.at(base + id)) emit set_target(id, number);
+    }
+}
+
+
+void MainWindow::set_abort_flag() { // raises a flag for abortion
+    QMutex m;
+    m.lock();
+    *(shared_memory_cmd+200) = 1;
+    m.unlock();
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -127,216 +200,29 @@ void MainWindow::readmultidetcalpar() {
     if ((calpar1 != 0 || calpar2 != 0) && scalefactor != 0) printf("... Multidetector parameters found\n");
 }
 
-void MainWindow::hideImage() {
-    if (MapIsOpened) {
-        //QImage startimage("IMG/TT_CHNet_extended_395_395_3.png");
-        //imageLabel->setPixmap(QPixmap::fromImage(startimage));
-        MapIsOpened=false;
-    }
-}
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//                                MAINWINDOW MAIN COMMAND CYCLE --> TIMER_EVENT
-//                                
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-void MainWindow::tty_timer() {
-
-    if (IniZready && !AutofocusOn) stage_check_on_target(serialZ, 2);
-    if (IniXready) stage_check_on_target(serialX, 0);
-    if (IniYready) stage_check_on_target(serialY, 1);
-    if (XYscanning)ScanXY();
-    //if(AutofocusOn)AutoFocusRunning();
-    MoveDoubleClick();
-    CheckSegFault();
-}
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//                                MOTORS: COMMAND and ANSWERS HANDSHAKE
-//                                
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-int tty_send(int channel,const char *command, const char *parameter, int port) {
-    char chan=channel+'0';
-    string cm = command;
-
-    if (parameter == nullptr) cm = cm + '\n';
-    else cm = cm + ' ' + chan + ' ' + parameter + '\n';
-
-    const char *temp =cm.c_str();
-
-    long n = write(port, cm.data(), cm.size());
-    tcdrain(port);
-
-    if (n > 0) return 0;
-    else {
-        qDebug()<<"[!] Writing to bus failed"
-                  "[!] Check connection and writing priviledges";
-        qDebug()<<strerror(errno);
-        return 1;
-    }
-}
-
-void tty_read(int port, char *ans, unsigned long wait = 0) {
-    char buff[100] = { '\0' };
-
-    long n = 0;
-    int size = 0;
-    while ((n = read(port, &buff[size], 1)) > 0) {
-        if (buff[size] == '\n') break;
-        else size += n;
-    }
-    if (n < 0) throw std::runtime_error(strerror(errno));
-    strcpy(ans, buff);
-    if (ans[size-1] == '\n') ans[size-1] = '\0';
-}
-
-string read_answer(int port)                                                       // Z MOTOR: READ ANSWER CHAR
-{
-    string rest;
-    char c[100];
-    int n=0;
-
-    while( ( n = read(port, &c, sizeof(c)) ) > 0 ) {
-        c[n]=0;
-        rest=rest+c;
-        if ( c[n-1] == '\n' ) {
-            break;
-        }
-    }
-    return rest;
-}
-
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//                                MOTORS: CHECK_ON_TARGET
-//                                
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-void MainWindow::stage_check_on_target(int serial, int id) {
-    const char prefix[] = "Stage ";
-    const char *axes[]  = { "X: ", "Y: ", "Z: "};
-    QLineEdit *monitors[] = { CurrentActionX, CurrentActionY, CurrentActionZ };
-    bool *on_target[] = { &stage_on_target[0], &stage_on_target[1], &stage_on_target[2] };
-
-    char ans[15] = { '\0' };
-    tty_send(1, "ONT?", nullptr, serial); // Expected a response with format 1=%d with %d = 1,0
-
-    try {
-        tty_read(serial, ans, 10);
-    } catch (const runtime_error& e) {
-        qDebug()<<e.what();
-    }
-
-    if (ans[2] == '1' ) *on_target[id] = true;
-    else *on_target[id] = false;
-
-    char ans2[15] = { '\0' };
-    tty_send(1,"POS?", nullptr, serial); // Expected a response with format 1={x->xxx}.xxxx
-
-    try {
-        tty_read(serial, ans2, 15);
-    } catch (const runtime_error& e) {
-        qDebug()<<e.what();
-    }
-
-    if (id == 2) {
-        QString temp = &ans2[2];
-        ZPosition = temp.toDouble();
-    }
-
-    char message[25] = { '\0' };
-    strncpy(message, prefix, sizeof(prefix));
-    strncat(message, axes[id], 4);
-    strncat(message, &ans2[2], 10);
-    strncat(message, " mm", sizeof(" mm"));
-    monitors[id]->setText(message);
-    monitors[id]->setStyleSheet(stylesheet3);
-}
-
-
-void MainWindow::Enable_TabWidget_3_4_XY()                                           // ENABLING XY MOVE WIDGET
-{
-    if(IniXready && IniYready){tab2_3->setEnabled(true); tab2_4->setEnabled(true);}
-}
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //                                MOTOR SETTINGS
 //                                
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void MainWindow::scan_parameters(double val) {
+    /* Assign an index depending on the widget sending the signal */
+    QDoubleSpinBox *temp = static_cast<QDoubleSpinBox*>(this->sender());
 
-void MainWindow::Velocity(double number)                       // MOTOR SETTINGS XY VELOCITY
-{
-    scan_velocity=number;
-    int V_adc=scan_velocity*1000;
-    printf("V_adc:%d\n", V_adc);
-    *(shared_memory_cmd+67)=V_adc;
-    time_per_pixel=Px/scan_velocity;
-    qDebug()<<"velocità "<<scan_velocity<<"mm/s"<<"Scrittura posizione ogni "<<time_per_pixel<<" ms";
-    char v[10];
-    sprintf(v,"%f",scan_velocity);
-    tty_send(1,"VEL",v,serialX);
-    tty_send(1,"VEL",v,serialY);
+    int n = sizeof(scan_params) / sizeof(scan_params[0]);
+    auto itr = std::find(scan_params, scan_params + n, temp);
+    long index = distance(scan_params, itr);
+
+    /* Pass the double value to shared memory at the assigned index */
+
+    *(shared_memory5+index) = val;
+
+    //Px=val*1000 (and Py)
+    //Xmin1=val*1000 (and Xmax1, Ymin1, Ymax1)
+    //pixel_Xstep=val (and pixel_Ystep)
+    //positionX=val (and positionY)
 }
-
-void MainWindow::PassoX_Func(double number1)                     // MOTOR SETTINGS STEP
-{Px=number1*1000; *(shared_memory_cmd+60)=Px; pixel_Xstep=number1;}
-void MainWindow::PassoY_Func(double number5)
-{Py=number5*1000; *(shared_memory_cmd+61)=Py; pixel_Ystep=number5;}
-
-
-void MainWindow::Xminimo(double number2)                         // MOTOR SETTINGS MINIMUM POSITION
-{Xmin1=number2*1000;  positionX=Xmin1; *(shared_memory_cmd+50)=Xmin1;}
-void MainWindow::Yminimo(double number3) 
-{Ymin1=number3*1000;  positionY=Ymin1; *(shared_memory_cmd+52)=Ymin1;}
-
-
-void MainWindow::Xmassimo(double number3)                         // MOTOR SETTINGS MAXIMUM POSITION
-{Xmax1=number3*1000; *(shared_memory_cmd+51)=Xmax1;}
-void MainWindow::Ymassimo(double number7) 
-{Ymax1=number7*1000; *(shared_memory_cmd+53)=Ymax1;}
-
-
-void MainWindow::X_to(double number9)                             // MOTOR SETTINGS GO_TO
-{X_goto=number9*1000;}
-void MainWindow::Y_to(double number10) 
-{Y_goto=number10*1000;}
-void MainWindow::Z_to(double number9) 
-{Z_goto=number9*1000;}
-
-
-void MainWindow::StartX() {
-    Init_Xmotor();
-}
-
-
-void MainWindow::StartY() {
-    Init_Ymotor();
-}
-
-
-void MainWindow::StartZ() {
-        Init_Zmotor();
-}
-
-
-void MainWindow::set_abort_flag() { // raises a flag for abortion
-    QMutex m;
-    m.lock();
-    *(shared_memory_cmd+200) = 1;
-    m.unlock();
-}
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -345,9 +231,10 @@ void MainWindow::set_abort_flag() { // raises a flag for abortion
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void MainWindow::USB_DAQ()                                  // DAQ VIA USB
+void MainWindow::USB_DAQ(int val)                                  // DAQ VIA USB
 {
-    {DAQ_TYPE=1; qDebug()<<"USB link active..."<<"DAQ_TYPE: "<<DAQ_TYPE;}
+    DAQ_TYPE = val;
+    qDebug()<<"DAQ mode updated";
 }
 
 void MainWindow::OPTICAL_DAQ()                              // DAQ VIA OPTICAL LINK
@@ -365,60 +252,53 @@ void MainWindow::set_PMAcquisitionTime() {
 
 void MainWindow::SelDigiCh0()
 {
-
-    if(DigitizerChannel0->isChecked())
-    {
-
-        *(shared_memory_cmd+100)=0;
-        DigitizerChannel1->setChecked(false); DigitizerChannel0and1->setChecked(false);
-    }
-
+    typedef widgets::actions ac;
+    w_actions.at(ac::daq_channel0)->setChecked(true);
+    w_actions.at(ac::daq_channel1)->setChecked(false);
+    w_actions.at(ac::daq_channel0and1)->setChecked(false);
+    *(shared_memory_cmd+100)=0;
 }
 
 void MainWindow::SelDigiCh1()
 {
-
-    if(DigitizerChannel1->isChecked())
-    {
-        *(shared_memory_cmd+100)=1;
-        DigitizerChannel0->setChecked(false); DigitizerChannel0and1->setChecked(false);
-    }
-
+    typedef widgets::actions ac;
+    w_actions.at(ac::daq_channel0)->setChecked(false);
+    w_actions.at(ac::daq_channel1)->setChecked(true);
+    w_actions.at(ac::daq_channel0and1)->setChecked(false);
+    *(shared_memory_cmd+100)=1;
 }
 
 void MainWindow::SelDigiCh0and1()
 {
-
-    if(DigitizerChannel0and1->isChecked())
-    {
-        *(shared_memory_cmd+100)=2;
-        DigitizerChannel0->setChecked(false); DigitizerChannel1->setChecked(false);
-    }
-
+    typedef widgets::actions ac;
+    w_actions.at(ac::daq_channel0)->setChecked(false);
+    w_actions.at(ac::daq_channel1)->setChecked(false);
+    w_actions.at(ac::daq_channel0and1)->setChecked(true);
+    *(shared_memory_cmd+100)=2;
 }
 
 void MainWindow::CheckSegFault()                           // DAQ: MEMORY CONTROL FOR SEGMENTATION FAULT
 {
-    if(*(shared_memory2+6)==1)
-    {
-        if(*(shared_memory_cmd+70)==1)
-        {
-            int pidVme=*(shared_memory_cmd+80);
-            sprintf(process, "kill -s TERM %i &", pidVme);
-            system(process);
-            *(shared_memory_cmd+70)=0;
-            SaveTxt();
-            qDebug()<<"[!] Acquisition interrumpted because shared memory is full";
-        }
+//    if(*(shared_memory2+6)==1)
+//    {
+//        if(*(shared_memory_cmd+70)==1)
+//        {
+//            int pidVme=*(shared_memory_cmd+80);
+//            sprintf(process, "kill -s TERM %i &", pidVme);
+//            system(process);
+//            *(shared_memory_cmd+70)=0;
+//            SaveTxt();
+//            qDebug()<<"[!] Acquisition interrumpted because shared memory is full";
+//        }
 
-        if(XYscanning==true)
-        {
-            XYscanning=false;
-            Abort();
-            qDebug()<<"[!] Scan interrumpted because shared memory is full";
-        }
-        *(shared_memory2+6)=0;
-    }
+//        if(XYscanning==true)
+//        {
+//            XYscanning=false;
+//            //abort
+//            qDebug()<<"[!] Scan interrumpted because shared memory is full";
+//        }
+//        *(shared_memory2+6)=0;
+//    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -442,7 +322,6 @@ void MainWindow::open_MAP()                                      // MAP: OPEN MA
             return;
         }
         imageLabel->setPixmap(QPixmap::fromImage(image));
-        scaleFactor = 1.0;
     }
 }
 
@@ -453,18 +332,18 @@ void MainWindow::SelectChannels()                             // MAP: CHANNEL SE
     {
         double chan1 = QInputDialog::getInt(this, tr("Lower Channel"),tr("ChLow:"), 0, 0, 16384, 1, &ok1);
         if (ok1)
-        {qDebug()<<"New lower channel "<<chan1<<'\n'; ChMin=chan1;}
+        {qDebug()<<"New lower channel "<<chan1<<'\n'; *(shared_memory5+100)=chan1;}
         double  chan2 = QInputDialog::getInt(this, tr("Upper Channel"),tr("ChHigh:"), 16384, 0, 16384, 1, &ok2);
         if (ok2)
-        {qDebug()<<"New upper channel "<<chan2<<'\n'; ChMax=chan2;}
+        {qDebug()<<"New upper channel "<<chan2<<'\n'; *(shared_memory5+101)=chan2;}
     }
     else if (*(shared_memory+24) == 1) {
             double chan1 = QInputDialog::getDouble(this, tr("Lower Energy"), tr("ELow:"), 0, 0, 60, 2, &ok1);
             if (ok1)
-            {qDebug()<<"New lower energy "<<chan1<<'\n'; ChMin=int(chan1*1000);energychanged=true;}
+            {qDebug()<<"New lower energy "<<chan1<<'\n'; *(shared_memory5+100)=chan1;}
             double chan2 = QInputDialog::getDouble(this, tr("Upper Energy"), tr("EHigh:"), 60, 0, 60, 2, &ok2);
             if (ok2)
-            {qDebug()<<"New upper energy "<<chan2<<'\n'; ChMax=int(chan2*1000);energychanged=true;}
+            {qDebug()<<"New upper energy "<<chan2<<'\n'; *(shared_memory5+101)=chan2;}
         }
 }
 
@@ -477,7 +356,7 @@ void MainWindow::Pixels() { // Change pixel dimension
 
     if (ok1) {
         Pixeldim = px;
-        printf("[!] New pixel dimension: %d", px);
+        printf("[!] New pixel dimension: %d\n", px);
     }
     else printf("[!] Couldn't obtain new pixel dimensions\n");
 }
@@ -488,9 +367,8 @@ void MainWindow::LoadNewFile_SHM() { // Loads a new file in memory
 }
 
 void MainWindow::LoadElementsMapSum() {
-
-    ChMin1 = 0; ChMin2 = 0; ChMin3 = 0;
-    ChMax1 = 0; ChMax2 = 0; ChMax3 = 0;
+    for (int i = 0; i < 6; i++)
+        *(shared_memory5+100+i) = 0;
 
     elementsdlg = new QDialog;
     elementsdlg->setFixedSize(400, 200);
@@ -578,30 +456,18 @@ void MainWindow::LoadElementsMapSum() {
 
 void MainWindow::writeCompMapLimits(int id) {
     QSignalMapper *temp = static_cast<QSignalMapper*>(this->sender());
-    if (*(shared_memory+24)) {
-        QDoubleSpinBox *spnbox = static_cast<QDoubleSpinBox*>(temp->mapping(id));
-        double value = spnbox->value();
 
-        if (id == 0) ChMin1 = value;
-        else if (id == 1) ChMax1 = value;
-        else if (id == 2) ChMin2 = value;
-        else if (id == 3) ChMax2 = value;
-        else if (id == 4) ChMin3 = value;
-        else if (id == 5) ChMax3 = value;
-        else printf("[!] Unknown sender to the composed map limits function");
+    double value;
+    if (*(shared_memory+24)) {
+        QDoubleSpinBox *obj = static_cast<QDoubleSpinBox*>(temp->mapping(id));
+        value = obj->value();
     }
     else {
-        QSpinBox *spnbox = static_cast<QSpinBox*>(temp->mapping(id));
-        int value = spnbox->value();
-
-        if (id == 0) ChMin1 = static_cast<double>(value);
-        else if (id == 1) ChMax1 = static_cast<double>(value);
-        else if (id == 2) ChMin2 = static_cast<double>(value);
-        else if (id == 3) ChMax2 = static_cast<double>(value);
-        else if (id == 4) ChMin3 = static_cast<double>(value);
-        else if (id == 5) ChMax3 = static_cast<double>(value);
-        else printf("[!] Unknown sender to the composed map limits function");
+        QSpinBox *obj = static_cast<QSpinBox*>(temp->mapping(id));
+        value = obj->value();
     }
+
+    *(shared_memory5+102+id) = value;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -610,6 +476,187 @@ void MainWindow::writeCompMapLimits(int id) {
 //                                
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include <numeric>
+
+class xrf_image {
+    xrf_image() {
+        loadDir = "/home/frao/Desktop/XRFData";
+    }
+
+public:
+    void prototype_load_map();
+    void create_pixel(int);
+
+private:
+    QFile file;
+    uint map_length;
+    uint map_height;
+    uint pix_total;
+
+    vector<int> x_coords;
+    vector<int> y_coords;
+    vector<int> integral;
+
+    double parameters[7];
+    QString loadDir;
+
+};
+
+
+
+template <typename T>
+struct pixel_t {
+    pixel_t() {
+
+    }
+    typedef typename std::vector<T>::iterator iterator;
+    iterator x;
+    iterator y;
+    ushort pixel_no;
+
+    vector<int> det_a;
+    vector<int> det_b;
+    vector<int>::iterator it_integral;
+    vector<int>::iterator it_elem_integral;
+};
+
+static vector<pixel_t<int>> map_data;
+
+
+void xrf_image::create_pixel(int p)
+{
+    typedef pixel_t<int> pixel;
+    QString line;
+
+    int number;
+    int temp_a[16384] = {};
+    int temp_b[16384] = {};
+
+    int masks[4]  = { 0x8000000, 0x4000000, 0x2000000, 0x1000000 };
+
+    // Creat the first pixel
+    pixel *tmp = new pixel;
+
+    line = file.readLine();
+    number = line.toInt();
+    number ^= masks[1];
+
+    if (*x_coords.end() == number)
+
+    x_coords.push_back(number);
+    tmp->x = x_coords.begin() + p;
+
+    line = file.readLine();
+    number = line.toInt();
+    number ^= masks[0];
+
+    y_coords.push_back(number);
+    tmp->y = y_coords.begin() + p;
+
+    tmp->pixel_no = p;
+
+    while (true)
+    {
+        line = file.readLine();
+        number = line.toInt();
+
+        if (number >= masks[1]) break;
+        if (number >= masks[2])
+        {
+            number ^= masks[2];
+            temp_b[number] += 1;
+        }
+        else
+        {
+            number ^= masks[3];
+            temp_a[number] += 1;
+        }
+    }
+
+    tmp->det_a.reserve(16384);
+    tmp->det_b.reserve(16384);
+    for (int i = 0; i < 16384; i ++)
+    {
+        if (temp_a[i] == 0) continue;
+        temp_a[i] |= (i << 16);
+        tmp->det_a.push_back(temp_a[i]);
+    }
+    for (int i = 0; i < 16384; i ++)
+    {
+        if (temp_b[i] == 0) continue;
+        temp_b[i] |= (i << 16);
+        tmp->det_a.push_back(temp_b[i]);
+    }
+    tmp->det_a.shrink_to_fit();
+    tmp->det_b.shrink_to_fit();
+
+    map_data.push_back(*tmp);
+}
+
+void xrf_image::prototype_load_map() {
+    QString filepath = QFileDialog::getOpenFileName(nullptr, "Open file...", loadDir);
+
+    if (!filepath.isEmpty()) {
+        QFile file(filepath);
+        if (file.exists()) {
+            file.open(QIODevice::ReadOnly);
+            QString line = file.readLine();
+
+
+            if (line.startsWith("v")) { // Data with new header protocol
+                int size  = (sizeof parameters) / (sizeof parameters[0]);
+                for (int i = 0; i < size; i++) {
+                    line = file.readLine();
+                    parameters[i] = line.toInt();
+                }
+
+                map_length = (parameters[0] - parameters[1]) / parameters[4];
+                map_height = 1 + (parameters[2] - parameters[3]) / parameters[5];
+                pix_total  = map_length * map_height;
+
+                typedef pixel_t<int> pixel;
+                size_t size_m = sizeof (pixel);
+                size_m *= pix_total;
+
+                map_data.clear();
+                map_data.reserve(size_m);
+                x_coords.reserve(size_m);
+                y_coords.reserve(size_m);
+                integral.reserve(size_m);
+
+                int i = 0;
+                create_pixel(0); i++;
+                while (!file.atEnd())
+                {
+
+                }
+
+
+
+
+
+
+
+
+                // Rest of pixels
+
+                while (!file.atEnd())
+                {
+                    pixel *tmp = new pixel;
+                    tmp->pixel_no = i;
+
+
+
+
+
+                }
+
+            }
+        }
+    }
+
+
+}
 
 void MainWindow::LoadTxt()  { // Writes values of binary file into shared memory
     QString loadDir = "/home/frao/Desktop/XRFData";
@@ -661,86 +708,54 @@ void MainWindow::LoadTxt()  { // Writes values of binary file into shared memory
 
 
 
-void MainWindow::SaveTxt() { //scrive Position.txt leggendo i dati in memoria
-
-    tty_send(1,"HLT",NULL,serialX);
-    tty_send(1,"HLT",NULL,serialY);
-    tty_send(1,"HLT",NULL,serialZ);
-    timer->blockSignals(true);
-    timerAutofocus->blockSignals(true);
-
+void MainWindow::SaveTxt() {
     QString saveDir = "/home/frao/Desktop/XRFData";
     QString percorso = QFileDialog::getSaveFileName(this,tr("Save as"), saveDir);
+
     QFile file2(percorso);
     file2.open(QIODevice::ReadWrite);
     QTextStream out2(&file2);
-    int Ntot = *(shared_memory2+4);
-    out2<<"ver.001"<<'\n';
-    out2<<*(shared_memory_cmd+50)<<'\n';//writes Xmin
-    out2<<*(shared_memory_cmd+51)<<'\n';//writes Xmax
-    out2<<*(shared_memory_cmd+52)<<'\n';//writes Ymin
-    out2<<*(shared_memory_cmd+53)<<'\n';//writes Ymax
-    out2<<*(shared_memory_cmd+60)<<'\n';//writes Xstep
-    out2<<*(shared_memory_cmd+61)<<'\n';//writes Ystep
-    out2<<*(shared_memory_cmd+67)<<'\n';//writes the scan velocity
-    for (int i = 1; i <= Ntot; i++) {
+    out2<<"ver.002"<<'\n';
+    for (auto i : {0, 1, 2, 3, 4, 5, 6})
+    {
+        // Writes the scan parameters to file
+        out2<<(int)(shared_memory5[i]*1000)<<'\n';
+    }
+
+    for (int i = 1; i <= shared_memory2[4]; i++)
+    {
         out2<<*(shared_memory2+10+i)<<'\n';
     }
     file2.close();
 
 
-    string str = percorso.toStdString();
-    char *cstr = &str[0u];
-    printf("[!] File saved in: %s", cstr);
-
-    timer->blockSignals(false);
-    timerAutofocus->blockSignals(false);
-    tcflush(serialK, TCIFLUSH);
+    //string str = percorso.toStdString();
+    //char *cstr = &str[0u];
+    printf("[!] File saved in: %s", percorso.toStdString().c_str());
 }
 
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//                                WINDOWS DESTRUCTOR
-//                                
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-void MainWindow::Abort() {
-    if (*(shared_memory_cmd+70) == 1) *(shared_memory_cmd+70) = 0;
-
-    if ( XYscanning==true ) {
-        tty_send(1,"HLT",NULL,serialX);
-        tty_send(1,"ERR?",NULL,serialX);
-
-        char *cstr1 = &(read_answer(serialX))[0u];
-        printf("[!] X-axis stage stopped with exit value: %s", cstr1);
-
-        tty_send(1,"HLT",NULL,serialY);
-        tty_send(1,"ERR?",NULL,serialY);
-
-        char *cstr2 = &(read_answer(serialY))[0u];
-        printf("[!] Y-axis stage stopped with exit value: %s", cstr2);
-
-        XYscanning = false;
-        YHasMoved  = true;
-        SaveTxt();
-    }
-}
 
 void MainWindow::closeEvent(QCloseEvent *event) {
     event->ignore();
+    event->accept();
+}
+
+MainWindow::~MainWindow() {
 
     int processIDs[7][2] = { { 0 }, { 0 } };
 
     printf("\n... Terminating data acquisition session\n");
-    if (*(shared_memory_cmd+70)) *(shared_memory_cmd+70) = 0;
+    if (shared_memory_cmd[300]) shared_memory_cmd[300] = 0;
 
     for (int i = 0; i < 7; i++) {
         processIDs[i][0] = *(shared_memory_cmd+i+71);
         processIDs[i][1] = *(shared_memory_cmd+i+81);
     }
+
+    test_thread.quit();
+    test_thread.wait();
 
     printf("... Dettaching shared memory segments\n");
     for (int i = 0; i < 8; i++) if (shmid[i] != -1) shmctl(shmid[i], IPC_RMID, 0);
@@ -761,12 +776,7 @@ void MainWindow::closeEvent(QCloseEvent *event) {
         }
     }
 
-    if (controller_ptr != nullptr) delete controller_ptr;
 
-    event->accept();
-}
-
-MainWindow::~MainWindow() {
 
 }
 

@@ -14,10 +14,10 @@ void MainWindow::GUI_CREATOR()
     imageLabel2 = new ImgLabel;
     imageLabel3 = new ImgLabel;
 
-    QImage image("IMG/TT_CHNet_extended_395_395_3");
-    QImage image1("IMG/TT_CHNet_extended_395_395_3");
-    QImage image2("IMG/TT_CHNet_extended_795_795_3");     
-    QImage image3("IMG/TT_CHNet_extended_395_395_3");
+    QImage image("IMG/TT_CHNet_395_395.png");
+    QImage image1("IMG/TT_CHNet_295_295.png");
+    QImage image2("IMG/TT_CHNet_195_195.png");     
+    QImage image3("IMG/TT_CHNet_395_395.png");
 
     switch (Resolution_mode)
      {

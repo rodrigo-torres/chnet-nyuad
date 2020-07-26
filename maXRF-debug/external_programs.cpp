@@ -1,52 +1,42 @@
-﻿#include "mainwindow.h"
+﻿    #include "mainwindow.h"
 #include "../Header.h"
 
+extern tty_agent tty_ptr;
 
 extern bool CameraOn;
 extern int measuring_time;   extern int DAQ_TYPE;
-extern int *shared_memory_cmd, *shared_memory, *shared_memory2;
+extern int *shared_memory_cmd, *shared_memory;
 
-extern int serialX, serialY, serialZ, serialK;
-extern int tty_send(int chan,const char *comando, const char *parametri, int port);
-
-void MainWindow::StartVme() {
-
-    if(*(shared_memory_cmd+70)==0) {
-
-        if(DAQ_TYPE==1) {
-            system("./app-modules/ADCXRF_USB &");
-        }
-
-        if(DAQ_TYPE==0) {
-            system("./app-modules/ADCXRF_Optical_Link &");
-        }
-
-        *(shared_memory2+9)=1;      // Tells the external program ADCXRF it should run on point acquisition mode
-        *(shared_memory_cmd+70)=1;
-
-        printf("... Measuring time:\t%d seconds\n", measuring_time);
-
-        QTimer::singleShot(measuring_time*1000, this, SLOT(Stop_Vme()));
+void MainWindow::start_point_daq()
+{
+    switch(shared_memory_cmd[300])
+    {
+    case 0:
+        shared_memory_cmd[300] = 1;
+        shared_memory_cmd[301] = measuring_time;
+        system("./app-modules/digitizer &");
+        QTimer::singleShot(measuring_time * 1000, this, SLOT(stop_point_daq()));
+        break;
+    case 1:
+    case 2:
+        printf("[!] DAQ is already running\n");
+        break;
+    default:
+        break;
     }
-    else qDebug()<<"[!] Acquisition already running";
 }
 
-void MainWindow::Stop_Vme() {
-    tty_send(1,"HLT",NULL,serialX);
-    tty_send(1,"HLT",NULL,serialY);
-    tty_send(1,"HLT",NULL,serialZ);
-    timer->blockSignals(true);
-    timerAutofocus->blockSignals(true);
-
-    if(*(shared_memory_cmd+70)==1) {
-
-        *(shared_memory_cmd+70)=0;
-        *(shared_memory2+9)=0;
-
-        // Somewhere here should be a clause telling  the QTimer in the function above to stop.
-        qDebug()<<"... Saving spectrum into a .txt file";
-
-
+void MainWindow::stop_point_daq()
+{
+    switch(shared_memory_cmd[300])
+    {
+    case 0:
+        printf("[!] Point mode DAQ already off");
+        break;
+    case 1:
+    case 2:
+    {
+        shared_memory_cmd[300] = 0;
         QString file_directory = QFileDialog::getSaveFileName(this,tr("Save as ..."), QDir::currentPath());
 
         QFile file2(file_directory);
@@ -54,7 +44,8 @@ void MainWindow::Stop_Vme() {
         file2.open(QIODevice::ReadWrite);
         QTextStream out2(&file2);
 
-        for(int i=1;i<=16384;i++) {
+        for(int i=1;i<=16384;i++)
+        {
             out2<<*(shared_memory+100+i)<<"\t"<<*(shared_memory+20000+i)<<"\t"<<*(shared_memory+40000+i)<<"\t\n";
             *(shared_memory+100+i)=0;
             *(shared_memory+20000+i)=0;
@@ -62,14 +53,12 @@ void MainWindow::Stop_Vme() {
         }
 
         file2.close();
-        qDebug()<<"... Spectrum succesfully saved";
+        qDebug()<<"... Spectra succesfully saved";
+        break;
     }
-
-    else qDebug()<<"[!] Point mode acquisition already off";
-
-    timer->blockSignals(false);
-    timerAutofocus->blockSignals(false);
-    tcflush(serialK, TCIFLUSH);
+    default:
+        break;
+    }
 }
 
 void MainWindow::ShowHistogram() {
