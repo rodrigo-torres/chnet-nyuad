@@ -4,15 +4,15 @@
 
 extern double X_goto, Y_goto, Z_goto, Px, Py, Pz;
 extern bool XOnTarget,YOntarget, ZOnTarget;
-extern int IniXready, IniYready, IniZready;
+extern int IniXready, IniYready;
 extern int *shared_memory, *shared_memory_cmd;
 extern bool XYscanning, XOnTarget, YOnTarget, ZOnTarget;
 
 extern int serialX,serialY,serialZ;
 extern int send_command(int chan,const char *comando, const char *parametri,int port);
 extern string read_answer(int port);
-extern string read_Yanswer2();
-extern string read_Zanswer2();
+//extern string read_Yanswer2();
+//extern string read_Zanswer2();
 extern int accelerationtime;
 
 
@@ -110,7 +110,7 @@ void MainWindow::Move_down()
     if(YOnTarget==true)
     {
         send_command(1,"POS?",NULL,serialY);
-        posY = read_Yanswer2();
+        posY = read_answer(serialY);
         current_posY =posY.data();
         current_posY.remove(0,2);
         valueY=current_posY.toDouble();
@@ -131,7 +131,7 @@ void MainWindow::Move_up()
     if(YOnTarget==true)
     {
         send_command(1,"POS?",NULL,serialY);
-        posY = read_Yanswer2();
+        posY = read_answer(serialY);
         current_posY =posY.data();
         current_posY.remove(0,2);
         valueY=current_posY.toDouble();
@@ -180,7 +180,7 @@ void MainWindow::Move_backward()
     if(ZOnTarget==true)
     {
         send_command(1,"POS?",NULL,serialZ);
-        posZ = read_Zanswer2();
+        posZ = read_answer(serialZ);
         current_posZ =posZ.data();
         current_posZ.remove(0,2);
         value=current_posZ.toDouble();
@@ -202,7 +202,7 @@ void MainWindow::Move_forward()
     if(ZOnTarget==true)
     {
         send_command(1,"POS?",NULL,serialZ);
-        posZ = read_Zanswer2();
+        posZ = read_answer(serialZ);
         current_posZ =posZ.data();
         current_posZ.remove(0,2);
         value=current_posZ.toDouble();

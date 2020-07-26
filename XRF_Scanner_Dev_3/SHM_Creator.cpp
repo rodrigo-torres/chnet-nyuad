@@ -9,7 +9,7 @@ char*shared_memory5;
 int *shared_memory_cmd, *shared_memory_rate, *shared_memory_laser;
 
 extern int MotoreWindowStatus, CentralWindowStatus;
-extern int portX, portY, portZ, IniX, IniY, IniZ, IniXready, IniYready, IniZready, SerialiStatus, pixel_Xstep, pixel_Ystep, PassoZ;
+extern int portX, portY, portZ, IniX, IniY, IniZ, IniXready, IniYready, SerialiStatus, pixel_Xstep, pixel_Ystep, PassoZ;
 
 template <typename T> T* assignSHM(key_t key, size_t size, int id) {
     int shmID = shmget(key, size, IPC_CREAT | 0666);
@@ -51,11 +51,11 @@ void MainWindow::SHM_CREATOR() {
 
                     *(shared_memory_cmd+20)=IniX;                /// X motor not inited (default=0) initialization in variables.h
                     *(shared_memory_cmd+21)=IniY;                /// Y motor not inited (default=0)
-                    *(shared_memory_cmd+22)=IniZ;                /// Z motor not inited (default=0)
+                    *(shared_memory_cmd+22) = 0;                /// Z motor not inited (default=0)
 
                     *(shared_memory_cmd+30)=IniXready;           /// X motor status (default=0) initialization in variables.h
                     *(shared_memory_cmd+31)=IniYready;           /// Y motor status (default=0)
-                    *(shared_memory_cmd+32)=IniZready;           /// Z motor status (default=0)
+                    //*(shared_memory_cmd+32)= 0;           /// Z motor status (default=0)
 
                     *(shared_memory_cmd+40)=0;                   /// X[point] Position (default=0)
                     *(shared_memory_cmd+41)=0;                   /// Y[point] Position (default=0)

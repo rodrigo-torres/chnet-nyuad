@@ -20,12 +20,15 @@ void MainWindow::Image_Export()
             if(Image_to_save->save(&file)) {
                 file.close();
                 strSaveName.prepend("... File saved in: ");
-                CurrentAction->setText(strSaveName);}
+                //CurrentAction->setText(strSaveName);
+                status->showMessage(strSaveName, 30);
+            }
         }
     }
 
-    else qDebug()<<"... No image loaded";
-    CurrentAction->setText("No image loaded");
+    else //qDebug()<<"... No image loaded";
+    //CurrentAction->setText("No image loaded");
+    status->showMessage("No image loaded", 30);
 }
 
 

@@ -1,34 +1,30 @@
 
 [INFO]: DPPCore.c
 	[0.000]: System Started
-	[0.001]: System connection ready to receive commands
-	[0.001]: Affinity of Main Thread set to CPU 3
-	[0.001]: Waiting for commands...
-	[0.204]: Command 2 received
+	[0.000]: System connection ready to receive commands
+	[0.000]: Affinity of Main Thread set to CPU 3
+	[0.000]: Waiting for commands...
+	[0.203]: Command 2 received
 	
 [INFO]: CAEN_MCA.c
-	[0.204]: Adding Board with USB 0 0 0
-	[0.407]: Connected to DT5780M s.n. 1377 Firmware Release: ROC 04.11 - Build 0921, AMC 128.36 - Build 1303
+	[0.203]: Adding Board with USB 0 0 0
+	[0.406]: Connected to DT5780M s.n. 1377 Firmware Release: ROC 04.11 - Build 0921, AMC 128.36 - Build 1303
 	
 [INFO]: DPPAcqLoopThread.c
-	[2.014]: Creating new Acquisition Thread for board DT5780M_1377 with connParams: Type=USB, L=0, N=0, BA=0x00000000
-	[2.014]: Found 4 CPUs
+	[2.013]: Creating new Acquisition Thread for board DT5780M_1377 with connParams: Type=USB, L=0, N=0, BA=0x00000000
+	[2.013]: Found 4 CPUs
 	
 [INFO]: DPPCore.c
-	[2.014]: ACQLoop 0 Started
+	[2.013]: ACQLoop 0 Started
 	
 [INFO]: DPPAcqLoopThread.c
-	[2.014]: Affinity of ACQLoop 0 set to CPU 0
-	[2.017]: Board 0 added to Thread ACQLoop 0
+	[2.013]: Affinity of ACQLoop 0 set to CPU 0
+	[2.016]: Board 0 added to Thread ACQLoop 0
 	
 [INFO]: DPPCore.c
-	[2.017]: Waiting for commands...
-	[2.034]: Command 41 received
-	[2.085]: Waiting for commands...
-	[2.085]: Command 41 received
-	[2.135]: Waiting for commands...
-	[58.659]: Command 1 received
-	[58.662]: ACQLoop 0 has finished his job.
-	[58.662]: Thread 0 ended
-	[58.663]: System Quitting
+	[2.016]: Waiting for commands...
+	[2.033]: Command 41 received
+	[2.083]: Waiting for commands...
+	[2.083]: Command 41 received
+	[2.134]: Waiting for commands...
 	

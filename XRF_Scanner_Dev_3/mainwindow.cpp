@@ -3,6 +3,7 @@
 #include "../variables.h"
 #include "../QT_variables.h"
 #include <../Shm.h>
+#include <QThread>
 
 extern int shmid[];
 extern int Resolution_mode;
@@ -25,7 +26,7 @@ int i=0;                     int j=0;                 int n=1;                  
 int Pixeldim=1;              int EventOffset=0;       int nz=1;                  int missing=1;           int measuring_time=300;
 int OffsetX;                 int OffsetY;             int NshiftY=0;             int onlyOne=0;           int NshiftX=0;/////o 1???
 int point;                   int Clock=0;             int Clock2=0;              int ClockMotore=0;       int ClockZ=0;
-int casenumber=4;            int interval=100;        int NscanX=0;              int NscanY=0;            int StoredPoint=0;  
+int casenumber=4;            int interval = 250;        int NscanX=0;              int NscanY=0;            int StoredPoint=0;
 int eventionline=0;          int m=1;
 
 double positionX=100;        double valueY;           double ZPosition=25.0;    double tempoPos=1000;     double V=1;
@@ -56,6 +57,11 @@ int nxInit=0, nyInit=0, nzInit=0; // used for motor initialisation
 double ChMin1=0, ChMax1=0, ChMin2=0, ChMax2=0, ChMin3=0, ChMax3=0;
 
 
+QString stylesheet3 = "QLineEdit {background-color: #2DC937; font-weight: bold; color: white;}";
+
+
+
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
     PixelX=595;
@@ -72,16 +78,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     QImage image1("IMG/TT_CHNet_res1.png");
     imageLabel->setPixmap(QPixmap::fromImage(image1));
     imageLabel->setBackgroundRole(QPalette::Base);
-    imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    imageLabel->setScaledContents(true);
+    //imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    //imageLabel->setScaledContents(true);
 
     scrollArea = new QScrollArea(centralWidget);
     scrollArea->setBackgroundRole(QPalette::Dark);
     scrollArea->setWidget(imageLabel);
+    //scrollArea->setAlignment(Qt::AlignVCenter);
+    //scrollArea->setAlignment(Qt::AlignHCenter);
     scrollArea->setGeometry(QRect(18, 15, 600, 600));
-    scrollArea->setMinimumSize(QSize(600, 600));
-    scrollArea->setMaximumSize(QSize(600, 600));
-
 
     timer = new QTimer(this);                                                // TIMER for program control
     connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
@@ -98,7 +103,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //                                MAINWINDOW: FURTHER ACTIONS
-//                                
+//
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::Changeparameters()
@@ -152,16 +157,14 @@ void MainWindow::readmultidetcalpar() {
 
 void MainWindow::SetCurrentAction(QString text)  // SET INFO ON BAR
 {
-    CurrentAction->setText(text);
+    //CurrentAction->setText(text);
 }
 
 
-void MainWindow::hideImage()  // MANAGE IMAGE IN SCROLL AREA
-{
-    if(MapIsOpened==true)
-    {
-        QImage startimage("IMG/TT_CHNet_extended_395_395_3.png");
-        imageLabel->setPixmap(QPixmap::fromImage(startimage));
+void MainWindow::hideImage() {
+    if (MapIsOpened) {
+        //QImage startimage("IMG/TT_CHNet_extended_395_395_3.png");
+        //imageLabel->setPixmap(QPixmap::fromImage(startimage));
         MapIsOpened=false;
     }
 }
@@ -176,12 +179,13 @@ void MainWindow::hideImage()  // MANAGE IMAGE IN SCROLL AREA
 
 void MainWindow::timerEvent() {
 
+    //QEventLoop loop;
     //ClockMotore++;
     //if(YXscanning)ScanYX();
+    if (InitZ && !AutofocusOn)CheckZOnTarget();
     if (InitX)CheckXOnTarget();
     if (InitY)CheckYOnTarget();
     if (XYscanning)ScanXY();
-    if (InitZ)CheckZOnTarget();
     //if(AutofocusOn)AutoFocusRunning();
     MoveDoubleClick();
     CheckSegFault();
@@ -228,41 +232,6 @@ string read_answer(int port)                                                    
 
 
 
-string read_Yanswer2()                                                     // Y MOTOR: READ ANSWER STRING
-{
-    char cy[100];
-    int ny=0;
-    string resty;
-    string Yread;
-    while((ny=read(serialY, &cy, sizeof(cy)))>0)
-    {
-        cy[ny]=0;
-        resty=resty+cy;
-        if(cy[ny-1]=='\n')
-            break;
-    }
-    Yread =resty;
-    return Yread;
-}
-
-string read_Zanswer2()                                                     // Z MOTOR: READ ANSWER STRING
-{
-    char cz[100];
-    int nz=0;
-    string restz;
-    string Zread;
-    while((nz=read(serialZ, &cz, sizeof(cz)))>0)
-    {
-        cz[nz]=0;
-        restz=restz+cz;
-        if(cz[nz-1]=='\n')
-            break;
-    }
-    Zread =restz;
-    return Zread;
-}
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //                                MOTORS: CHECK_ON_TARGET
@@ -271,12 +240,11 @@ string read_Zanswer2()                                                     // Z 
 
 
 void MainWindow::CheckXOnTarget() {
-
-    string a;
+    QString posLabelX = "Stage X: ";
     send_command(1,"ONT?",NULL,serialX);
-    a=read_answer(serialX);
-    QString Qa=a.data();
 
+    string a = read_answer(serialX);
+    QString Qa = a.data();
     if ( Qa.contains("0", Qt::CaseInsensitive) == false ) {
 
         XOnTarget=true;
@@ -294,81 +262,68 @@ void MainWindow::CheckXOnTarget() {
     }
     
     send_command(1,"POS?",NULL,serialX);
-    checkX = read_answer(serialX);
-    NowX="X= ";
-    NowX.append(checkX.data());
-    NowX.remove(3,2);
-    X_POSITION_lineEdit->setText(NowX);
+    string temp = read_answer(serialX);
+
+    posLabelX.append(temp.data());
+    posLabelX.append(" mm");
+    posLabelX.remove(9,2);
+    CurrentActionX->setText(posLabelX);
+    CurrentActionX->setStyleSheet(stylesheet3);
 }
 
 
-void MainWindow::CheckYOnTarget()                                           // Y MOTOR: CHECK_ON_TARGET
-{
-    string ay;
+void MainWindow::CheckYOnTarget()  {
+    QString posLabelY = "Stage Y: ";
     send_command(1,"ONT?",NULL,serialY);
-    ay=read_Yanswer2();
-    QString Qay=ay.data();
-    if(Qay.contains("0", Qt::CaseInsensitive)==false) // also 1=0 can be used
-    {
-        YOnTarget=true; Ymoving=false;
-        if(InitPhaseY)
-        {
-            if(nyInit==0)
-            {
-                nyInit=1;
-                qDebug()<<"... Y motor initialized\n";
-                IniY=0; IniYready=1;
-            }
+
+    string a = read_answer(serialY);
+    QString Qa = a.data();
+    if ( Qa.contains("0", Qt::CaseInsensitive) == false ) {
+        YOnTarget=true;
+        Ymoving=false;
+        if(InitPhaseY && nyInit == 0) {
+            nyInit=1;
+            qDebug()<<"... Y motor initialized\n";
+            IniY=0; IniYready=1;
         }
     }
-    else
-    {
+    else {
         YOnTarget=false;
         Ymoving=true;
     }
+
     send_command(1,"POS?",NULL,serialY);
-    checkY = read_Yanswer2();
-    NowY="Y= ";
-    NowY.append(checkY.data());
-    NowY.remove(3,2);
-    Y_POSITION_lineEdit->setText(NowY);
+    string temp = read_answer(serialY);
+
+    posLabelY.append(temp.data());
+    posLabelY.append(" mm");
+    posLabelY.remove(9,2);
+    CurrentActionY->setText(posLabelY);
+    CurrentActionY->setStyleSheet(stylesheet3);
 }
 
 
-void MainWindow::CheckZOnTarget()                                           // Z MOTOR: CHECK_ON_TARGET
-{
-    string az;
+void MainWindow::CheckZOnTarget() {
     send_command(1,"ONT?",NULL,serialZ);
-    az=read_Zanswer2();
-    QString Qaz=az.data();
-    if(Qaz.contains("0", Qt::CaseInsensitive)==false) // also 1=0 can be used
-    {
-        ZOnTarget=true;
-        Zmoving=false;
-        if(InitPhaseZ)
-        {
-            if(nzInit==0)
-            {
-                nzInit=1;
-                qDebug()<<"... Z motor initialized\n";
-                IniZ=0; IniZready=1;
-            }
-        }
-    }
-    else
-    {
-        ZOnTarget=false;
-        Zmoving=true;
-    }
-    send_command(1,"POS?",NULL,serialZ);
-    checkZ = read_answer(serialZ);
-    NowZ="Z= ";
-    NowZ.append(checkZ.data());
-    NowZ.remove(3,2);
 
-    lineEdit_below_tab->setText(NowZ);
-    NowZ.remove(0,3);
-    ZPosition=NowZ.toDouble();
+    string ans= read_answer(serialZ);
+    QString a = ans.data();
+    if (a.contains("0", Qt::CaseInsensitive) == false) ZOnTarget = true;
+    else ZOnTarget = false;
+
+    send_command(1,"POS?",NULL,serialZ);
+    string temp = read_answer(serialZ);
+    QString store = QString::fromStdString(temp);
+    store.remove(0,2);
+    ZPosition = store.toDouble();
+    //qDebug()<<ZPosition;
+
+    QString posLabelZ = "Stage Z: ";
+    posLabelZ.append(temp.data());
+    posLabelZ.append(" mm");
+    posLabelZ.remove(9,2);
+    CurrentActionZ->setText(posLabelZ);
+    CurrentActionZ->setStyleSheet(stylesheet3);
 
 }
 
@@ -495,7 +450,7 @@ void MainWindow::StopZ()                                            // MOTOR STO
 {
     send_command(1,"HLT",NULL,serialZ);
     send_command(1,"ERR?",NULL,serialZ);
-    checkZ = read_Zanswer2();
+    checkZ = read_answer(serialZ);
 }
 
 
@@ -669,18 +624,16 @@ void MainWindow::Pixels()                                         // PIXEL: SET 
 }
 
 
-void MainWindow::Treshold()                                         // SPECTRUM: LOW TRESHOLD SELECTION
-{
-    int low_treshold;
-    bool ok3;
-    low_treshold = QInputDialog::getInt(this, tr("Low Treshold Level (ch)"),
-                                        tr("Low Ch:"),0, 0, 400, 1, &ok3);
-    if(ok3)
-    {
-        qDebug()<<"Low Channel set to ="<<low_treshold<<'\n';
-        *(shared_memory+40)=low_treshold;
-    }
-}
+//void MainWindow::Treshold() { // Spectrum threshold selection
+//    bool ok3;
+//    int low_treshold = QInputDialog::getInt(this, tr("Low Treshold Level (ch)"),
+//                                        tr("Low Ch:"),0, 0, 400, 1, &ok3);
+//    if(ok3)
+//    {
+//        qDebug()<<"Low Channel set to ="<<low_treshold<<'\n';
+//        *(shared_memory+40)=low_treshold;
+//    }
+//}
 
 
 
@@ -874,14 +827,19 @@ void MainWindow::LoadTxt()  { // Writes values of binary file into shared memory
 
 void MainWindow::SaveTxt() { //scrive Position.txt leggendo i dati in memoria
 
+    send_command(1,"HLT",NULL,serialX);
+    send_command(1,"HLT",NULL,serialY);
+    send_command(1,"HLT",NULL,serialZ);
+    timer->blockSignals(true);
+    timerAutofocus->blockSignals(true);
+
     QString saveDir = "/home/frao/Desktop/XRFData";
     QString percorso = QFileDialog::getSaveFileName(this,tr("Save as"), saveDir);
     QFile file2(percorso);
     qDebug()<<"Inizio creazione di" <<percorso<<"\n";
     file2.open(QIODevice::ReadWrite);
     QTextStream out2(&file2);
-    int Ntot=*(shared_memory2+4);    //// Numero dati in memoria
-    // qDebug()<<"Ntot="<<Ntot<<"\n";
+    int Ntot = *(shared_memory2+4);
     out2<<"ver.001"<<'\n';
     out2<<*(shared_memory_cmd+50)<<'\n';//writes Xmin
     out2<<*(shared_memory_cmd+51)<<'\n';//writes Xmax
@@ -890,13 +848,15 @@ void MainWindow::SaveTxt() { //scrive Position.txt leggendo i dati in memoria
     out2<<*(shared_memory_cmd+60)<<'\n';//writes Xstep
     out2<<*(shared_memory_cmd+61)<<'\n';//writes Ystep
     out2<<*(shared_memory_cmd+67)<<'\n';//writes the scan velocity
-    for(int i=1;i<=Ntot;i++)
-    {
+    for (int i = 1; i <= Ntot; i++) {
         out2<<*(shared_memory2+10+i)<<'\n';
-        //qDebug()<<"data:"<<*(shared_memory2+10+i)<<"\n";
     }
     file2.close();
     qDebug()<<" ....file saved in: "<<percorso;
+
+    timer->blockSignals(false);
+    timerAutofocus->blockSignals(false);
+    tcflush(serialK, TCIFLUSH);
 }
 
 void MainWindow::MergeTxt()  //carica File.txt in memoria
@@ -944,7 +904,7 @@ void MainWindow::Abort() {
 void MainWindow::AbortZ() {
     send_command(1,"HLT",NULL,serialZ);
     send_command(1,"ERR?",NULL,serialZ);
-    checkZ = read_Zanswer2();
+    checkZ = read_answer(serialZ);
 }
 
 

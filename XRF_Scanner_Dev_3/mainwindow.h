@@ -76,6 +76,8 @@ public:
     static void sleep(unsigned long secs){QThread::sleep(secs);}
 };
 
+class timerController;
+class timerHandler;
 
 
 
@@ -116,6 +118,7 @@ public:
     //void LoadNewFileWithCorrection_SHM();
     void LoadNewFileWithNoCorrection_SHM();
 
+    friend class timerHandler;
 
     QTabWidget *tabWidget;
     QWidget *tab;
@@ -166,7 +169,7 @@ private slots:
     void Autofocus2();
     void openDPPInter();
     void Detector();
-    void Laser_interface();
+    //void Laser_interface();
     void Helium_interface();
     void VLC_interface();
     void caenoscilloscope();
@@ -350,11 +353,11 @@ private:
     QPushButton *XRAY_TABLE_Button;
 
     QPushButton *Digitizer_Button;
-    QPushButton *Detector_Button;
+    //QPushButton *Detector_Button;
     QPushButton *Export_Button;
     QPushButton *VLC_Button;
-    QPushButton *LASER_Button;
-    QPushButton *SW_treshold_Button;
+    //QPushButton *LASER_Button;
+    //QPushButton *SW_treshold_Button;
 
     QLabel *DAQ_label;
     QLabel *TTY_label;
@@ -390,7 +393,7 @@ private:
 
     QPushButton *pushButton_2_tab_4;
     QCheckBox *checkBox_3_tab_4;
-    QLabel *label_23_tab_4;
+    //QLabel *label_23_tab_4;
     QLineEdit *lineEdit_2_tab_4;
     QCheckBox *checkBox_tab_4;
 
@@ -480,13 +483,15 @@ private:
     QTimer *timerPos;
     QTimer *timerS;
 
+    QStatusBar *status;
+
     ///////////////////////////// From Motore_Z.h
 
 
 public slots:
 
     void LoadSHM_SumMap();
-    void Treshold();
+    //void Treshold();
 
     void Zminimo(double);
     void Zmassimo(double);
@@ -512,9 +517,9 @@ public slots:
 
     ///////////////////////// LASER
     //       void Laser();
-    void Laser_switching();
-    void LaserOn();
-    void LaserOff();
+//    void Laser_switching();
+//    void LaserOn();
+//    void LaserOff();
 
     //////////////////////////////
 
@@ -540,7 +545,7 @@ private:
     QPushButton *MOVE_Z_FORWARD_pushButton;
     QPushButton *MOVE_Z_BACKWARD_pushButton;
     QPushButton *STOP_Z_MOVE_pushButton;
-    QPushButton *AUTOFOCUS_ON_pushButton;
+    QCheckBox *AUTOFOCUS_ON_pushButton;
     QCheckBox *AUTOFOCUS_STATUS_checkBox;
     QCheckBox *ENABLE_TRACKING_checkBox;
 

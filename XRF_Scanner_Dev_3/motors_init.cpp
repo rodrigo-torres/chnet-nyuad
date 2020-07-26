@@ -11,7 +11,7 @@ extern bool TimerActive;
 extern bool okX,okY,okZ;
 extern bool InitX,InitY,InitZ;
 extern bool InitPhaseX,InitPhaseY,InitPhaseZ;
-extern bool XConnected,Xmoving,YConnected,Ymoving,ZConnected,Zmoving;
+extern bool XConnected,Xmoving,YConnected,Ymoving,ZConnected, ZOnTarget;
 
 // These are global variables that specify the file descriptors for the USB ports and the type of motors used.
 extern int serialX,serialY,serialZ;
@@ -232,19 +232,16 @@ void MainWindow::movetoref_Ymotor(float refpositionY)
     return;
 }
 
-void MainWindow::movetoref_Zmotor(float refpositionZ)
-{
+void MainWindow::movetoref_Zmotor(float refpositionZ) {
     char sz[100];
     sprintf(sz,"%f",refpositionZ);
     send_command(1,"MOV",sz,serialZ);
-
-    CheckZOnTarget();
     Sleeper::msleep(100);
-    while(Zmoving)
-    {
+
+    do  {
         CheckZOnTarget();
         Sleeper::msleep(100);
-    }
+    } while (!ZOnTarget);
     return;
 }
 
@@ -257,11 +254,13 @@ void MainWindow::Init_Xmotor()
     bool valid_Xmotor=false;
     switch (selected_Xmotor) {
     case 3:
-        CurrentAction->setText("Initializing: M-404.8PD - 200mm");
+        //CurrentAction->setText("Initializing: M-404.8PD - 200mm");
+        status->showMessage("Initializing: M-404.8PD - 200mm", 60);
         valid_Xmotor = loadparam_M404_8pd(serialX);
         break;
     default:
-        CurrentAction->setText("Initializing: M-404.8PD - 200mm");
+        //CurrentAction->setText("Initializing: M-404.8PD - 200mm");
+        status->showMessage("Initializing: M-404.8PD - 200mm", 60);
         valid_Xmotor = loadparam_M404_8pd(serialX);
         break;
     }
@@ -377,11 +376,13 @@ void MainWindow::Init_Ymotor()
     bool valid_Ymotor=false;
     switch (selected_Ymotor) {
     case 3:
-        CurrentAction->setText("Initializing: M-404.8PD - 200mm");
+        //CurrentAction->setText("Initializing: M-404.8PD - 200mm");
+        status->showMessage("Initializing: M-404.8PD - 200mm", 60);
         valid_Ymotor = loadparam_M404_8pd(serialY);
         break;
     default:
-        CurrentAction->setText("Initializing: M-404.8PD - 200mm");
+        //CurrentAction->setText("Initializing: M-404.8PD - 200mm");
+        status->showMessage("Initializing: M-404.8PD - 200mm", 60);
         valid_Ymotor = loadparam_M404_8pd(serialY);
         break;
     }
@@ -495,11 +496,13 @@ void MainWindow::Init_Zmotor()
     bool valid_Zmotor=false;
     switch (selected_Zmotor) {
     case 1:
-        CurrentAction->setText("Initializing: M-404.2PD - 200mm");
+        //CurrentAction->setText("Initializing: M-404.2PD - 200mm");
+        status->showMessage("Initializing: M-404.2PD - 200mm", 60);
         valid_Zmotor = loadparam_M404_2pd(serialZ);
         break;
     default:
-        CurrentAction->setText("Initializing: M-404.2PD - 200mm");
+       //CurrentAction->setText("Initializing: M-404.2PD - 200mm");
+        status->showMessage("Initializing: M-404.2PD - 200mm", 60);
         valid_Zmotor = loadparam_M404_2pd(serialZ);
         break;
     }
@@ -520,8 +523,7 @@ void MainWindow::Init_Zmotor()
         CheckZOnTarget();
         Sleeper::msleep(50);
 
-        while(Zmoving)
-        {
+        while(!ZOnTarget) {
             CheckZOnTarget();
             Sleeper::msleep(100);
         }
@@ -536,58 +538,44 @@ void MainWindow::Init_Zmotor()
         switch (selected_Zmotor) {
         case 1:
             movetoref_Zmotor(25.0000);
-            break;
-        case 2:
-            movetoref_Zmotor(50.0000);
-            break;
-        case 3:
-            movetoref_Zmotor(100.0000);
-            break;
-        default:
-            movetoref_Zmotor(25.0000);
-            break;
-        }
-
-        switch (selected_Zmotor) {
-        case 1:
-            //"M404-2PD" 50mm
             MOVE_Z_To_doubleSpinBox->setMaximum(50);
             MOVE_Z_To_doubleSpinBox->setValue(25);
             break;
         case 3:
-            //"M404-8PD" 200mm code:
+            movetoref_Zmotor(100.0000);
             MOVE_Z_To_doubleSpinBox->setMaximum(200);
             MOVE_Z_To_doubleSpinBox->setValue(100);
             break;
         default:
-            //"VT80-100" 100mm code: 62309140
+            movetoref_Zmotor(25.0000);
             MOVE_Z_To_doubleSpinBox->setMaximum(50);
             MOVE_Z_To_doubleSpinBox->setValue(25);
             break;
         }
 
+
         tab_3->setEnabled(true);
         InitZ=true;
-        InitPhaseZ=true;
-        if(TimerActive==false)
-        {
+        //InitPhaseZ=true;
+        if (!TimerActive) {
             timer->start(interval);
-            TimerActive=true;
+            TimerActive = true;
         }
         okZ=false;
     }
 
-    else
-    {
+    else {
+        okZ = false;
+        valid_Zmotor = false;
         qDebug()<<"... Motor selection not valid or driver missing";
-        valid_Zmotor=false;
-        okZ=false;
     }
 
     pushButton_tab_2_2X->setEnabled(true); // re-enabling X and Y init button
     pushButton_tab_2_2Y->setEnabled(true);
     tab_2->setEnabled(true);
     INIT_Z_pushButton->setEnabled(false);
+
+    printf("... Z-axis stage initialized\n");
 }
 
 

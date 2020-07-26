@@ -9,8 +9,7 @@ void MainWindow::CONNECTIONS_CREATOR()
 /////////////// TABWIDGET2 TAB1 ASSIGN X & Y PORTS
 
 
-     connect(pushButton_assignX_port, SIGNAL(released()),
-            this, SLOT(AssignX()));
+     connect(pushButton_assignX_port, SIGNAL(released()), this, SLOT(AssignX()));
 
      connect(spinBox_assignX, SIGNAL(valueChanged(int)), 
           this, SLOT(NameX(int)));
@@ -113,11 +112,9 @@ void MainWindow::CONNECTIONS_CREATOR()
 
      connect(STOP_Z_MOVE_pushButton, SIGNAL(clicked()), this, SLOT(StopZ())); 
 
-     connect(AUTOFOCUS_ON_pushButton, SIGNAL(released()),
-            this, SLOT(Autofocus2()));
+     connect(AUTOFOCUS_ON_pushButton, SIGNAL(clicked()), this, SLOT(Autofocus2()));
 
-     connect(ENABLE_TRACKING_checkBox, SIGNAL(clicked()),
-            this, SLOT(TrackingON()));
+     connect(ENABLE_TRACKING_checkBox, SIGNAL(clicked()), this, SLOT(TrackingON()));
 
      //connect(Z_VELOCITY_doubleSpinBox, SIGNAL(valueChanged(double)),this, SLOT(VelocityZ(double)));
      
@@ -136,7 +133,7 @@ void MainWindow::CONNECTIONS_CREATOR()
 
 //////////////////////////////////////////////////////////
 
-     connect(SW_treshold_Button, SIGNAL(clicked()), this, SLOT(Treshold()));
+     //connect(SW_treshold_Button, SIGNAL(clicked()), this, SLOT(Treshold()));
 
 
 

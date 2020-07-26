@@ -1,21 +1,16 @@
-// ALL external Programs
-//
-// Index:
-//
-
-#include "mainwindow.h"
+﻿#include "mainwindow.h"
 #include "../Header.h"
 
-extern int *shared_memory;   extern int *shared_memory2;    extern int *shared_memory_cmd;
-extern int measuring_time;   extern int DAQ_TYPE;
+
 extern bool CameraOn;
+extern int measuring_time;   extern int DAQ_TYPE;
+extern int *shared_memory_cmd, *shared_memory, *shared_memory2;
 
-char process_daq[30];
 
 
-
-//////////////////////////////////////////////////////////////////// DAQ START and STOP
-
+extern bool AutofocusOn;
+extern int serialX, serialY, serialZ, serialK;
+extern int send_command(int chan,const char *comando, const char *parametri, int port);
 
 void MainWindow::StartVme() {
 
@@ -40,6 +35,11 @@ void MainWindow::StartVme() {
 }
 
 void MainWindow::Stop_Vme() {
+    send_command(1,"HLT",NULL,serialX);
+    send_command(1,"HLT",NULL,serialY);
+    send_command(1,"HLT",NULL,serialZ);
+    timer->blockSignals(true);
+    timerAutofocus->blockSignals(true);
 
     if(*(shared_memory_cmd+70)==1) {
 
@@ -69,10 +69,12 @@ void MainWindow::Stop_Vme() {
     }
 
     else qDebug()<<"[!] Point mode acquisition already off";
+
+    timer->blockSignals(false);
+    timerAutofocus->blockSignals(false);
+    tcflush(serialK, TCIFLUSH);
 }
 
-
-//////////////////////////////////////////////////////////////////// HISTOGRAM
 void MainWindow::ShowHistogram() {
     if ( *(shared_memory_cmd+71) == 0 ) {
         system("./XRF & ");
@@ -82,9 +84,8 @@ void MainWindow::ShowHistogram() {
         qDebug()<<"[!] XRF histogram window already opened";
     }
 }
-//////////////////////////////////////////////////////////////////// RATEMETER
-void MainWindow::RateMeter()
-{
+
+void MainWindow::RateMeter() {
     if(*(shared_memory_cmd+73)==0)
     {
         system("./rate & ");
@@ -93,7 +94,7 @@ void MainWindow::RateMeter()
     else
         qDebug()<<"Ratemeter alreay opened!\n";
 }
-//////////////////////////////////////////////////////////////////// XRAY TABLE
+
 void MainWindow::XrayTable()                                        
 {  
     if(*(shared_memory_cmd+74)==0)
@@ -103,57 +104,39 @@ void MainWindow::XrayTable()
     }
     else qDebug()<<"[!] X-Ray table window already opened";
 }
-//////////////////////////////////////////////////////////////////// HELIUM INTERFACE
-void MainWindow::Helium_interface()                                  
-{
-    QMessageBox msgBox;
-    msgBox.setText("GAS INTERFACE not implemented.... work in progress");
-    msgBox.exec();
-}
-//////////////////////////////////////////////////////////////////// CAEN OSCILLOSCOPE
-void MainWindow::caenoscilloscope()                                   
-{
-}
-//////////////////////////////////////////////////////////////////// DIGITISER INTERFACE
+
+
 void MainWindow::openDPPInter() {
     if (*(shared_memory_cmd+72) == 0) {
         d_guiDPP =  new MainWindowDPP();
-
-        d_guiDPP->resize(580,370);
-        d_guiDPP->setMinimumSize(580,370);
-        d_guiDPP->setMaximumSize(580,370);
+        d_guiDPP->setFixedSize(580,370);
         d_guiDPP->setWindowTitle("Digitizer Settings");
         d_guiDPP->show();
-        *(shared_memory_cmd+72)=1; // DPP interface active
+
+        *(shared_memory_cmd+72) = 1; // DPP interface active
     }
-    else {
-        qDebug()<<"[!] DPP window already opened";
-    }
+    else qDebug()<<"[!] DPP window already opened";
 }
 
-
-
-////////////////////////////////////////////////////////////////////  DETECTOR INTERFACE
-void MainWindow::Detector()          
-{
-    system("gnome-terminal -x sh -c  'HV_SDD;  bash' &");
+void MainWindow::Detector() {
 }
-//////////////////////////////////////////////////////////////////// VLC INTERFACE 
-void MainWindow::VLC_interface()                              
-{
-    if(CameraOn) {system("pkill -9 vlc &"); CameraOn=false;}
+
+void MainWindow::VLC_interface() {
+    if (CameraOn) {system("pkill -9 vlc &"); CameraOn=false;}
     else {system("vlc & "); CameraOn=true;}
 }
 
-
-
-
-void MainWindow::TreD()
-{;
+void MainWindow::Helium_interface() {
 }
 
-void MainWindow::DueD()
-{;
+void MainWindow::caenoscilloscope() {
+}
+
+
+void MainWindow::TreD() {
+}
+
+void MainWindow::DueD() {
 }
 
 
