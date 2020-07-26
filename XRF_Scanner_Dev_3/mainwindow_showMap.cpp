@@ -64,16 +64,17 @@ void MainWindow::displayImage_SHM() {
 
             Define_Pixels(); //definisce quelli che dovranno essere colorati in base a Pixeldim...ci si accede con Pointer
 
-            MinX = Pointer[0].total[0].point_x;
-            MinY = Pointer[0].total[0].point_y;
-            MaxX = Pointer[point-1].total[Pixeldim - 1].point_x;
-            MaxY = Pointer[point-1].total[Pixeldim - 1].point_y;
 
-            qDebug()<<MinX<<" "<<MinY<<" "<<MaxX<<" "<<MaxY;
+            //MinX = Pointer[0].total[0].point_x;
+            //MinY = Pointer[0].total[0].point_y;
+            MaxY = Pointer[point - 1].total[Pixeldim - 1].point_y;
+            MaxX = (point * (Pixeldim * Pixeldim)) / (MaxY + 1);
+//            if ((MaxY / Pixeldim) % 2 == 1) { // The last pixel is on the left-limit (so at zero)
+//                MaxX = Pointer[temp].total[0].point_x;
+//            }
+//            else MaxX = Pointer[point - 1].total[Pixeldim - 1].point_x;
 
-            MyImage = new QImage(MaxX-MinX+Pixeldim, MaxY-MinY+1, QImage::Format_RGB32);
-            //MyImage->fill(QColor(Qt::black).rgb());
-
+           MyImage = new QImage(MaxX, MaxY+1, QImage::Format_RGB32);
 
             double frac=0.33333333;
             for ( int current = 0; current < point; current++ ) {
@@ -103,6 +104,9 @@ void MainWindow::displayImage_SHM() {
                 }
 
             }
+            qDebug()<<MinX<<" "<<MaxX<<" "<<MinY<<" "<<MaxY;
+
+
 
             QLabel *mapLabel = new ImgLabel;
             mapLabel->setPixmap(QPixmap::fromImage(*MyImage));

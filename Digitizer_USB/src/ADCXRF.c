@@ -28,6 +28,8 @@
 #include <../../Shm.h>
 #include <../../variables.h>
 
+
+
 #define MAXNB   1
 #define MAXNBITS 14
 #define MaxNChannels 2
@@ -168,9 +170,10 @@ int ProgramDigitizer(int handle, DigitizerParams_t Params, CAEN_DGTZ_DPP_PHA_Par
     }
 
     else {
+        uint32_t offset[2] = {32768, 32768};
         for(int i=0; i<MaxNChannels; i++) {
             if (Params.ChannelMask & (1<<i)) {
-                ret |= CAEN_DGTZ_SetChannelDCOffset(handle, i, 19661);
+                ret |= CAEN_DGTZ_SetChannelDCOffset(handle, i, offset[i]);
                 ret |= CAEN_DGTZ_SetDPPPreTriggerSize(handle, i, 500);
                 ret |= CAEN_DGTZ_SetChannelPulsePolarity(handle, i, Params.PulsePolarity);
             }
@@ -188,13 +191,15 @@ int ProgramDigitizer(int handle, DigitizerParams_t Params, CAEN_DGTZ_DPP_PHA_Par
     *        INPUT RANGE         *
     \****************************/
 
-    if (*(shared_memory4+15) != 1) // To load pre-defined values
+    if (*(shared_memory4+15) != 1) { // To load pre-defined values
+        CAENDPP_InputRange_t inRange[2] = { CAENDPP_InputRange_9_5Vpp, CAENDPP_InputRange_9_5Vpp };
         for (ch = 0; ch < MaxNChannels; ch++) {
-            if ((ret = CAENDPP_SetInputRange(handledpp, ch, CAENDPP_InputRange_0_6Vpp)) != 0)
-                printf("[!] Can't set InputRange for channel %d, error %d\n",ch,ret);
+        	ret = CAENDPP_SetInputRange(handledpp, ch, inRange[ch]);
+            if (ret != 0) printf("[!] Can't set InputRange for channel %d, error %d\n",ch,ret);
         }
+    }
     else {
-        CAENDPP_InputRange_t inRange;
+	CAENDPP_InputRange_t inRange;
         if (*(shared_memory4+1) == 0 || NULL) inRange = CAENDPP_InputRange_0_6Vpp;
         else if (*(shared_memory4+1) == 1) inRange = CAENDPP_InputRange_1_4Vpp;
         else if (*(shared_memory4+1) == 2) inRange = CAENDPP_InputRange_3_7Vpp;
@@ -232,7 +237,6 @@ int main(int argc, char *argv[]) {
         *(shared_memory+100+w)=0;
         *(shared_memory+20000+w)=0;
         *(shared_memory+40000+w)=0;
-        //if ( w == 0 ) printf("%d %d %d\n", *(shared_memory+100+w), *(shared_memory+20000+w), *(shared_memory+40000+w));
     }
 
     for (int w = 0; w < *(shared_memory2+4); w++) *(shared_memory2+11+w)=0; // Clears loadSHM array for scan files
@@ -268,12 +272,15 @@ int main(int argc, char *argv[]) {
     /* Signals handling */
     /********************/
 
+
+
     sigact.sa_handler=termination;
     sigemptyset(&sigact.sa_mask);
     sigact.sa_flags=0;
     sigaction(SIGTERM,&sigact,NULL);
     sigaction(SIGINT,&sigact,NULL);
     sigaction(SIGQUIT,&sigact,NULL);
+
 
     // Dereferences from shared memory the scanning variable values
     int Xmin_adc = *(shared_memory_cmd+50);
@@ -370,35 +377,35 @@ int main(int argc, char *argv[]) {
 
         if (*(shared_memory4+15) != 1) { // To load pre-defined values
             /* Trigger and shaping paramters for channel 0 */
-            DPPParams[b].thr[0] = 400;// Trigger Threshold
-            DPPParams[b].k[0] =  1000;// Trapezoid Rise Time (ns)
+            DPPParams[b].thr[0] = 500;// Trigger Threshold
+            DPPParams[b].k[0] =  1500;// Trapezoid Rise Time (ns)
             DPPParams[b].m[0] = 1000;// Trapezoid Flat Top  (ns)
             DPPParams[b].M[0] = 3500;// Decay Time Constant (ns)
             DPPParams[b].ftd[0] = 600;// Peaking delay  (ns)
-            DPPParams[b].a[0] = 32; // Trigger Filter smoothing factor
-            DPPParams[b].b[0] = 200; // Delay(b)
+            DPPParams[b].a[0] = 2; // Trigger Filter smoothing factor
+            DPPParams[b].b[0] = 100; // Delay(b)
             DPPParams[b].trgho[0] = 1300;// Trigger Hold Off
             DPPParams[b].nsbl[0] = 6;// Baseline mean del trapezio (ordine di comparsa nel menu)
-            DPPParams[b].nspk[0] = 3;// Peak mean (ordine di comparsa nel menu)
+            DPPParams[b].nspk[0] = 2;// Peak mean (ordine di comparsa nel menu)
             DPPParams[b].pkho[0] = 1100;// Peak holdoff
-            DPPParams[b].blho[0] = 3100;// Baseline holdoff del trapezio
+            DPPParams[b].blho[0] = 1100;// Baseline holdoff del trapezio
             DPPParams[b].enf[0] = 1;// Energy Normalization Factor
             DPPParams[b].dgain[0] = 0;//Digital Gain (ordine di comparsa nel menu)
             DPPParams[b].decimation[0] = 0;// Decimation
 
             /* Trigger and shaping paramters for channel 1 */
-            DPPParams[b].thr[1] = 1000;// Trigger Threshold
-            DPPParams[b].k[1] =  1000;// Trapezoid Rise Time (ns)
+            DPPParams[b].thr[1] = 250;// Trigger Threshold
+            DPPParams[b].k[1] =  1500;// Trapezoid Rise Time (ns)
             DPPParams[b].m[1] = 1000;// Trapezoid Flat Top  (ns)
-            DPPParams[b].M[1] = 8500;// Decay Time Constant (ns)
-            DPPParams[b].ftd[1] = 500;// Peaking delay  (ns)
-            DPPParams[b].a[1] = 1; // Trigger Filter smoothing factor
-            DPPParams[b].b[1] = 200; // Delay(b)
-            DPPParams[b].trgho[1] = 1100;// Trigger Hold Off
+            DPPParams[b].M[1] = 8000;// Decay Time Constant (ns)
+            DPPParams[b].ftd[1] = 600;// Peaking delay  (ns)
+            DPPParams[b].a[1] = 2; // Trigger Filter smoothing factor
+            DPPParams[b].b[1] = 100; // Delay(b)
+            DPPParams[b].trgho[1] = 1300;// Trigger Hold Off
             DPPParams[b].nsbl[1] = 6;// Baseline mean del trapezio (ordine di comparsa nel menu)
-            DPPParams[b].nspk[1] = 3;// Peak mean (ordine di comparsa nel menu)
-            DPPParams[b].pkho[1] = 1100;// Peak holdoff
-            DPPParams[b].blho[1] = 3100;// Baseline holdoff del trapezio
+            DPPParams[b].nspk[1] = 2;// Peak mean (ordine di comparsa nel menu)
+            DPPParams[b].pkho[1] = 1200;// Peak holdoff
+            DPPParams[b].blho[1] = 1100;// Baseline holdoff del trapezio
             DPPParams[b].enf[1] = 1;// Energy Normalization Factor
             DPPParams[b].dgain[1] = 0;//Digital Gain (ordine di comparsa nel menu)
             DPPParams[b].decimation[1] = 0;// Decimation
@@ -581,22 +588,22 @@ int main(int argc, char *argv[]) {
                         TrgCnt[b][ch]++;
 
 
-                        if (data >= 0 && data < 16385  && n<NSegFault)          caso=4; // Writes the energies
+                        if (data > 0 && data < 16384  && n < NSegFault)          caso=4; // Writes the energies
+                        else continue;	// needed to avoid buffer overflow / registering rejection pulses
+                        
                         if (discardfirst)                                       caso=5;
                         switch (caso) {
                         case 4:
                             if (ch == 0) {
                                 *(shared_memory2+10+n) = data+codeDetA; n++;
-
                                 *(shared_memory2+5) = ++eventi;
                                 *(shared_memory+100+data) += 1;
-                                *(shared_memory+40000+data) +=1;
+                                *(shared_memory+40000+data) += 1;
                             }
                             if (ch == 1) {
-                                *(shared_memory2+10+n) = data+codeDetB; n++;
-
-                                *(shared_memory2+5) = ++eventi;
-                                *(shared_memory+20000+data) += 1;
+                               *(shared_memory2+10+n) = data+codeDetB; n++;
+                               *(shared_memory2+5) = ++eventi;
+                               *(shared_memory+20000+data) += 1;
 
                                 jlo = (double)(data - 1) * calGrad + calOffs;
                                 jhi = jlo + calGrad;

@@ -8,7 +8,8 @@ extern int serialK,serialZ;
 extern int send_command(int chan,const char *comando, const char *parametri, int port);
 extern string read_answer(int port);
 
-extern bool noKeyence_init;       extern bool AutofocusOn, ZOnTarget;
+//extern bool noKeyence_init;
+extern bool AutofocusOn, ZOnTarget;
  string checkK;
 
 double AutofocusBuffer[5] = {0,0,0};
@@ -43,6 +44,30 @@ void MainWindow::Autofocus2() {
     }
 }
 
+static void printchar(unsigned char theChar) {
+
+    switch (theChar) {
+
+        case '\n':
+            printf("\\n\n");
+            break;
+        case '\r':
+            printf("\\r\n");
+            break;
+        case '\t':
+            printf("\\t");
+            break;
+        default:
+            if ((theChar < 0x20) || (theChar > 0x7f)) {
+                printf("\\%03o", (unsigned char)theChar);
+            } else {
+                printf("%c", theChar);
+            }
+        break;
+   }
+}
+
+
 string read_ACMport() { // The serial print of the Arduino is set to return 6 characters ( ±xx.xx )
     //int n=0;
     //char ans_Keyence[6] = {};
@@ -50,60 +75,55 @@ string read_ACMport() { // The serial print of the Arduino is set to return 6 ch
     //string restK;
 
     long n;
+    char enableBit[2] = "1";
+    write(serialK, enableBit, static_cast<size_t>(1));
     n = read(serialK, &buf_Keyence, 8); //The serial returns a \r\n at the end of each line
 
-    if (buf_Keyence[6] != '\r' || buf_Keyence[7] != '\n') {
+    if (buf_Keyence[6] != '\n' || buf_Keyence[7] != '\n') {
+        printchar(buf_Keyence[6]);
+        printchar(buf_Keyence[7]);
         throw std::invalid_argument("The data received is not in the format expected");
     }
-//    if ( n != 11 || buf_Keyence[10] != '\n' ) {
-//            tcflush( serialK, TCIFLUSH );
-//            condition2=true;
-//            return "0";
-//    }
     string restK(buf_Keyence, 0, 6);
     return restK;
     }
 
-
 void MainWindow::readKeyence() {
-
     try {
         checkK = read_ACMport();
     } catch (const std::invalid_argument& e) {
         cerr<<e.what();
         tcflush(serialK, TCIFLUSH);
+        send_command(1,"HLT",NULL,serialZ);
         qDebug()<<"[!] Flushed the Keyence serial";
         return;
     }
-    //checkK = read_ACMport();
-    //if (condition2) {return;}
 
-    KeyenceValue="";
+    KeyenceValue = "";
     KeyenceValue.append(checkK.data());
-    KeyenceValue.truncate(9);
+    KeyenceValue.truncate(6);
     Autofocus_value=KeyenceValue.toDouble();
 
+    Autofocus_average_value=-Autofocus_value;
 
-    Autofocus_value=-((115226-Autofocus_value)/408.345);
-    Autofocus_average_value=Autofocus_value;
+    //if (abs(floor(Autofocus_average_value)) > 7) stop_motorXY();
 
+    if ( (Autofocus_average_value <= (15.0)) && ( Autofocus_average_value > (-15.0)) ) {
+        //qDebug()<<Autofocus_average_value;
+        ValueInRange=true;
+        QString valueAsString = QString::number(Autofocus_average_value, 'f', 3);
+        valueAsString.prepend("Target distance: ");
+        valueAsString.append(" mm");
+        lineEdit_2_tab_4->setText(valueAsString);
+    }
 
-   if ( (Autofocus_average_value <= (15.0)) && ( Autofocus_average_value > (-15.0)) ) {
-       //qDebug()<<Autofocus_average_value;
-       ValueInRange=true;
-       QString valueAsString = QString::number(Autofocus_average_value, 'f', 3);
-       valueAsString.prepend("Target distance: ");
-       valueAsString.append(" mm");
-       lineEdit_2_tab_4->setText(valueAsString);
-  }
+    else {
+        qDebug()<<"[!] Laser out of range, autofocus value: "<<Autofocus_average_value;
+        ValueInRange=false;
+        lineEdit_2_tab_4->setText("[!] Out of range");
+    }
 
-   else {
-       qDebug()<<"[!] Laser out of range, autofocus value: "<<Autofocus_average_value;
-       ValueInRange=false;
-       lineEdit_2_tab_4->setText("[!] Out of range");
-   }
-
-   if (RunTracking && ValueInRange) AutoFocusRunning();
+    if (RunTracking && ValueInRange) AutoFocusRunning();
 }
 
 
@@ -127,7 +147,7 @@ void MainWindow::AutoFocusRunning() {
 
             //NewPosInt=qRound(NewPositionValue*1000);
             //if (ZOnTarget) return;
-            if (DistanceLevel > 200) {
+            if (DistanceLevel > 500) {
                 //AutofocusStore=NewPosInt;
                 char sx[100];
                 sprintf(sx,"%f",NewPositionValue);
@@ -164,20 +184,20 @@ void MainWindow::TrackingON() {
 
 
 void MainWindow::Focustimer() {
-    if (noKeyence_init) Init_KeyenceLaser();
-    if (AutofocusOn) {
-        send_command(1,"POS?",NULL,serialZ);
-        QString store = QString::fromStdString(read_answer(serialZ));
-        store.remove(0,2);
-        ZPosition = store.toDouble();
+    //if (noKeyence_init) Init_KeyenceLaser();
+//    if (AutofocusOn) {
+//        send_command(1,"POS?",NULL,serialZ);
+//        QString store = QString::fromStdString(read_answer(serialZ));
+//        store.remove(0,2);
+//        ZPosition = store.toDouble();
 
 
-        QString posLabelZ = "Stage Z: ";
-        posLabelZ.append(store);
-        posLabelZ.append(" mm");
-        CurrentActionZ->setText(posLabelZ);
-        CurrentActionZ->setStyleSheet(stylesheet3);
-    }
+//        QString posLabelZ = "Stage Z: ";
+//        posLabelZ.append(store);
+//        posLabelZ.append(" mm");
+//        CurrentActionZ->setText(posLabelZ);
+//        CurrentActionZ->setStyleSheet(stylesheet3);
+//    }
 
     readKeyence();
 }

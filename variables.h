@@ -21,7 +21,7 @@ bool NewFileLoaded=false;
 int portX=0, IniX=0, IniXready=0, serialX;
 int portY=1, IniY=0, IniYready=0, serialY;
 int portZ=2, IniZ=0, IniZready=0, serialZ;
-int portACM, serialK;
+int serialK;
 
 int SerialiStatus=0;
 

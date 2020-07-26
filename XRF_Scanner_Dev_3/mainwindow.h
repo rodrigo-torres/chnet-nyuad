@@ -195,29 +195,14 @@ private slots:
     void X_to(double);
     void Y_to(double);
 
-    // Found in XY_Init.cpp
     void moveToRef(float refpos, int serial);
-    //void movetoref_Xmotor(float refpositionX);
     void Init_Xmotor();
-    //void movetoref_Ymotor(float refpositionY);
     void Init_Ymotor();
-    //void movetoref_Zmotor(float refpositionZ);
 
-    //
     void StartX();
     void StartY();
     bool StartXYScan();
-    //bool StartYXScan();
     void ScanXY();
-    //void ScanYX();
-    //void MoveX(double);
-    //void MoveY(double);
-    //void Move_up();
-    //void MoveX_To();
-    //void MoveY_To();
-    //void Move_down();
-    //void Move_right();
-    //void Move_left();
     void MoveDoubleClick();
     void Abort();
     void stop_motorXY();
@@ -228,19 +213,19 @@ private slots:
 
     void CheckSegFault();
     void SaveTxt();
-    QString SetSerialXName(int number);
-    QString SetSerialYName(int number);
+    void SetSerialXName(int number);
+    void SetSerialYName(int number);
     void AssignY();
     void AssignX();
-    void NameY(int numbery);
-    void NameX(int numberx);
-
 
     void XrayTable();
 
+    // Mapped functions
 
+    void assign_ports(int id);
     void slotMoveFine(int id);
     void slotMoveStage(int id);
+
     void moveStage(double pos, int serial);
     double moveStep(double step, int serial, bool *condition, bool dir);
 
@@ -528,12 +513,11 @@ public slots:
 
     //////////////////////////////
 
-    QString SetSerialZName(int number);
+    void SetSerialZName(int number);
     void AssignZ();
-    void NameZ(int numberz);
 
-    void AssignACM();
-    void NameACM(int numberacm);
+    //void AssignACM();
+    //void NameACM(int numberacm);
 
 
 

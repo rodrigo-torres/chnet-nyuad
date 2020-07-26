@@ -19,7 +19,7 @@ bool okX=false;              bool okY=false;          bool energychanged=false;
 bool FirstRun=true;          bool opened=false;       bool XConnected=false;     bool YConnected=false;   bool TimerActive=false;
 bool XOnTarget=false;        bool YOnTarget=false;    bool XHasMoved=true;       bool Xmoving=false;      bool Ymoving=false;
 bool XYscanning=false;       bool YXscanning=false;   bool YHasMoved=true;       bool okZ=false;          bool TimerZActive=false;
-bool ZConnected=false;       bool ZOnTarget=false;    bool ZHasMoved=true;       bool Zmoving=false;      bool noKeyence_init=true;
+bool ZConnected=false;       bool ZOnTarget=false;    bool ZHasMoved=true;       bool Zmoving=false;
 bool InitX=false;            bool InitY=false;        bool InitZ=false;          bool AutofocusOn=false;
 
 int i=0;                     int j=0;                 int n=1;                   int MergePos=0;          int mempos=0; //memory position histo
@@ -68,12 +68,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     PixelY=595;
 
     SHM_CREATOR();                 /// CREATING SHARED MEMORY SEGMENT
-    qDebug()<<"1";
     createActions();
     builder_Menu();            	    /// CREATING MENU from Menu.cpp
     GUI_CREATOR();
     CONNECTIONS_CREATOR();
-printf("2");
+
     imageLabel = new ImgLabel;
 
     QImage image1("IMG/TT_CHNet_res1.png");

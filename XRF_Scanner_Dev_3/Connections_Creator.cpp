@@ -9,43 +9,15 @@ void MainWindow::CONNECTIONS_CREATOR()
 /////////////// TABWIDGET2 TAB1 ASSIGN X & Y PORTS
 
 
-     connect(pushButton_assignX_port, SIGNAL(released()), this, SLOT(AssignX()));
-
-     connect(spinBox_assignX, SIGNAL(valueChanged(int)), 
-          this, SLOT(NameX(int)));
-
-     connect(pushButton_assignY_port, SIGNAL(released()),
-            this, SLOT(AssignY()));
-
-     connect(spinBox_assignY, SIGNAL(valueChanged(int)), 
-          this, SLOT(NameY(int)));
-
      connect(pushButton_tab_2_2X, SIGNAL(released()),
             this, SLOT(StartX()));
 
      connect(pushButton_tab_2_2Y, SIGNAL(released()),
             this, SLOT(StartY()));
 
-//     connect(pushButton_tab_2_2XY, SIGNAL(released()),   //////////////////////////////////////////// INIT X + Y
-//            this, SLOT(StartBoth()));
-
      connect(pushButton_tab_2_2ABORT, SIGNAL(clicked()), this, SLOT(stop_motorXY()));
 
-     //connect(MOVEUP_pushButton, SIGNAL(released()), this, SLOT(Move_down()));
-
-     //connect(MOVELEFT_pushButton, SIGNAL(released()), this, SLOT(Move_right()));
-     ///inversione hardware
-
-     //connect(MOVERIGHT_pushButton, SIGNAL(released()), this, SLOT(Move_left()));
-     ///inversione hardware
-
-     //connect(MOVEDOWN_pushButton, SIGNAL(released()), this, SLOT(Move_up()));
-
      connect(STOPMOVE_pushButton, SIGNAL(clicked()), this, SLOT(stop_motorXY()));
-
-     //connect(MOVE_TO_X_pushButton, SIGNAL(released()), this, SLOT(MoveX_To()));
-
-     //connect(MOVE_TO_Y_pushButton, SIGNAL(released()), this, SLOT(MoveY_To()));
 
      connect(MOVE_TO_X_doubleSpinBox, SIGNAL(valueChanged(double)), 
           this, SLOT(X_to(double)));
@@ -81,54 +53,38 @@ void MainWindow::CONNECTIONS_CREATOR()
           this, SLOT(PassoY_Func(double)));
 
 ////////////////////////////////////////////////////////////////////// Z MOTOR
-     connect(spinBox_assignZ, SIGNAL(valueChanged(int)), 
-          this, SLOT(NameZ(int)));
-     
-     connect(AssignZ_pushButton, SIGNAL(released()),
-            this, SLOT(AssignZ()));
 
      connect(INIT_Z_pushButton, SIGNAL(released()),
             this, SLOT(StartZ()));
 
-     //connect(STOP_Z_INIT_pushButton, SIGNAL(clicked()), this, SLOT(stop_motorXY())); ////////// FARE CHECK SU SLOT STOP (STOPZ??)
-
-     //connect(MOVE_Z_To_pushButton, SIGNAL(released()), this, SLOT(MoveZ_To()));
-
      connect(MOVE_Z_To_doubleSpinBox, SIGNAL(valueChanged(double)), 
           this, SLOT(Z_to(double)));
-
-     //connect(MOVE_Z_FORWARD_pushButton, SIGNAL(released()), this, SLOT(Move_forward()));
-
-     //connect(MOVE_Z_BACKWARD_pushButton, SIGNAL(released()), this, SLOT(Move_backward()));
-
-     //connect(STOP_Z_MOVE_pushButton, SIGNAL(clicked()), this, SLOT(stop_motorXY()));
 
      connect(AUTOFOCUS_ON_pushButton, SIGNAL(clicked()), this, SLOT(Autofocus2()));
 
      connect(ENABLE_TRACKING_checkBox, SIGNAL(clicked()), this, SLOT(TrackingON()));
 
-     //connect(Z_VELOCITY_doubleSpinBox, SIGNAL(valueChanged(double)),this, SLOT(VelocityZ(double)));
+
+     // Device files configuration
+
+     QSpinBox *buttons_device_files[4] = { };
+     buttons_device_files[0] = spinBox_assignX;
+     buttons_device_files[1] = spinBox_assignY;
+     buttons_device_files[2] = spinBox_assignZ;
+     buttons_device_files[3] = spinBox_assignACM;
+
+     QSignalMapper *mapper_device_files = new QSignalMapper();
+     for (int i = 0; i < 4; i++) {
+         mapper_device_files->setMapping(buttons_device_files[i], i);
+         connect(buttons_device_files[i], SIGNAL(valueChanged(int)), mapper_device_files, SLOT(map()));
+     }   connect(mapper_device_files, SIGNAL(mapped(int)), this, SLOT(assign_ports(int)));
+
+     connect(pushButton_assignX_port, SIGNAL(released()), this, SLOT(AssignX()));
+     connect(pushButton_assignY_port, SIGNAL(released()), this, SLOT(AssignY()));
+     connect(AssignZ_pushButton, SIGNAL(released()), this, SLOT(AssignZ()));
      
-     //connect(Z_STEP_doubleSpinBox, SIGNAL(valueChanged(double)),this, SLOT(PassoZ_Func(double)));
+     connect(AssignACM_pushButton, SIGNAL(released()), this, SLOT(Init_KeyenceLaser()));
 
-
-/////////////////////////////////// ARDUINO //////////////////
-
-
-     connect(spinBox_assignACM, SIGNAL(valueChanged(int)), 
-          this, SLOT(NameACM(int)));
-     
-     connect(AssignACM_pushButton, SIGNAL(released()),
-            this, SLOT(AssignACM()));
-
-
-//////////////////////////////////////////////////////////
-
-     //connect(SW_treshold_Button, SIGNAL(clicked()), this, SLOT(Treshold()));
-
-
-
-   //  connect(quit, SIGNAL(clicked()), this, SLOT(Exit())); ///aggiungere check se è fermo qApp, SLOT(quit())
 
 }
 

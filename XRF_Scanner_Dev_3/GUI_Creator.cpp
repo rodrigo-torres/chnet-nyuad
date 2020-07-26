@@ -80,21 +80,21 @@ void MainWindow::GUI_CREATOR() {
     portTabLayout->setHorizontalSpacing(20);
     portTabLayout->setVerticalSpacing(10);
 
-    spinBox_assignX->setValue(2);
+    spinBox_assignX->setValue(0);
     spinBox_assignX->setMaximum(3);
     spinBox_assignX->setPrefix("X-axis: ");
 
     pushButton_assignX_port->setText("Confirm");
     pushButton_tab_2_2X->setText("Initiate X");
 
-    spinBox_assignY->setValue(0);
+    spinBox_assignY->setValue(1);
     spinBox_assignY->setMaximum(3);
     spinBox_assignY->setPrefix("Y-axis: ");
 
     pushButton_assignY_port->setText("Confirm");
     pushButton_tab_2_2Y->setText("Initiate Y");
 
-    spinBox_assignZ->setValue(1);
+    spinBox_assignZ->setValue(2);
     spinBox_assignZ->setMaximum(3);
     spinBox_assignZ->setPrefix("Z-axis: ");
 

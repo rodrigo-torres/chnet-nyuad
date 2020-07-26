@@ -19,12 +19,7 @@ OUTNAME =    	ADCXRF_USB
 
 CC	=	gcc
 
-COPTS	=	-fPIC -DLINUX -O2
-
-#FLAGS	=	-soname -s
-#FLAGS	=       -Wall,-soname -s
-#FLAGS	=	-Wall,-soname -nostartfiles -s
-#FLAGS	=	-Wall,-soname
+COPTS	=	-fPIC -DLINUX -O2 -g
 
 DEPLIBS	=	-lCAENDigitizer -lCAENDPPLib -lm -lc -lrt -lpthread
 
@@ -42,6 +37,11 @@ all	:	$(OUT)
 
 clean	:
 		/bin/rm -f $(OBJS) $(OUT)
+
+debug   :       $(OBJS)
+		/bin/rm -f $(OUT)
+		if [ ! -d $(OUTDIR) ]; then mkdir -p $(OUTDIR); fi
+		$(CC) -g -o $(OUT) $(OBJS) $(DEPLIBS)
 
 $(OUT)	:	$(OBJS)
 		/bin/rm -f $(OUT)
