@@ -18,9 +18,9 @@ int DAQ_TYPE=1;
 bool NewFileLoaded=false;
 ///////////////////////////////// VARIABLES MOTORS 
 
-int portX=0, IniX=0, IniXready=0, serialX;
-int portY=1, IniY=0, IniYready=0, serialY;
-int portZ=2, IniZ=0, IniZready=0, serialZ;
+int portX=0, IniX=0, IniXready=0, serialX = -1;
+int portY=1, IniY=0, IniYready=0, serialY = -1;
+int portZ=2, IniZ=0, IniZready=0, serialZ = -1;
 int serialK;
 
 int SerialiStatus=0;

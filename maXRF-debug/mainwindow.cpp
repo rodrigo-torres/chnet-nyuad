@@ -3,6 +3,7 @@
 #include "../variables.h"
 #include "../QT_variables.h"
 #include <../Shm.h>
+#include <unistd.h>
 #include <QThread>
 
 extern int shmid[];
@@ -20,7 +21,7 @@ bool FirstRun=true;          bool opened=false;       bool XConnected=false;    
 bool XOnTarget=false;        bool YOnTarget=false;    bool XHasMoved=true;       bool Xmoving=false;      bool Ymoving=false;
 bool XYscanning=false;       bool YXscanning=false;   bool YHasMoved=true;       bool okZ=false;          bool TimerZActive=false;
 bool ZConnected=false;       bool ZOnTarget=false;    bool ZHasMoved=true;       bool Zmoving=false;
-bool InitX=false;            bool InitY=false;        bool InitZ=false;          bool AutofocusOn=false;
+bool InitY=false;        bool InitZ=false;          bool AutofocusOn=false;
 
 int i=0;                     int j=0;                 int n=1;                   int MergePos=0;          int mempos=0; //memory position histo
 int Pixeldim=1;              int EventOffset=0;       int nz=1;                  int missing=1;           int measuring_time=300;
@@ -41,16 +42,13 @@ char process[30];
 
 QString NowZ="Z= ";      QString current_posZ;     QString NowX="X= ";       QString NowY="Y= ";
 
-string checkX;               string checkY;           string checkZ;            string Zpos;
-string posZ;
-
 struct Pixel_BIG *Pointer; //puntatore da far puntare a PixelsMappa una volta creato
 
 //////////// ADDED VARIABLES FOR DEVELOP VERSION (Bart_PE)
 
 int selected_Xmotor = 3, selected_Ymotor = 3, selected_Zmotor = 1;
 
-bool InitPhaseX=false; bool InitPhaseY=false; bool InitPhaseZ=false;
+bool InitPhaseY=false; bool InitPhaseZ=false;
 int nxInit=0, nyInit=0, nzInit=0; // used for motor initialisation
 
 ///////////////Variables for the composed map visualization (sum of three different elements)///////////
@@ -158,9 +156,9 @@ void MainWindow::hideImage() {
 
 void MainWindow::timerEvent() {
 
-    if (InitZ && !AutofocusOn)CheckZOnTarget();
-    if (InitX)CheckXOnTarget();
-    if (InitY)CheckYOnTarget();
+    if (InitZ && !AutofocusOn) stage_check_on_target(serialZ, 2);
+    if (IniXready) stage_check_on_target(serialX, 0);
+    if (InitY) stage_check_on_target(serialY, 1);
     if (XYscanning)ScanXY();
     //if(AutofocusOn)AutoFocusRunning();
     MoveDoubleClick();
@@ -175,13 +173,17 @@ void MainWindow::timerEvent() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-int send_command(int channel,const char *command, const char *parameter, int port) {
+int tty_send(int channel,const char *command, const char *parameter, int port) {
     char chan=channel+'0';
     string cm = command;
 
     if (parameter == nullptr) cm = cm + '\n';
     else cm = cm + ' ' + chan + ' ' + parameter + '\n';
-    if ( write(port, cm.data(), cm.size()) ) return 0;
+
+    long n = write(port, cm.data(), cm.size());
+    tcdrain(port);
+
+    if (n > 0) return 0;
     else {
         qDebug()<<"[!] Writing to bus failed"
                   "[!] Check connection and writing priviledges";
@@ -191,26 +193,17 @@ int send_command(int channel,const char *command, const char *parameter, int por
 }
 
 void tty_read(int port, char *ans, unsigned long wait = 0) {
-    unsigned long bytes;
     char buff[100] = { '\0' };
 
-    /* Wait for all the bytes to arrive into the readout buffer */
-    Sleeper::msleep(wait);
-
-
-    /* Query the no. of bytes available for read*/
-    int err = ioctl(port, FIONREAD, &bytes);
-    if (err < 0) throw std::runtime_error(strerror(errno));
-
-    long n = read(port, &buff, bytes);
+    long n = 0;
+    int size = 0;
+    while ((n = read(port, &buff[size], 1)) > 0) {
+        if (buff[size] == '\n') break;
+        else size += n;
+    }
     if (n < 0) throw std::runtime_error(strerror(errno));
-
-    strncpy(ans, buff, n);
-    if (ans[n-1] == '\n') ans[n-1] = '\0';
-
-//    for (long i = 0; i < n; i++) {
-//        buff[i] != '\n' ? ans[i] = buff[i] : ans[i] = '\0';
-//    }
+    strncpy(ans, buff, static_cast<unsigned long>(size));
+    if (ans[size-1] == '\n') ans[size-1] = '\0';
 }
 
 string read_answer(int port)                                                       // Z MOTOR: READ ANSWER CHAR
@@ -245,18 +238,31 @@ void MainWindow::stage_check_on_target(int serial, int id) {
     bool *on_target[] = { &XOnTarget, &YOnTarget, &ZOnTarget };
 
     char ans[15] = { '\0' };
-    send_command(1, "ONT?", nullptr, serial); // Expected a response with format 1=%d with %d = 1,0
-    tty_read(serial, ans, 15);
+    tty_send(1, "ONT?", nullptr, serial); // Expected a response with format 1=%d with %d = 1,0
 
-    if (ans[3]) {
-        *on_target[id] = true;
-
+    try {
+        tty_read(serial, ans, 10);
+    } catch (const runtime_error& e) {
+        qDebug()<<e.what();
     }
+
+    if (ans[2] == '1' ) *on_target[id] = true;
     else *on_target[id] = false;
 
     char ans2[15] = { '\0' };
-    send_command(1,"POS?", nullptr, serial); // Expected a response with format 1={x->xxx}.xxxx
-    tty_read(serial, ans2, 15);
+    tty_send(1,"POS?", nullptr, serial); // Expected a response with format 1={x->xxx}.xxxx
+
+    try {
+        tty_read(serial, ans2, 15);
+    } catch (const runtime_error& e) {
+        qDebug()<<e.what();
+    }
+
+    if (id == 2) {
+        QString temp = &ans2[2];
+        ZPosition = temp.toDouble();
+        qDebug()<<ZPosition;
+    }
 
     char message[25] = { '\0' };
     strncpy(message, prefix, sizeof(prefix));
@@ -267,97 +273,10 @@ void MainWindow::stage_check_on_target(int serial, int id) {
     monitors[id]->setStyleSheet(stylesheet3);
 }
 
-void MainWindow::CheckXOnTarget() {
-    QString posLabelX = "Stage X: ";
-    send_command(1,"ONT?",NULL,serialX);
-
-    string a = read_answer(serialX);
-    QString Qa = a.data();
-    if ( Qa.contains("0", Qt::CaseInsensitive) == false ) {
-
-        XOnTarget=true;
-        Xmoving=false;
-//        if ( InitPhaseX && nxInit == 0 ) { // InitPhaseX always same value as InitX
-//            nxInit=1; // close to useless, doesn't actually prevent restarting the motors
-//            qDebug()<<"... X motor initialized\n";
-//            IniX=0; // useless
-//            IniXready=1; // always same valye as InitPhaseX or InitX but also used elsewhere
-//        }
-    }
-    else {
-        XOnTarget=false;
-        Xmoving=true;
-    }
-    
-    send_command(1,"POS?",NULL,serialX);
-    string temp = read_answer(serialX);
-
-    posLabelX.append(temp.data());
-    posLabelX.append(" mm");
-    posLabelX.remove(9,2);
-    CurrentActionX->setText(posLabelX);
-    CurrentActionX->setStyleSheet(stylesheet3);
-}
-
-
-void MainWindow::CheckYOnTarget()  {
-    QString posLabelY = "Stage Y: ";
-    send_command(1,"ONT?",NULL,serialY);
-
-    string a = read_answer(serialY);
-    QString Qa = a.data();
-    if ( Qa.contains("0", Qt::CaseInsensitive) == false ) {
-        YOnTarget=true;
-        Ymoving=false;
-        if(InitPhaseY && nyInit == 0) {
-            nyInit=1;
-            qDebug()<<"... Y motor initialized\n";
-            IniY=0; IniYready=1;
-        }
-    }
-    else {
-        YOnTarget=false;
-        Ymoving=true;
-    }
-
-    send_command(1,"POS?",NULL,serialY);
-    string temp = read_answer(serialY);
-
-    posLabelY.append(temp.data());
-    posLabelY.append(" mm");
-    posLabelY.remove(9,2);
-    CurrentActionY->setText(posLabelY);
-    CurrentActionY->setStyleSheet(stylesheet3);
-}
-
-
-void MainWindow::CheckZOnTarget() {
-    send_command(1,"ONT?",NULL,serialZ);
-
-    string ans= read_answer(serialZ);
-    QString a = ans.data();
-    if (a.contains("0", Qt::CaseInsensitive) == false) ZOnTarget = true;
-    else ZOnTarget = false;
-
-    send_command(1,"POS?",NULL,serialZ);
-    string temp = read_answer(serialZ);
-    QString store = QString::fromStdString(temp);
-    store.remove(0,2);
-    ZPosition = store.toDouble();
-    //qDebug()<<ZPosition;
-
-    QString posLabelZ = "Stage Z: ";
-    posLabelZ.append(temp.data());
-    posLabelZ.append(" mm");
-    posLabelZ.remove(9,2);
-    CurrentActionZ->setText(posLabelZ);
-    CurrentActionZ->setStyleSheet(stylesheet3);
-
-}
 
 void MainWindow::Enable_TabWidget_3_4_XY()                                           // ENABLING XY MOVE WIDGET
 {
-    if(InitX && InitY){tab2_3->setEnabled(true); tab2_4->setEnabled(true);}
+    if(IniXready && InitY){tab2_3->setEnabled(true); tab2_4->setEnabled(true);}
 }
 
 
@@ -378,8 +297,8 @@ void MainWindow::Velocity(double number)                       // MOTOR SETTINGS
     qDebug()<<"velocità "<<V<<"mm/s"<<"Scrittura posizione ogni "<<tempoPos<<" ms";
     char v[10];
     sprintf(v,"%f",V);
-    send_command(1,"VEL",v,serialX);
-    send_command(1,"VEL",v,serialY);
+    tty_send(1,"VEL",v,serialX);
+    tty_send(1,"VEL",v,serialY);
 }
 
 void MainWindow::PassoX_Func(double number1)                     // MOTOR SETTINGS STEP
@@ -412,22 +331,8 @@ void MainWindow::Z_to(double number9)
 {Z_goto=number9*1000;}
 
 
-void MainWindow::StartX()                                          // MOTOR START X
-{
-    if(!okX)
-    {
-        okX=true;
-        Init_Xmotor();
-        if(InitX && InitY)
-        {
-            tab2_3->setEnabled(true);
-            tab2_4->setEnabled(true);
-        }
-    }
-    else
-    {
-        qDebug() <<"...Already initing...";
-    }
+void MainWindow::StartX() {
+    Init_Xmotor();
 }
 
 
@@ -437,7 +342,7 @@ void MainWindow::StartY()                                          // MOTOR STAR
     {
         okY=true;
         Init_Ymotor();
-        if(InitX && InitY)
+        if(IniXready && InitY)
         {
             tab2_3->setEnabled(true);
             tab2_4->setEnabled(true);
@@ -465,18 +370,18 @@ void MainWindow::StartZ()                                          // MOTOR STAR
 
 
 void MainWindow::stop_motorXY() {
-    send_command(1,"HLT",NULL,serialX);
-    send_command(1,"HLT",NULL,serialY);
-    send_command(1,"HLT",NULL,serialZ);
+    int fds[] = { serialX, serialY, serialZ };
+    for (int i = 0; i < static_cast<int>(sizeof(fds)); i++) {
+        int t = isatty(fds[i]);
+        if (t == 0) continue;
 
-    send_command(1,"ERR?",NULL,serialX);
-    checkX = read_answer(serialX);
+        char ans[15] = { '\0' };
+        tty_send(1, "HLT", nullptr, fds[i]);
+        tty_send(1, "ERR?", nullptr, fds[i]);
+        tty_read(fds[i], ans);
 
-    send_command(1,"ERR?",NULL,serialY);
-    checkY = read_answer(serialY);
-
-    send_command(1,"ERR?",NULL,serialZ);
-    checkZ = read_answer(serialZ);
+        qDebug()<<"[!] Linear stage at FD "<<fds[i]<<"halted with error code: "<<ans;
+    }   // Error code should be 10: "Controller stopped on command"
 }
 
 
@@ -806,9 +711,9 @@ void MainWindow::LoadTxt()  { // Writes values of binary file into shared memory
 
 void MainWindow::SaveTxt() { //scrive Position.txt leggendo i dati in memoria
 
-    send_command(1,"HLT",NULL,serialX);
-    send_command(1,"HLT",NULL,serialY);
-    send_command(1,"HLT",NULL,serialZ);
+    tty_send(1,"HLT",NULL,serialX);
+    tty_send(1,"HLT",NULL,serialY);
+    tty_send(1,"HLT",NULL,serialZ);
     timer->blockSignals(true);
     timerAutofocus->blockSignals(true);
 
@@ -865,14 +770,14 @@ void MainWindow::Abort() {
     if (*(shared_memory_cmd+70) == 1) *(shared_memory_cmd+70) = 0;
 
     if ( XYscanning==true ) {
-        send_command(1,"HLT",NULL,serialX);
-        send_command(1,"ERR?",NULL,serialX);
+        tty_send(1,"HLT",NULL,serialX);
+        tty_send(1,"ERR?",NULL,serialX);
 
         char *cstr1 = &(read_answer(serialX))[0u];
         printf("[!] X-axis stage stopped with exit value: %s", cstr1);
 
-        send_command(1,"HLT",NULL,serialY);
-        send_command(1,"ERR?",NULL,serialY);
+        tty_send(1,"HLT",NULL,serialY);
+        tty_send(1,"ERR?",NULL,serialY);
 
         char *cstr2 = &(read_answer(serialY))[0u];
         printf("[!] Y-axis stage stopped with exit value: %s", cstr2);

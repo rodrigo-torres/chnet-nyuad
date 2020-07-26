@@ -8,13 +8,13 @@ extern int *shared_memory, *shared_memory_cmd;
 extern bool XYscanning, XOnTarget, YOnTarget, ZOnTarget;
 
 extern int serialX, serialY, serialZ;
-extern string read_answer(int port);
-extern int send_command(int chan,const char *comando, const char *parametri,int port);
+extern int tty_send(int chan,const char *comando, const char *parametri,int port);
+extern void tty_read(int port, char *ans, unsigned long wait = 0);
 
 void MainWindow::moveStage(double pos, int serial) {
     char stemp[100];
     sprintf(stemp, "%f", pos / 1000);
-    send_command(1, "MOV", stemp, serial);
+    tty_send(1, "MOV", stemp, serial);
 
     if (serial == serialX)      XOnTarget = false;
     else if (serial == serialY) YOnTarget = false;
@@ -33,11 +33,12 @@ void MainWindow::slotMoveStage(int id) {
 }
 
 double getPosition(int serial) {
-    send_command(1, "POS?", NULL, serial);
-    string pos = read_answer(serial);
-    QString temp = pos.data();
+    tty_send(1, "POS?", nullptr, serial);
 
-    temp.remove(0, 2);
+    char ans[15] = { '\0' };
+    tty_read(serial, ans);
+
+    QString temp = &ans[2];
     return (temp.toDouble() * 1000);
 }
 

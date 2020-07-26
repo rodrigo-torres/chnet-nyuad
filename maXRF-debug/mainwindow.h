@@ -206,10 +206,11 @@ private slots:
     void MoveDoubleClick();
     void Abort();
     void stop_motorXY();
-    void CheckXOnTarget();
-    void CheckYOnTarget();
+    //void CheckXOnTarget();
+    //void CheckYOnTarget();
     void timerEvent();
 
+    void stage_init(int serial);
     void stage_check_on_target(int serial, int id);
 
 
@@ -494,7 +495,7 @@ public slots:
     void Init_Zmotor();
     void StartZ();
 
-    void CheckZOnTarget();
+    //void CheckZOnTarget();
     void Focustimer();
     void readKeyence();
     void TrackingON();
