@@ -1,6 +1,6 @@
 ########################################################################
 #
-##	 --- CAEN SpA - Computing Division ---
+##              --- CAEN SpA - Computing Division ---
 #
 ##   CAENDigitizer Software Project
 #
@@ -10,34 +10,38 @@
 #
 #########################################################################
 OUTDIR  =    	.
-OUTNAME =    	daq_protocol
+OUTNAME =    	ADCXRF_USB
 OUT     =    	$(OUTDIR)/$(OUTNAME)
 
-CC	= gcc
-CXX = g++
+CXX =	g++
+COPTS	=	-fPIC -DLINUX -O2 -g -std=gnu++14
+#lpthread and lrt are used for semaphores
+DEPLIBS	=	-lCAENDigitizer -lm -lc -lrt -lpthread
+INCLUDEDIR = -I./ -I../
 
-OPTS	= -fPIC -DLINUX -O2
-OBJS	= daq_protocol.o
-LIBS	= -lCAENDigitizer -lCAENDPPLib
-INCLUDE	= -I/usr/include -I./
-INCLUDES = ./daq_protocol.h
+OBJS = src/digitizer.o src/main.o
 
 #########################################################################
 
-all : $(OUT)
+all	:	$(OUT)
 
-clean :
-	/bin/rm -f $(OBJS) $(OUT)
+clean	:
+		/bin/rm -f $(OBJS) $(OUT)
 
-$(OUT) : $(OBJS)
-	/bin/rm -f $(OUT)
-	$(CXX) $(FLAGS) -g -o $(OUT) $(OBJS) $(LIBS)
+debug   :       $(OBJS)
+		/bin/rm -f $(OUT)
+		if [ ! -d $(OUTDIR) ]; then mkdir -p $(OUTDIR); fi
+		$(CXX) -g -o $(OUT) $(OBJS) $(DEPLIBS)
 
-$(OBJS) : $(INCLUDES) Makefile
+$(OUT)	:	$(OBJS)
+		/bin/rm -f $(OUT)
+		if [ ! -d $(OUTDIR) ]; then mkdir -p $(OUTDIR); fi
+		$(CXX) $(FLAGS) -o $(OUT) $(OBJS) $(DEPLIBS)
 
-%.o	: %.cpp
-	$(CXX) $(OPTS) $(INCLUDE) -pthread -c -g -o $@ $<
+$(OBJS)	: Makefile
+
+%.o	:	%.cpp
+		$(CXX) $(COPTS) $(INCLUDEDIR) -c -o $@ $<
 
 
-#daq_protocol.o : daq_protocol.h daq_protocol.cpp
-#	$(CXX) -g -c -pthread $(INCLUDE) $(LIBS) daq_protocol.cpp
+
