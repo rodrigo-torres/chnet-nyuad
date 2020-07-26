@@ -13,13 +13,13 @@
 # Name of the application or library
 TARGET = MAXRF_DAQ_Daemon
 TEMPLATE = app
-#VERSION = 0.0.1
+VERSION = 1.0.0
+
 
 PROJECT_DIR = $$(DEV_XRF)
-
+DEFINES += PROJECT_LOCAL_FOLDER=\\\"$$PROJECT_DIR/Local\\\"
 # Needed to get the correct dependency search path if the program is not yet
 # installed on the computer
-DEFINES += STANDALONE_TESTING
 
 # ---------------------------------------------------------------------------- #
 # QT MODULES CONFIGURATION
@@ -38,7 +38,7 @@ QT -= gui
 
 # The C++ standard version for the compiler
 CONFIG += c++17
-CONFIG += warn_on
+CONFIG += console warn_on
 CONFIG += thread
 
 DEFINES += QT_DEPRECATED_WARNINGS
@@ -49,11 +49,8 @@ DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
 # Output directories for temporary files and compiled binaries
 # ---------------------------------------------------------------------------- #
 
-contains(DEFINES, STANDALONE_TESTING) {
-QMAKE_LFLAGS += -Wl,-rpath,"../lib"
-} else {
-QMAKE_LFLAGS += -Wl,-rpath,"$$PROJECT_DIR/libs"
-}
+QMAKE_LFLAGS += -Wl,-rpath,"$$PROJECT_DIR/Local/lib"
+
 DESTDIR = $$PWD/bin
 
 # The directories where all the temporary files are written
@@ -67,24 +64,14 @@ UI_DIR      = $$PWD/build
 # External libraries configuration and search paths
 # ---------------------------------------------------------------------------- #
 
-contains(DEFINES, STANDALONE_TESTING) {
 # API headers search path for shared and static libraries
-INCLUDEPATH += ./include
+INCLUDEPATH += $$PROJECT_DIR/Local/include
+
 # Search path for dynamically linked libraries
-DEPENDPATH += ./lib
+DEPENDPATH += $$PROJECT_DIR/Local/lib
 unix:!macx {
-  LIBS += -L./lib
+  LIBS += -L$$PROJECT_DIR/Local/lib
   LIBS += -lCAENDPPLib -lfilemanagement -lrt
-}
-} else {
-# API headers search path for shared and static libraries
-INCLUDEPATH += $$PROJECT_DIR/include
-# Search path for dynamically linked libraries
-DEPENDPATH += /usr/lib $$PROJECT_DIR/libs
-unix:!macx {
-  LIBS += -L/usr/lib -L$$PROJECT_DIR/libs
-  LIBS += -lCAENDPPLib -lfilemanagement -lrt
-}
 }
 
 
@@ -114,17 +101,17 @@ OTHER_FILES += \
 # Header, binary, and documentation files and install directories
 # ---------------------------------------------------------------------------- #
 
-INSTALL_DIR = $$PROJECT_DIR/bin
+INSTALL_DIR = $$PROJECT_DIR/Local/bin
 
 # Directory where to put the documentation files for this project
-EXPORTED_DOC_DIR = $$PROJECT_DIR/docs
+EXPORTED_DOC_DIR = $$PROJECT_DIR/Local/shared/doc/maxrf
 # List of documentation files
 EXPORTED_DOC_FILES = doc/*
 
 # Directory where to put public API headers for this project
-EXPORTED_API_DIR = $$PROJECT_DIR/include/MAXRF
+EXPORTED_API_DIR = $$PROJECT_DIR/Local/include/MAXRF
 # List of public API headers
-EXPORTED_API_HEADERS += daq_director.h
+EXPORTED_API_HEADERS += src/daq_types.h
 
 # Definitions for installing the appropriate files on linux
 unix:!macx {
@@ -134,6 +121,6 @@ unix:!macx {
   documentation.files = $$EXPORTED_DOC_FILES
   # API header files to be installed
   includes.path = $$EXPORTED_API_DIR
-  #includes.files = $$EXPORTED_API_HEADERS
+  includes.files = $$EXPORTED_API_HEADERS
   INSTALLS += target documentation includes
 }

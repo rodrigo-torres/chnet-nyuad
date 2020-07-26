@@ -138,7 +138,9 @@ struct MCABoardConfiguration {
 };
 
 
-struct DAQScanParameters {
+struct DAQModeParameters {
+  DAQMode mode { DAQMode::kDAQInvalid };
+  double timeout {0.};
   int x_start_coordinate;
   int y_start_coordinate;
   int x_end_coordinate;
@@ -151,10 +153,7 @@ struct DAQScanParameters {
 struct DAQInitParameters {
   std::vector<MCABoardConfiguration> boards_config {};
   std::map<std::string, std::string> user_header_fields {};
-
-  DAQScanParameters scan_parameters {};
-  DAQMode mode { DAQMode::kDAQInvalid };
-  double timeout {0.};
+  DAQModeParameters mode_parameters {};
 
   // Output file parameters
   std::string output_path   {"."};

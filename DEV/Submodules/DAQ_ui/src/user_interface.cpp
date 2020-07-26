@@ -16,53 +16,79 @@
  */
 
 #include "user_interface.h"
-#include "MAXRF/ipc_methods.h"
+#include <thread>
+static constexpr char term_command [] =
+    "xterm -e './MAXRF_DAQ_Daemon' &";
 
 namespace maxrf::daq {
 
 void Wrapper::StartDAQ()
 {
+  using namespace maxrf::ipc;
+  using namespace std::literals;
+
   DAQInitParameters params {};
   mca_config_widget_->PopulateParameterFields(params);
   header_config_widget_->PopulateParameterFields(params);
   session_config_widget_->PopulateParameterFields(params);
 
-  maxrf::ipc::SHMHandle shm;
-  shm.Create();
-  shm.WriteVariable(&maxrf::ipc::SHMStructure::daq_daemon_enable, true);
 
-  maxrf::ipc::IPCSocket socket {"/run/maxrf/daq",
-                                maxrf::ipc::SocketOptions::kServer};
-//  if (system("./MAXRF_DAQ_Daemon") == -1) {
-//    // Error starting the process. Log the error, inform UI
-//    return;
-//  }
-  // This call blocks until  it receives a connection
-  socket.EstablishConnectionWithClient();
+ // auto command = ""s + term_command + "'./MAXRF_DAQ_Daemon' &";
 
-  for (auto & board : params.boards_config) {
-    socket.SendCharThroughSocket('B');
-    socket.SendThroughSocket(&board.conn);
-    socket.SendThroughSocket(&board.board_id);
-    for (auto & channel : board.channels) {
-      socket.SendCharThroughSocket('C');
-      socket.SendThroughSocket(&channel.first);
-      socket.SendThroughSocket(&channel.second);
+   if (system("./MAXRF_DAQ_Daemon &") == -1) {
+    // Error starting the process. Log the error, inform UI
+    shm.WriteVariable(&maxrf::ipc::SHMStructure::daq_daemon_enable, false);
+    return;
+  }
+
+//  QMessageBox::information(this, "Start the Daemon now",
+//                           "Unfortunately, you need to start the Daemon process manually. "
+//                           "This window will become unresponsive until you do so.\n"
+//                           "To start the Daemon call the command maxrf-daq-daemon from a terminal");
+
+  int counter {0};
+  do {
+    while (shm.GetVariable(&SHMStructure::daq_daemon_active)  == false) {
+      std::this_thread::sleep_for(std::chrono::milliseconds{500});
     }
-  }
+    shm.WriteVariable(&SHMStructure::daq_daemon_enable, true);
 
-  for (auto & kv_pair : params.user_header_fields) {
-    socket.SendCharThroughSocket('K');
-    socket.SendThroughSocket(kv_pair.first.c_str());
-    socket.SendThroughSocket(kv_pair.second.c_str());
-  }
+    if (socket_.EstablishConnectionWithClient() == false) {
+      socket_.ReleaseSocket();
+      shm.WriteVariable(&maxrf::ipc::SHMStructure::daq_daemon_enable, false);
+      std::cout << "No connection from client" << std::endl;
+      return;
+    }
+    std::cout << "Connection Accepted" << std::endl;
 
-  socket.SendCharThroughSocket('E');
-  socket.SendThroughSocket(&params.scan_parameters);
-  socket.SendThroughSocket(&params.mode);
-  socket.SendThroughSocket(&params.timeout);
-  socket.SendThroughSocket(params.output_path.c_str());
-  socket.SendThroughSocket(params.base_filename.c_str());
+  //  shm.WriteVariable(&SHMStructure::daq_session_params, params.mode_parameters);
+  //  shm.WriteVariable(&SHMStructure::daq_request_scan_from_motors, true);
+
+    for (auto & board : params.boards_config) {
+      socket_.SendCharThroughSocket('B');
+      socket_.SendThroughSocket(&board.conn);
+      socket_.SendThroughSocket(&board.board_id);
+      for (auto & channel : board.channels) {
+        socket_.SendCharThroughSocket('C');
+        socket_.SendThroughSocket(&channel.first);
+        socket_.SendThroughSocket(&channel.second);
+      }
+    }
+
+    for (auto & kv_pair : params.user_header_fields) {
+      socket_.SendCharThroughSocket('K');
+      socket_.SendThroughSocket(kv_pair.first.c_str());
+      socket_.SendThroughSocket(kv_pair.second.c_str());
+    }
+
+    socket_.SendCharThroughSocket('E');
+    socket_.SendThroughSocket(&params.mode_parameters);
+    socket_.SendThroughSocket(params.output_path.c_str());
+    params.base_filename = "gui"s + std::to_string(counter);
+    socket_.SendThroughSocket(params.base_filename.c_str());
+
+    ++counter;
+  } while (counter < 5);
 
   // Use a semaphore to indicate the process is running
 
@@ -202,6 +228,41 @@ void DAQPHAWidget::MakeWidget() {
 }
 
 void DAQParamWidget::MakeWidget() {
+  auto output_box = new QGroupBox {"Files output"};
+  auto output_layout = new QFormLayout {};
+
+  auto select_out_dir = new QPushButton {"Output  Directory"};
+  auto out_dir_edit   = new QLineEdit;
+  out_dir_edit->setEnabled(false);
+
+  auto filename_edit  = new QLineEdit {};
+  auto name_validator = new QRegExpValidator{ QRegExp  {"\\w+"}};
+  filename_edit->setValidator(name_validator);
+
+  output_layout->addRow(select_out_dir, out_dir_edit);
+  output_layout->addRow("Base Filename", filename_edit);
+
+  output_box->setLayout(output_layout);
+
+  connect(select_out_dir, &QPushButton::clicked, this, [=]{
+    auto dir = QFileDialog::getExistingDirectory(this, "Choose Output Directory");
+
+    std::error_code err {};
+    if (std::filesystem::is_directory(dir.toStdString(), err) == false) {
+      return;
+    }
+
+    auto ret = ::access(dir.toStdString().c_str(), F_OK);
+    if (ret == -1) {
+      std::cout << strerror(errno) << std::endl;
+      return;
+    }
+
+    // The directory has read, write, and execute permissions for this user
+    out_dir_edit->setText(dir);
+  });
+
+
   auto point_box = new QGroupBox {"Single-Shot DAQ"};
   point_box->setCheckable(true);
   point_box->setChecked(false);
@@ -229,14 +290,14 @@ void DAQParamWidget::MakeWidget() {
   QLineEdit * scan_fields[8];
   std::for_each_n(scan_fields, 8, [&](QLineEdit * & edit){
     edit = new QLineEdit {};
-    edit->setInputMask("0000.00;");
+ //   edit->setInputMask("0000.00;");
     edit->setValidator(input_validator);
   });
 
   scan_fields[0]->setText("100.00");
   scan_fields[1]->setText("100.00");
   scan_fields[2]->setText("110.00");
-  scan_fields[3]->setText("105.00");
+  scan_fields[3]->setText("103.00");
   scan_fields[4]->setText("1.00");
   scan_fields[5]->setText("1.00");
   scan_fields[6]->setText("5.00");
@@ -272,6 +333,7 @@ void DAQParamWidget::MakeWidget() {
   footer_layout->addWidget(daq_confirm_button);
 
   auto master_layout = new QVBoxLayout {};
+  master_layout->addWidget(output_box);
   master_layout->addWidget(point_box);
   master_layout->addWidget(scan_box);
   master_layout->addLayout(footer_layout);
@@ -335,21 +397,21 @@ void DAQParamWidget::MakeWidget() {
 
   callback  = [=] (DAQInitParameters & config) {
     if (point_box->isChecked()) {
-      config.mode = DAQMode::kDAQPoint;
-      config.timeout = duration_field->value() * 60;
+      config.mode_parameters.mode     = DAQMode::kDAQPoint;
+      config.mode_parameters.timeout  = duration_field->value() * 60;
     }
     else if (scan_box->isChecked()) {
-      config.mode = DAQMode::kDAQScan;
-      config.timeout = scan_fields[7]->text().toDouble();
+      config.mode_parameters.mode     = DAQMode::kDAQScan;
+      config.mode_parameters.timeout  = scan_fields[7]->text().toDouble();
     }
     else {
-      config.mode = DAQMode::kDAQInvalid;
-      config.timeout = 0;
+      config.mode_parameters.mode     = DAQMode::kDAQInvalid;
+      config.mode_parameters.timeout  = 0;
     }
     config.output_path = ".";
     config.base_filename = "test";
 
-    auto & scan_params = config.scan_parameters;
+    auto & scan_params = config.mode_parameters;
     scan_params.x_start_coordinate =
         static_cast<int>(scan_fields[0]->text().toDouble() * 1000);
     scan_params.y_start_coordinate =

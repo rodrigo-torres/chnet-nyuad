@@ -73,6 +73,7 @@ public:
     if (ret != CAENDPP_RetCode_Ok) {
       throw std::runtime_error(DecodeCAENRetCode(ret));
     }
+    std::cout << "Library Handle is :" << CAEN_library_handle << std::endl;
   }
   CAENLibraryHandle(CAENLibraryHandle const &) = delete;
   CAENLibraryHandle & operator= (CAENLibraryHandle const &) = delete;
@@ -130,8 +131,9 @@ public:
 
     for (auto & handle : channel_handles) {
       CAENDPP_IsChannelAcquiring(library_handle, handle.id, &is_acquiring);
-      if (is_acquiring) {
-        CAENDPP_StopAcquisition(library_handle, handle.id);
+      if (is_acquiring != CAENDPP_AcqStatus_Stopped) {
+        auto err = CAENDPP_StopAcquisition(library_handle, handle.id);
+        std::cout << DecodeCAENRetCode(err) << std::endl;
       }
     }
   }

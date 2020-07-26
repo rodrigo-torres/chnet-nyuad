@@ -1,0 +1,30 @@
+Posting to semaphore does return the program to expected behaviour.
+
+Procedure to fix crashes with the DPPLib
+
+a. Make sure the DAQ Daemon is not running
+1. If the DAQ Daemon is running the daq_is_active flag of the shared memory
+will be set to true.
+2. Map the shared memory and post false to the daq_enable flag
+3. Wait for the process to finish
+4. If after waiting the daq_is_active flag does not go to 0, kill the process
+
+The flags in shared_memory guarantee only one instance of the daemon runs at any
+given time
+
+Then
+
+b. Make sure there are no issues with the number of CAENDPPLib instances
+
+1. Start an instance of the DPPLibrary to get a library handle
+2. If the handle is not zero, call DPPEndLib on all integral numbers below the
+value of the library handle
+3. Call DPPEndLib on your library handle
+
+c. Make sure the semaphore is working correctly
+
+1. Open the CAEN semaphore and poll the value
+2. If the value is not equal to 1, wait or post as needed to return the value to one
+
+
+Problem fixed

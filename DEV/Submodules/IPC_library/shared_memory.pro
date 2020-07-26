@@ -9,8 +9,10 @@ TARGET = maxrfipc
 TEMPLATE = lib
 VERSION = 1.2.0
 
-DEFINES += MAXRF_LIBRARIES
 
+PROJECT_DIR = $$(DEV_XRF)
+DEFINES += PROJECT_LOCAL_FOLDER=\\\"$$PROJECT_DIR/Local\\\"
+DEFINES += MAXRF_LIBRARIES
 # ---------------------------------------------------------------------------- #
 # QT MODULES CONFIGURATION
 # The Qt modules to be used in the target. By default core and gui are active
@@ -28,11 +30,17 @@ CONFIG += c++17
 # Pedantic compiler warnings
 CONFIG += warn_on
 
-# The following define makes your compiler emit warnings if you use
-# any feature of Qt which has been marked as deprecated (the exact warnings
-# depend on your compiler). Please consult the documentation of the
-# deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
+DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
+
+ ---------------------------------------------------------------------------- #
+# LIBRARIES CONFIGURATION
+# External libraries configuration and search paths
+# ---------------------------------------------------------------------------- #
+
+unix:!macx {
+  LIBS += -lrt
+}
 
 # ---------------------------------------------------------------------------- #
 # BUILD DIRECTORIES CONFIGURATION
@@ -51,33 +59,40 @@ UI_DIR      = $$PWD/build
 # List of source, header, Qt Designer form, and Qt Resource files
 # ---------------------------------------------------------------------------- #
 
-# API headers search path for shared and static libraries
-INCLUDEPATH += $$PWD/include
+INCLUDEPATH += PROJECT_DIR/Local/include
 
 SOURCES += \
   src/ipc_methods.cpp
 
 HEADERS += \
-        src/ipc_methods.h \
-        src/ipc_shm_mapping.h
+  src/ipc_methods.h \
+  src/ipc_shm_mapping.h
+
+OTHER_FILES += \
+  README.md \
+  LICENSE.md \
+  CREDITS.md \
+  changelog.txt
+
 
 # ---------------------------------------------------------------------------- #
 # INSTALL CONFIGURATION
 # Header, binary, and documentation files and install directories
 # ---------------------------------------------------------------------------- #
 
-PROJECT_DIR = $$(DEV_XRF)
-INSTALL_DIR = $$PROJECT_DIR/libs
+INSTALL_DIR = $$PROJECT_DIR/Local/lib
 
 # Directory where to put the documentation files for this project
-EXPORTED_DOC_DIR = $$PROJECT_DIR/docs
+EXPORTED_DOC_DIR = $$PROJECT_DIR/Local/share/doc/maxrf
 # List of documentation files
 EXPORTED_DOC_FILES = doc/*
 
 # Directory where to put public API headers for this project
-EXPORTED_API_DIR = $$PROJECT_DIR/include/MAXRF
+EXPORTED_API_DIR = $$PROJECT_DIR/Local/include/MAXRF
 # List of public API headers
-EXPORTED_API_HEADERS += include/MAXRF/*
+EXPORTED_API_HEADERS += \
+        src/ipc_methods.h \
+        src/ipc_shm_mapping.h
 
 # Definitions for installing the appropriate files on linux
 unix:!macx {

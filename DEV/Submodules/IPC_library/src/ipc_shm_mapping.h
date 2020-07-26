@@ -24,6 +24,8 @@
 
 #include <sys/types.h>
 
+#include "MAXRF/types.h"
+
 namespace maxrf::ipc {
 
 struct SHMStructure

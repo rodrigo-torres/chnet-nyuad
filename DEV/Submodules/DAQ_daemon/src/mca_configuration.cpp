@@ -102,19 +102,19 @@ auto CAENLibraryHandle::ConfigureBoard0() noexcept -> ConfigCallback::result_typ
   // Set the PHA parameters
   for (int ch = 0; ch < 2; ++ch) {
     params.DCoffset[ch] = PercentageOffsetToInt(40.);
-    params.DPPParams.M[ch] = 200000;        // Signal Decay Time Constant
-    params.DPPParams.m[ch] = 1000;         // Trapezoid Flat Top
-    params.DPPParams.k[ch] = 5000;         // Trapezoid Rise Time
-    params.DPPParams.ftd[ch] = 800;       // Flat Top Delay
+    params.DPPParams.M[ch] = 9000;        // Signal Decay Time Constant
+    params.DPPParams.m[ch] = 5000;         // Trapezoid Flat Top
+    params.DPPParams.k[ch] = 2000;         // Trapezoid Rise Time
+    params.DPPParams.ftd[ch] = 1600;       // Flat Top Delay
     params.DPPParams.a[ch] = 2;            // Trigger Filter smoothing factor
     params.DPPParams.b[ch] = 100;          // Input Signal Rise time
-    params.DPPParams.thr[ch] = 200;       // Trigger Threshold
+    params.DPPParams.thr[ch] = 300;       // Trigger Threshold
     params.DPPParams.nsbl[ch] = 3;         // Number of Samples for Baseline Mean
     params.DPPParams.nspk[ch] = 1;         // Number of Samples for Peak Mean Calculation
     params.DPPParams.pkho[ch] = 1000;         // Peak Hold Off
-    params.DPPParams.blho[ch] = 400;      // Base Line Hold Off
+    params.DPPParams.blho[ch] = 200;      // Base Line Hold Off
     params.DPPParams.dgain[ch] = 0;        // Digital Probe Gain
-    params.DPPParams.enf[ch] = 1.0;        // Energy Nomralization Factor
+    params.DPPParams.enf[ch] = 4.0;        // Energy Normalization Factor
     params.DPPParams.decimation[ch] = 0;   // Decimation of Input Signal
     params.DPPParams.trgho[ch] = 1300;      // Trigger Hold Off
   }

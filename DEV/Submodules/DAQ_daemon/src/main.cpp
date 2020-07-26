@@ -36,34 +36,67 @@ extern "C" [[noreturn]] void SafeTermination([[maybe_unused]] int sig) {
 int HardcodedValues();
 int StartFromSocket();
 
+static maxrf::ipc::SHMHandle shm {};
+
 
 int main()
 {
   //  ResourceCleaner safety {SafeTermination};
-  return StartFromSocket();
-//  return HardcodedValues();
+//  auto size = sizeof(std::vector<std::byte>);
+//  printf("%ld\n", size);
+//  try {
+//    shm.Init();
+//  } catch (std::runtime_error & e) {
+//    std::cout << e.what() << std::endl;
+//    std::this_thread::sleep_for(std::chrono::milliseconds {500});
+//    std::exit(EXIT_FAILURE);
+//  }
+//  int counter {0};
+//  do {
+//    StartFromSocket();
+//    shm.WriteVariable(&maxrf::ipc::SHMStructure::daq_daemon_active, false);
+//    ++counter;
+//  } while (counter < 5);
+
+//  return 0;
+ return HardcodedValues();
 }
 
 int StartFromSocket() {
   using namespace maxrf::daq;
   using namespace maxrf::ipc;
+  using namespace std::chrono;
+  using namespace std::chrono_literals;
 
-  SHMHandle shm;
-  shm.Open();
+  std::cout << "Daemon started" << std::endl;
+  shm.WriteVariable(&maxrf::ipc::SHMStructure::daq_daemon_active, true);
 
-  auto start = std::chrono::steady_clock::now();
-  while (shm.GetVariable(&SHMStructure::daq_daemon_enable) == false) {
-    std::this_thread::sleep_for(std::chrono::milliseconds {10});
-    if (std::chrono::steady_clock::now() - start > std::chrono::seconds {1}) {
-      // Process waiting for DAQ enable from parent process timed out
-      std::cout << "Waiting for DAQ enable flag timed out" << std::endl;
-      std::exit(EXIT_FAILURE);
-    }
-  }
+
+//  auto start = std::chrono::steady_clock::now();
+//  while (shm.GetVariable(&SHMStructure::daq_daemon_enable) == false) {
+//    std::this_thread::sleep_for(10ms);
+//    if (std::chrono::steady_clock::now() - start > 1s) {
+//      // Process waiting for DAQ enable from parent process timed out
+//      std::cout << "Waiting for DAQ enable flag timed out" << std::endl;
+//      std::this_thread::sleep_for(2s);
+//      std::exit(EXIT_FAILURE);
+//    }
+//  }
 
 
   DAQInitParameters params {};
-  IPCSocket socket{"/run/maxrf/daq", SocketOptions::kClient};
+  IPCSocket socket {"/run/maxrf/daq"};
+  std::cout << "Opening socket" << std::endl;
+  try {
+    socket.StartSocket(SocketOptions::kClient);
+  } catch (std::exception & e) {
+    shm.WriteVariable(&maxrf::ipc::SHMStructure::daq_daemon_enable, false);
+    shm.WriteVariable(&maxrf::ipc::SHMStructure::daq_daemon_active, false);
+    std::cout << e.what() << std::endl;
+    std::exit(EXIT_FAILURE);
+  }
+
+  shm.WriteVariable(&maxrf::ipc::SHMStructure::daq_daemon_active, true);
 
   char command {0};
   bool done {false};
@@ -93,9 +126,7 @@ int StartFromSocket() {
     }
     case 'E': {
       char path [256],  filename [256];
-      socket.ReceiveFromSocket(&params.scan_parameters);
-      socket.ReceiveFromSocket(&params.mode);
-      socket.ReceiveFromSocket(&params.timeout);
+      socket.ReceiveFromSocket(&params.mode_parameters);
       socket.ReceiveFromSocket(path);
       socket.ReceiveFromSocket(filename);
       params.output_path = std::string {path};
@@ -104,6 +135,7 @@ int StartFromSocket() {
       break;
     }
     default:
+      shm.WriteVariable(&maxrf::ipc::SHMStructure::daq_daemon_enable, false);
       std::cout << "Error in parsing" << std::endl;
       return 1;
     }
@@ -114,40 +146,42 @@ int StartFromSocket() {
   DAQSession daq{};
   if (daq.SetupDAQSession(params)) {
     daq.StartDAQSession();
-    do {
-      std::this_thread::sleep_for(std::chrono::seconds{1});
-    } while (!daq.IsSafeToExit());
-
-
-    return 0;
   }
   else {
-    return 1;
+    std::cout << "DAQ Session parameters are invalid" << std::endl;
   }
+  shm.WriteVariable(&maxrf::ipc::SHMStructure::daq_daemon_enable, false);
+  return 0;
 }
 
 int HardcodedValues() {
+  using namespace std::literals;
   using namespace maxrf::daq;
   DAQInitParameters params;
 
   params.boards_config.push_back( MCABoardConfiguration {});
-  params.boards_config.front().channels.insert( {0, MCAChannelParameters {}});
+  params.boards_config.front().channels.insert( {1, MCAChannelParameters {}});
+  params.boards_config.front().board_id = 0;
   params.base_filename = "test";
   params.output_path =  ".";
-  params.mode = DAQMode::kDAQPoint;
-  params.timeout = 15.;
+  params.mode_parameters.mode     = DAQMode::kDAQScan;
+  params.mode_parameters.x_motor_step = 1000;
+  params.mode_parameters.y_motor_step = 1000;
+  params.mode_parameters.motor_velocity = 5000;
+  params.mode_parameters.x_start_coordinate = 0;
+  params.mode_parameters.x_end_coordinate = 10000;
+  params.mode_parameters.y_start_coordinate = 0;
+  params.mode_parameters.y_end_coordinate   = 5000;
+  params.mode_parameters.timeout  = 0.2;
 
-  DAQSession daq{};
-  if (daq.SetupDAQSession(params)) {
-    daq.StartDAQSession();
-    do {
-      std::this_thread::sleep_for(std::chrono::seconds{1});
-    } while (!daq.IsSafeToExit());
-
-
-    return 0;
-  }
-  else {
-    return 1;
-  }
+//  int counter {0};
+//  do {
+    DAQSession daq{};
+//    params.base_filename = "test"s + std::to_string(counter);
+    if (daq.SetupDAQSession(params)) {
+      daq.StartDAQSession();
+    }
+//    ++counter;
+//  } while (counter < 30);
+  return 0;
 }

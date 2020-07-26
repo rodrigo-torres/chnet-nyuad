@@ -19,6 +19,7 @@
 #define USER_INTERFACE_H
 
 #include <iostream>
+#include <filesystem>
 #include <memory>
 #include <type_traits>
 
@@ -26,6 +27,7 @@
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QDoubleValidator>
+#include <QFileDialog>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QLabel>
@@ -39,7 +41,12 @@
 #include <QTimer>
 #include <QWidget>
 
-#include "include/MAXRF/daq_types.h"
+#include <sys/stat.h>   // For file statistics
+#include <sys/types.h>
+#include <unistd.h>
+
+#include "MAXRF/daq_types.h"
+#include "MAXRF/ipc_methods.h"
 
 namespace maxrf::daq {
 
@@ -120,9 +127,22 @@ class Wrapper : public QWidget
   DAQHeaderWidget * header_config_widget_ {nullptr};
   DAQParamWidget  * session_config_widget_ {nullptr};
 
+  maxrf::ipc::IPCSocket socket_ {"/run/maxrf/daq"};
+  maxrf::ipc::SHMHandle shm;
+
 public:
 
   explicit Wrapper(QWidget * parent = nullptr) : QWidget {parent} {
+
+//    shm.Create();
+    try {
+      shm.Init();
+      socket_.StartSocket(maxrf::ipc::SocketOptions::kServer);
+    } catch (std::exception & e) {
+      std::cout << e.what() << std::endl;
+      std::exit(EXIT_FAILURE);
+    }
+
     auto tab_widget = new QTabWidget {};
     mca_config_widget_ = new DAQBoardsWidget {this};
     header_config_widget_ = new DAQHeaderWidget{this};
@@ -148,7 +168,6 @@ public:
     layout->addWidget(tab_widget);
     layout->addWidget(tab);
     layout->addWidget(status_bar);
-
 
     this->setLayout(layout);
 

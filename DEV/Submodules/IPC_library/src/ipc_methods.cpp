@@ -80,10 +80,12 @@ auto shmarray<T>::initialize(Segments segment) noexcept -> bool
     init.size = 409600;
   }
 
-  shmid_ = shmget(init.key, init.size, init.shmflag);
-  if (shmid_ == -1)
-  {
-    perror("[!] Can't access SHM: ");
+  shmid_ = shmget(init.key, init.size, Flags::ACCESS);
+  if (errno == ENOENT)  {
+    shmid_ = shmget(init.key, init.size, Flags::CREATE);
+  }
+  if (shmid_ == -1) {
+    std::cout << "[!] Can't access SHM: " << strerror(errno) << std::endl;
     return false;
   }
 

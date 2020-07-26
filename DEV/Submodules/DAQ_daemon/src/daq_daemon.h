@@ -27,8 +27,8 @@
 // POSIX libraries
 #include <semaphore.h>	// Semaphore with main program
 
-#include "daq_types.h"
 #include "MAXRF/ipc_methods.h"
+#include "daq_types.h"
 #include "mca.h"
 
 namespace maxrf::daq {
@@ -38,38 +38,27 @@ class DAQSession;
 class FileWriter;
 
 ///
-/// \brief The DAQBridge class manages a DAQ session and connects the handle for
-/// the CAEN MCA with the class responsible for writing the data file
+/// \brief The DAQSession class manages a DAQ session.
 ///
 class DAQSession
 {
 public:
-  DAQSession() = default;
-  DAQSession(DAQInitParameters const & config) {
-    if (SetupDAQSession(config) == false) {
-      std::exit(1);
-    }
+  ~DAQSession() {
+    CleanupEverything();
   }
-  ~DAQSession() { CleanupEverything(); }
 
+  ///
+  /// \brief SetupDAQSession
+  /// \param config
+  /// \return a boolean value, true if the configuration was succesful, and
+  /// false otherwise.
+  ///
   bool SetupDAQSession(DAQInitParameters const & config);
 
   ///
   /// \brief StartDAQSession
   ///
   void StartDAQSession();
-
-  inline void ForceStopDAQ() {
-    if (daq_enable.load() == false) {
-      safe_to_stop.store(true);
-    }
-    daq_enable.store(false);
-  }
-
-  inline bool IsSafeToExit() {
-    return safe_to_stop.load();
-  }
-
 
 protected:
 
@@ -80,14 +69,11 @@ private:
   std::vector<DAQPipe>  pipes_  {};
   std::unique_ptr<CAENLibraryHandle> caen_handle_ {nullptr};
 
-  DAQMode mode_ {DAQMode::kDAQInvalid};
-  DAQScanParameters scan_params_  {};
+  DAQModeParameters session_params_  {};
   std::array<int, 3> image_dimensions_ {};
-  std::chrono::duration<double> daq_duration {0.0};
 
   // DAQ flags
   std::atomic_bool daq_enable {false};
-  std::atomic_bool safe_to_stop {false};
 
   // DAQ semaphores for the scan daq mode
   sem_t * sem_reply {nullptr};
@@ -98,22 +84,25 @@ class DAQPipe
 {
   std::shared_ptr<CAEN_MCAHandle> producer_ {nullptr};
   std::shared_ptr<FileWriter>     consumer_ {nullptr};
-  SpectralData  histogram_ {};
   bool pipe_open_ {false};
-  int32_t pixel {0};
+  uint32_t pixel {0};
+  uint32_t pipe_id {0};
 
 public:
   DAQPipe() = delete;
   DAQPipe(std::shared_ptr<CAEN_MCAHandle> producer,
           std::shared_ptr<FileWriter> consumer) :
     producer_ {producer}, consumer_ {consumer} {
-    histogram_.resize(producer_->GetHandles().front().histogram.size());
   }
 
   ~DAQPipe() {
     ClosePipe();
     producer_.reset();
     consumer_.reset();
+  }
+
+  void SetID(uint id) {
+    pipe_id = id;
   }
 
   void OpenPipe() {
@@ -136,6 +125,14 @@ public:
       pipe_open_ = false;
     }
   }
+};
+
+struct FileStats {
+//  int32_t width;  ///< Scan width in pixels
+//  int32_t height; ///< Scan height in pixels
+  uint32_t pixels_in_buffer;   ///< No. of pixels in buffer but not written
+  uint32_t pixels_written;     ///< No. of pixels written
+  SpectralData sum_spectrum;  ///< Sum spectrum of the scan for this detector
 };
 
 class FileWriter
@@ -198,7 +195,7 @@ private:
 
   DAQMode mode_ {DAQMode::kDAQInvalid};
   std::vector<FileHande> files_;
-  std::vector<std::stringstream> line_buffer_;
+  uint32_t scan_line_width_;
 };
 
 
