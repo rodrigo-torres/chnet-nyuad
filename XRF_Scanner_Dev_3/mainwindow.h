@@ -128,9 +128,9 @@ struct Pixel_BIG {
     QWidget *tab_3;
     QWidget *tab_4;
 ////////////////////////////////////////////////////////////
-    QTabWidget *tabWidget2;
+    //QTabWidget *tabWidget2;
     QWidget *tab2_1;
-    QWidget *tab2_2;
+    //QWidget *tab2_2;
     QWidget *tab2_3;
     QWidget *tab2_4;
 
@@ -147,9 +147,9 @@ struct Pixel_BIG {
        void Info2_1();
        void Exit();
 
-       void X_Motor_selection(int);
-       void Y_Motor_selection(int);
-       void Z_Motor_selection(int);
+       //void X_Motor_selection(int);
+       //void Y_Motor_selection(int);
+       //void Z_Motor_selection(int);
 
        void open_MAP();
        void Define_Pixels();
@@ -166,6 +166,9 @@ struct Pixel_BIG {
        void StartVme();
        void Stop_Vme();
        void SelMeasTime();
+       void SelDigiCh0();
+       void SelDigiCh1();
+       void SelDigiCh0and1();
        void TreD();
        void DueD();
 
@@ -177,8 +180,10 @@ struct Pixel_BIG {
        void CutB();
        void LoadTxt();
        void MergeTxt();
+       void readmultidetcalpar();
+       void Changeparameters();
 
-       void exportpymca();
+       //void exportpymca();
 
        void Autofocus2();
        void Digitiser2();
@@ -210,14 +215,19 @@ void Velocity(double);
        void Ymassimo(double);
        void X_to(double);
        void Y_to(double);
-       void InizializzazioneX();
-       void InizializzazioneY();
+
+       // Found in XY_Init.cpp
+       void movetoref_Xmotor(float refpositionX);
+       void Init_Xmotor();
+       void movetoref_Ymotor(float refpositionY);
+       void Init_Ymotor();
+       void movetoref_Zmotor(float refpositionZ);
+
+       //
        void StartX();
        void StartY();
        bool StartXYScan();
        bool StartYXScan();
-       //void ScanX();
-       //void ScanY();
        void ScanXY();
        void ScanYX();
        void MoveX(double);
@@ -233,11 +243,11 @@ void Velocity(double);
        void Stop();
        void CheckXOnTarget();
        void CheckYOnTarget();
-       void timerEvent(); 
-      
+       void timerEvent();
+
 
        void CheckSegFault();
-       void SaveTxt(); 
+       void SaveTxt();
        QString SetSerialXName(int number);
        QString SetSerialYName(int number);
        void AssignY();
@@ -266,7 +276,7 @@ void Velocity(double);
      void createStatusBar();
 
      QComboBox *comboBox_XMotor;  ////// Motor Selection
-     QComboBox *comboBox_YMotor;  
+     QComboBox *comboBox_YMotor;
      QComboBox *comboBox_ZMotor;
      QComboBox *element1comboBox;
      QComboBox *element2comboBox;
@@ -287,7 +297,7 @@ void Velocity(double);
      QMenu *SpectrumMenu;
 
      QMenu *TreDMenu;
-     QMenu *PyMcaMenu;
+     //QMenu *PyMcaMenu;
      QMenu *TOOLMenu;
      QMenu *RunMenu;
      QMenu *HowToMenu;
@@ -296,6 +306,7 @@ void Velocity(double);
 
      QMenu* SoftWare;
      QMenu* Kernel;
+     QMenu *ActiveChannel;
 
      void openAct();
      void createActions();
@@ -308,11 +319,12 @@ void Velocity(double);
      QRadioButton *radioOptical;
      QVBoxLayout *vbox;
      QVBoxLayout *elementsLayout;
-   
+
 
 //FileMenu
      QAction *openAct1;
      QAction *MergeTxtAct;
+     QAction *SaveTxtAct;
      QAction *exitAct;
 //MapMenu
      QAction *ChSelAct;
@@ -322,26 +334,31 @@ void Velocity(double);
      QAction *FileReloadAct_SHM;
      QAction *MapSumReloadAct_SHM;
      QAction *MapShowAct_SHM;
-     QAction *MapHideAct; 
+     QAction *MapHideAct;
      QAction *ViewOnLineAct;
      //QActionGroup *DisplayGroup;
 //AcqMenu
 //   QAction *RunDaq;
      QAction *SelTime;
+     QAction *DigitizerChannel0;
+     QAction *DigitizerChannel1;
+     QAction *DigitizerChannel0and1;
+     QAction *Changemultidetcalpar;
      QAction *RunVme;
      QAction *StopVme;
      QAction *RateAct;
+
 //SpectrumMenu
      QAction *HistoAct;
 //3DMenu
-     QAction *DueDAct; 
+     QAction *DueDAct;
      QAction *TreDAct;
 
      //QAction *SaveTxtAct;
 //PyMcaMenu
-     QAction *PyMcaExpAct;
-     QAction *RunPyMcaAct;
-     QAction *InstallPyMcaAct;
+     //QAction *PyMcaExpAct;
+     //QAction *RunPyMcaAct;
+     //QAction *InstallPyMcaAct;
 //TOOLMenu
      QAction *Open_motor_test;
      QAction *Open_PI_motor_parameter_table;
@@ -353,9 +370,9 @@ void Velocity(double);
      QAction *actionOpen_Info2_1;
 
      QAction *Autofocus;
-     QAction *Digitiser;     
+     QAction *Digitiser;
 
-     
+
 
 
 
@@ -375,7 +392,7 @@ void Velocity(double);
      QPushButton *Export_Button;
      QPushButton *VLC_Button;
      QPushButton *LASER_Button;
-     QPushButton *HELIUM_Button;
+     //QPushButton *HELIUM_Button;
      QPushButton *SW_treshold_Button;
 
      QLabel *DAQ_label;
@@ -383,14 +400,14 @@ void Velocity(double);
      QLabel *MapImage_label;
      QLabel *CAMERA_label;
      QLabel *LASER_label;
-     QLabel *HELIUM_label;
-     QLabel *GAS_label;
+     //QLabel *HELIUM_label;
+     //QLabel *GAS_label;
      QLabel *element1label;
      QLabel *element2label;
      QLabel *element3label;
 
-     QLCDNumber *lcdNumber;
-     QSlider *horizontalSlider;
+     //QLCDNumber *lcdNumber;
+     //QSlider *horizontalSlider;
 
 
      QFrame *line_1;
@@ -401,14 +418,14 @@ void Velocity(double);
 ////////////////////////////////// TAB WIDGET
      QSpinBox *spinBox_assignZ;
      QPushButton *AssignZ_pushButton;
-     QLabel *TTY_Z_label;
-     QLineEdit *linedit_Z_Assignement;
+     //QLabel *TTY_Z_label;
+     //QLineEdit *linedit_Z_Assignement;
      QLabel *label_6_tab;
 
      QPushButton *pushButton_tab;
      QPushButton *quit_5_tab;
 
-     QFrame *line_6_tab;
+     //QFrame *line_6_tab;
 
 
 ////////////////////////////////// TAB_4
@@ -429,11 +446,11 @@ void Velocity(double);
 
      QDoubleSpinBox *doubleSpinBox;
      QDoubleSpinBox *doubleSpinBox_2;
-     QFrame *line_11;
-     QLabel *label_7_below_tab;
-     QLabel *label_8_below_tab;
+     //QFrame *line_11;
+     //QLabel *label_7_below_tab;
+     //QLabel *label_8_below_tab;
 
-     QFrame *line_14;
+     //QFrame *line_14;
      QLabel *label_17_below_tab;
      QLineEdit *lineEdit_below_tab;
      QLabel *label_18_below_tab;
@@ -459,9 +476,9 @@ void Velocity(double);
 
 ///// TAB2_2
 
-     QLabel *label_tab_2_2;
-     QLabel *label_tab_2_2X;
-     QLabel *label_tab_2_2Y;
+     //QLabel *label_tab_2_2;
+     //QLabel *label_tab_2_2X;
+     //QLabel *label_tab_2_2Y;
      QPushButton *pushButton_tab_2_2X;
      QPushButton *pushButton_tab_2_2Y;
      QPushButton *pushButton_tab_2_2XY;
@@ -469,7 +486,7 @@ void Velocity(double);
 
 ///// TAB2_3 MOVE
 
-     QLabel *MOVE_label; 
+     QLabel *MOVE_label;
      QPushButton *MOVEUP_pushButton;
      QPushButton *MOVELEFT_pushButton;
      QPushButton *MOVERIGHT_pushButton;
@@ -517,7 +534,7 @@ void Velocity(double);
 //////////from motore.h
      QTimer *timer;
      QTimer *timerPos;
-     QTimer *timerS; 
+     QTimer *timerS;
 
 ///////////////////////////// From Motore_Z.h
 
@@ -526,17 +543,17 @@ void Velocity(double);
 
        //void Write_coordinates();
        void Treshold();
-     
-       void VelocityZ(double);
-       void PassoZ_Func(double);
+
+       //void VelocityZ(double);
+       //void PassoZ_Func(double);
        void Zminimo(double);
        void Zmassimo(double);
 
        void Z_to(double);
-       void InizializzazioneZ();
+       void Init_Zmotor();
        void StartZ();
 
-       void InizializzazioneKeyence();
+       void Init_KeyenceLaser();
 
        void MoveZ(double);
        void MoveZ_To();
@@ -545,7 +562,7 @@ void Velocity(double);
        void AbortZ();
        void StopZ();
        void CheckZOnTarget();
- //      void timerEventZ(); 
+ //      void timerEventZ();
        void Focustimer();
        void readKeyence();
  //      void SetAutoFocusReferenceDistance();
@@ -573,7 +590,7 @@ void Velocity(double);
 
 private:
 
-       QTimer *timerAutofocus;     
+       QTimer *timerAutofocus;
        QTimer *timerZ;
 
 
@@ -589,7 +606,7 @@ private:
      QCheckBox *ENABLE_TRACKING_checkBox;
 
      QDoubleSpinBox *Z_VELOCITY_doubleSpinBox;
-     QDoubleSpinBox *Z_STEP_doubleSpinBox;
+     //QDoubleSpinBox *Z_STEP_doubleSpinBox;
      QDialogButtonBox *buttonBox;
 
     QPushButton *OKbutton;

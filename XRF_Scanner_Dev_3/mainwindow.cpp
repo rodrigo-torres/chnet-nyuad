@@ -75,6 +75,8 @@ extern int Resolution_mode;
 extern double numpixelforaccel;
 extern double posXforacceleration;
 extern double accelerationtime;
+extern int accelerationtimesleep;
+extern double Px;
 
 
 bool PixelCorrection=false;  bool CutBorders=false;   bool OnLine=false;         bool MapIsOpened=false;  bool CameraOn=false;
@@ -113,13 +115,16 @@ struct Pixel_BIG *Pointer; //puntatore da far puntare a PixelsMappa una volta cr
 
 //////////// ADDED VARIABLES FOR DEVELOP VERSION (Bart_PE)
 
-int motor_selectedX=0; int motor_selectedY=0; int motor_selectedZ=0;
+int selected_Xmotor=3; int selected_Ymotor=3; int selected_Zmotor=1;
 bool InitPhaseX=false; bool InitPhaseY=false; bool InitPhaseZ=false;
 int nxInit=0, nyInit=0, nzInit=0; // used for motor initialisation
 
 ///////////////Variables for the composed map visualization (sum of three different elements)///////////
 int ChMin1=0, ChMax1=0, ChMin2=0, ChMax2=0, ChMin3=0, ChMax3=0;
 int ChMinBa=0, ChMaxBa=0, ChMinCa=0, ChMaxCa=0, ChMinK=0, ChMaxK=0, ChMinCo=0, ChMaxCo=0, ChMinAg=0, ChMaxAg=0, ChMinCr=0, ChMaxCr=0, ChMinCu=0, ChMaxCu=0, ChMinPbL=0, ChMaxPbL=0, ChMinAu=0, ChMaxAu=0, ChMinHg=0, ChMaxHg=0, ChMinSi=0, ChMaxSi=0, ChMinTi=0, ChMaxTi=0, ChMinSn=0, ChMaxSn=0, ChMinFe=0, ChMaxFe=0, ChMinZn=0, ChMaxZn=0, ChMinPbM=0, ChMaxPbM=0;
+
+////Variables for multidetector expansion/////
+
 
 
 ///////////variables for tests///////////////
@@ -227,6 +232,10 @@ fscanf(filech, "%s %d %d", element, &ChMinFe, &ChMaxFe);
 fscanf(filech, "%s %d %d", element, &ChMinZn, &ChMaxZn);
 fscanf(filech, "%s %d %d", element, &ChMinPbM, &ChMaxPbM);
 fclose(filech);
+
+readmultidetcalpar();
+printf("%d %d %d\n",*(shared_memory_cmd+101), *(shared_memory_cmd+102), *(shared_memory_cmd+103));
+
  }
 
 
@@ -236,6 +245,48 @@ fclose(filech);
 //                                MAINWINDOW: FURTHER ACTIONS
 //                                
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::Changeparameters()
+{
+bool ok1, ok2, ok3;
+    
+      int calpar1 = QInputDialog::getInt(this, tr("Multidetector calibration parameters"),tr("Parameter A"), 0, -1000000, 1000000, 0.000001, &ok1);
+      
+      int  calpar2 = QInputDialog::getInt(this, tr("Multidetector calibration parameters"),tr("Parameter B"), 0, -1000000, 1000000, 0.000001, &ok2);
+
+      int  scalefactor = QInputDialog::getInt(this, tr("Multidetector calibration parameters"),tr("Scale factor"), 0, 1, 1000000000, 1, &ok3);
+
+FILE *filecalpar; //name of the file where the channel intervals are specified
+filecalpar = fopen ("../multidetector_calibrationparameters.txt", "w+");
+fprintf(filecalpar, "%d\n", calpar1);
+fprintf(filecalpar, "%d\n", calpar2);
+fprintf(filecalpar, "%d\n", scalefactor);
+fclose(filecalpar);
+
+*(shared_memory_cmd+101)=calpar1;
+*(shared_memory_cmd+102)=calpar2;
+*(shared_memory_cmd+103)=scalefactor;
+
+}
+
+void MainWindow::readmultidetcalpar() //reads the file with the calibration parameters for the multidetector in sum mode
+{
+int calpar1=0;
+int calpar2=0;
+int scalefactor=1;
+
+FILE *filecalpar; //name of the file where the channel intervals are specified
+filecalpar = fopen ("../multidetector_calibrationparameters.txt", "r");
+fscanf(filecalpar, "%d", &calpar1);
+fscanf(filecalpar, "%d",&calpar2);
+fscanf(filecalpar, "%d",&scalefactor);
+fclose(filecalpar);
+
+*(shared_memory_cmd+101)=calpar1;
+*(shared_memory_cmd+102)=calpar2;
+*(shared_memory_cmd+103)=scalefactor;
+
+}
 
 
 void MainWindow::createStatusBar()
@@ -289,95 +340,43 @@ void MainWindow::timerEvent()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-int invia_comando_X(int chan,const char *comando, const char *parametri)   // X MOTOR: SEND COMMAND
-  {
-   char canale=chan+'0';
-   int r;
-   string cm=comando;
-   if(parametri==NULL) 
-     cm=cm+'\n';
-   else
-     cm=cm+' '+canale+' '+parametri+'\n';
-   if(write(serialX, cm.data(), cm.size()))  r=0;
-   else {r=1; qDebug()<<"Errore in scrittura  "<< strerror(errno)<<'\n';}
-   return r;
-  }
+int send_command(int channel,const char *command, const char *parameter, int port)
+{
+    int serial=port;
+    char chan=channel+'0';
+    string cm=command;
 
-
-int invia_comando_Y(int chan,const char *comando, const char *parametri)   // Y MOTOR: SEND COMMAND
-  {
-   char canale=chan+'0';
-   int r;
-   string cm=comando;
-   if(parametri==NULL) 
-     cm=cm+'\n';
-   else
-     cm=cm+' '+canale+' '+parametri+'\n';
-   if(write(serialY, cm.data(), cm.size()))  r=0;
-   else {r=1; qDebug()<<"Errore in scrittura  "<< strerror(errno)<<'\n';}
-   return r;
-  }
-
-int invia_comando_Z(int chan,const char *comando, const char *parametri)   // Z MOTOR: SEND COMMAND
-  {
-   char canale=chan+'0';
-   int r;
-   string cm=comando;
-   if(parametri==NULL) 
-     cm=cm+'\n';
-   else
-     cm=cm+' '+canale+' '+parametri+'\n';
-   if(write(serialZ, cm.data(), cm.size()))  r=0;
-   else {r=1; qDebug()<<"Errore in scrittura  "<< strerror(errno)<<'\n';}
-   return r;
-  }
-
-
-char *read_Xanswer()                                                       // X MOTOR: READ ANSWER CHAR
-  {
-    //printf("In attesa di risposta...\n");
-    char c_1[100]; //sostituito c con c_1
-    int n=0;
-    string rest;
-    while((n=read(serialX, &c_1, sizeof(c_1)))>0)      
-     {
-      c_1[n]=0;
-      rest=rest+c_1;      
-      if(c_1[n-1]=='\n')
-      break;        
-     }
-   return c_1;  
-  }
-
-char *read_Yanswer()                                                       // Y MOTOR: READ ANSWER CHAR
-  {
-   char c[100];
-   int n=0;
-   string rest;
-   while((n=read(serialY, &c, sizeof(c)))>0)      
-     {
-      c[n]=0;
-      rest=rest+c;      
-      if(c[n-1]=='\n')
-      break;        
-     }
-   return c;  
-  }
-
-char *read_Zanswer()                                                       // Z MOTOR: READ ANSWER CHAR
-  {
-   char c[100];
-   int n=0;
-   string rest;
-   while((n=read(serialZ, &c, sizeof(c)))>0)      
-    {
-     c[n]=0;
-     rest=rest+c;      
-     if(c[n-1]=='\n')
-     break;        
+    if (parameter==NULL)
+       cm=cm+'\n';
+    else
+       cm=cm+' '+chan+' '+parameter+'\n';
+    if ( write(serial, cm.data(), cm.size()) )
+       return 0;
+    else {
+       qDebug()<<"[!] Writing to bus failed"
+                 "[!] Check connection and writing priviledges";
+       qDebug()<<strerror(errno);
+       return 1;
     }
-   return c;  
-  }
+}
+
+char *read_answer(int port)                                                       // Z MOTOR: READ ANSWER CHAR
+{
+    string rest;
+    char c[100];
+    int n=0;
+
+    while( (n=read(port, &c, sizeof(c)))>0 )
+    {
+        c[n]=0;
+        rest=rest+c;
+        if(c[n-1]=='\n')
+        break;
+    }
+    return c;
+}
+
+
 
 string read_Xanswer2()                                                     // X MOTOR: READ ANSWER STRING
 {
@@ -441,7 +440,7 @@ string read_Zanswer2()                                                     // Z 
 void MainWindow::CheckXOnTarget()                                           // X MOTOR: CHECK_ON_TARGET
   {
    string a;
-   invia_comando_X(1,"ONT?",NULL); 
+   send_command(1,"ONT?",NULL,serialX);
    a=read_Xanswer2();
    QString Qa=a.data();
    if(Qa.contains("0", Qt::CaseInsensitive)==false) // also 1=0 can be used 
@@ -452,7 +451,8 @@ void MainWindow::CheckXOnTarget()                                           // X
        {
         if(nxInit==0)
           {
-           nxInit=1; qDebug()<<"...Motor inited..."<<"\n";
+           nxInit=1;
+           qDebug()<<"... X motor initialized\n";
            IniX=0; IniXready=1; 
           }
        }
@@ -463,7 +463,7 @@ void MainWindow::CheckXOnTarget()                                           // X
      Xmoving=true;
     }
     
-    invia_comando_X(1,"POS?",NULL);
+    send_command(1,"POS?",NULL,serialX);
     checkX = read_Xanswer2();
    NowX="X= ";
    NowX.append(checkX.data());
@@ -475,7 +475,7 @@ void MainWindow::CheckXOnTarget()                                           // X
 void MainWindow::CheckYOnTarget()                                           // Y MOTOR: CHECK_ON_TARGET
   {
    string ay;
-   invia_comando_Y(1,"ONT?",NULL); 
+   send_command(1,"ONT?",NULL,serialY);
    ay=read_Yanswer2();
    QString Qay=ay.data();
    if(Qay.contains("0", Qt::CaseInsensitive)==false) // also 1=0 can be used 
@@ -485,7 +485,8 @@ void MainWindow::CheckYOnTarget()                                           // Y
         {
          if(nyInit==0)
            {
-            nyInit=1; qDebug()<<"...Y-motor inited..."<<"\n";
+            nyInit=1;
+            qDebug()<<"... Y motor initialized\n";
             IniY=0; IniYready=1; 
            }
         }
@@ -495,7 +496,7 @@ void MainWindow::CheckYOnTarget()                                           // Y
       YOnTarget=false; 
       Ymoving=true;
      }
-   invia_comando_Y(1,"POS?",NULL); 
+   send_command(1,"POS?",NULL,serialY);
    checkY = read_Yanswer2();
    NowY="Y= ";
    NowY.append(checkY.data());
@@ -507,7 +508,7 @@ void MainWindow::CheckYOnTarget()                                           // Y
 void MainWindow::CheckZOnTarget()                                           // Z MOTOR: CHECK_ON_TARGET
   {
    string az;
-   invia_comando_Z(1,"ONT?",NULL); 
+   send_command(1,"ONT?",NULL,serialZ);
    az=read_Zanswer2();
    QString Qaz=az.data();
    if(Qaz.contains("0", Qt::CaseInsensitive)==false) // also 1=0 can be used 
@@ -518,8 +519,9 @@ void MainWindow::CheckZOnTarget()                                           // Z
         {
          if(nzInit==0)
           {
-           nzInit=1; qDebug()<<"...Z-motor inited..."<<"\n";
-           IniZ=0; IniZready=1;  //////////////////////////// SHM...!?! 
+           nzInit=1;
+           qDebug()<<"... Z motor initialized\n";
+           IniZ=0; IniZready=1;
            }
         }
      }
@@ -528,16 +530,16 @@ void MainWindow::CheckZOnTarget()                                           // Z
       ZOnTarget=false; 
       Zmoving=true;
      }
-   invia_comando_Z(1,"POS?",NULL);  
+   send_command(1,"POS?",NULL,serialZ);
    checkZ = read_Zanswer2();
    NowZ="Z= ";
    NowZ.append(checkZ.data());
    NowZ.remove(3,2); 
-// Z_POSITION_lineEdit->setText(NowZ);
+
    lineEdit_below_tab->setText(NowZ); 
    NowZ.remove(0,3);
    ZPosition=NowZ.toDouble();
-    //qDebug()<<"NowZ "<<ZPosition<<"\n";
+
   }
 
 void MainWindow::Enable_TabWidget_3_4_XY()                                           // ENABLING XY MOVE WIDGET
@@ -563,26 +565,28 @@ void MainWindow::Velocity(double number)                       // MOTOR SETTINGS
    qDebug()<<"velocità "<<V<<"mm/s"<<"Scrittura posizione ogni "<<tempoPos<<" ms";
    char v[10];
    sprintf(v,"%f",V);
-   invia_comando_X(1,"VEL",v);  
-   invia_comando_Y(1,"VEL",v);  
+   send_command(1,"VEL",v,serialX);
+   send_command(1,"VEL",v,serialY);
   }
 
+/* Function VelocityZ has been deprecated, as the Z motor velocity is entirely controlled by
+   the initialization function, and by the laser feedback loop.
 void MainWindow::VelocityZ(double numberZ)                       // MOTOR SETTINGS Z VELOCITY
   {
-   Vz=numberZ;
    char vz[10];
-   sprintf(vz,"%f",Vz);
-   invia_comando_Z(1,"VEL",vz);  
+   sprintf(vz,"%f",numberZ);
+   send_command(1,"VEL",vz,serialZ);
 }
+*/
 
 
 void MainWindow::PassoX_Func(double number1)                     // MOTOR SETTINGS STEP
   {Px=number1*1000; *(shared_memory_cmd+60)=Px; PassoX=number1;} 
 void MainWindow::PassoY_Func(double number5)
   {Py=number5*1000; *(shared_memory_cmd+61)=Py; PassoY=number5;} 
-void MainWindow::PassoZ_Func(double number1)
+/*void MainWindow::PassoZ_Func(double number1)
   {Pz=number1*1000; *(shared_memory_cmd+62)=Pz;}
-
+*/
 
 void MainWindow::Xminimo(double number2)                         // MOTOR SETTINGS MINIMUM POSITION
   {Xmin1=number2*1000;  positionX=Xmin1; *(shared_memory_cmd+50)=Xmin1;}
@@ -613,7 +617,7 @@ void MainWindow::StartX()                                          // MOTOR STAR
    if(!okX)
      {
       okX=true; 
-      InizializzazioneX();
+      Init_Xmotor();
       if(InitX && InitY)
         {
          tab2_3->setEnabled(true);
@@ -632,7 +636,7 @@ void MainWindow::StartY()                                          // MOTOR STAR
    if(!okY)
      {
       okY=true; 
-      InizializzazioneY();
+      Init_Ymotor();
       if(InitX && InitY)
         {
          tab2_3->setEnabled(true);
@@ -651,7 +655,7 @@ void MainWindow::StartZ()                                          // MOTOR STAR
    if(!okZ)
      {
       okZ=true; 
-      InizializzazioneZ();
+      Init_Zmotor();
      } 
    else
     {
@@ -662,18 +666,18 @@ void MainWindow::StartZ()                                          // MOTOR STAR
 
 void MainWindow::Stop()                                             // MOTOR STOP
   {
-   invia_comando_X(1,"HLT",NULL); 
-   invia_comando_Y(1,"HLT",NULL); 
-   invia_comando_X(1,"ERR?",NULL);
+   send_command(1,"HLT",NULL,serialX);
+   send_command(1,"HLT",NULL,serialY);
+   send_command(1,"ERR?",NULL,serialX);
    checkX = read_Xanswer2();
-   invia_comando_Y(1,"ERR?",NULL);
+   send_command(1,"ERR?",NULL,serialY);
    checkY = read_Yanswer2();
   }
 
 void MainWindow::StopZ()                                            // MOTOR STOP Z
   {
-   invia_comando_Z(1,"HLT",NULL); 
-   invia_comando_Z(1,"ERR?",NULL);
+   send_command(1,"HLT",NULL,serialZ);
+   send_command(1,"ERR?",NULL,serialZ);
    checkZ = read_Zanswer2();
   }
 
@@ -685,12 +689,6 @@ void MainWindow::StopZ()                                            // MOTOR STO
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-//void MainWindow::Write_coordinates()
-//  {      
-//   if(XYscanning) WritePositionXY();
-//   else
-//   if(YXscanning) WritePositionYX();
-//  }
 
 bool MainWindow::StartXYScan()
   {
@@ -705,13 +703,17 @@ bool MainWindow::StartXYScan()
       XYscanning=true; NscanX=0; FirstRun=true;
       tempoPos=Px/V;
 	
-numpixelforaccel=ceil((V*V)/(Px*200)); //number of pixels needed for acceleration, it always rounds up
 
-posXforacceleration=numpixelforaccel*Px;
 
-accelerationtime=posXforacceleration/V; //time interval for the acquisition startup, taken considering the time needed for acceleration
 
-printf("numpixelforaccel:%f, posXforacceleration:%f, accelerationtime:%f\n", numpixelforaccel, posXforacceleration, accelerationtime);
+
+accelerationtime=(V/200); //time interval for the acquisition startup, taken considering the time needed for acceleration
+
+posXforacceleration=(100*(accelerationtime*accelerationtime))*1000; //in um
+
+accelerationtimesleep=round(accelerationtime*1000)+23;
+
+printf("posXforacceleration:%f um, accelerationtimesleep:%d ms\n", posXforacceleration, accelerationtimesleep);
 
      }
    return XYscanning;
@@ -761,6 +763,40 @@ void MainWindow::SelMeasTime()
     {qDebug()<<"Measurement time (seconds) ="<<measuring_time<<'\n';}
 }
 
+void MainWindow::SelDigiCh0()
+{
+
+if(DigitizerChannel0->isChecked())
+{
+	
+	*(shared_memory_cmd+100)=0;
+	DigitizerChannel1->setChecked(false); DigitizerChannel0and1->setChecked(false);
+} 
+
+}
+
+void MainWindow::SelDigiCh1()
+{
+
+if(DigitizerChannel1->isChecked())
+{
+	*(shared_memory_cmd+100)=1;
+	DigitizerChannel0->setChecked(false); DigitizerChannel0and1->setChecked(false);
+} 
+
+}
+
+void MainWindow::SelDigiCh0and1()
+{
+
+if(DigitizerChannel0and1->isChecked())
+{
+	*(shared_memory_cmd+100)=2;
+	DigitizerChannel0->setChecked(false); DigitizerChannel1->setChecked(false);
+} 
+
+}
+
 void MainWindow::CheckSegFault()                           // DAQ: MEMORY CONTROL FOR SEGMENTATION FAULT
   {
    if(*(shared_memory2+6)==1)
@@ -772,17 +808,15 @@ void MainWindow::CheckSegFault()                           // DAQ: MEMORY CONTRO
          system(process);
          *(shared_memory_cmd+70)=0;
          SaveTxt();
-         qDebug()<<"Acquisizione interrotta perché memoria piena!";
+         qDebug()<<"[!] Acquisition interrumpted because shared memory is full";
          }
 
       if(XYscanning==true || YXscanning==true)
          {
           XYscanning=false;
           YXscanning=false;
-          invia_comando_X(1,"HLT",NULL);  invia_comando_X(1,"ERR?",NULL);
-          invia_comando_Y(1,"HLT",NULL); invia_comando_Y(1,"ERR?",NULL);
-          //timerPos->stop();
-          qDebug()<<"Scansione interrotta perché memoria piena!";
+          Abort();
+          qDebug()<<"[!] Scan interrumpted because shared memory is full";
           }
       *(shared_memory2+6)=0;
     }
@@ -1298,9 +1332,11 @@ void MainWindow::Abort()
      {
       XYscanning=false;
       YXscanning=false;
-      invia_comando_X(1,"HLT",NULL);  invia_comando_X(1,"ERR?",NULL);
+      send_command(1,"HLT",NULL,serialX);
+      send_command(1,"ERR?",NULL,serialX);
       checkX = read_Xanswer2();
-      invia_comando_Y(1,"HLT",NULL); invia_comando_Y(1,"ERR?",NULL);
+      send_command(1,"HLT",NULL,serialY);
+      send_command(1,"ERR?",NULL,serialY);
       checkY = read_Yanswer2();
       //timerPos->stop();
       onlyOne=0;
@@ -1316,8 +1352,8 @@ void MainWindow::Abort()
 
 void MainWindow::AbortZ()
   {
-   invia_comando_Z(1,"HLT",NULL);  
-   invia_comando_Z(1,"ERR?",NULL);
+   send_command(1,"HLT",NULL,serialZ);
+   send_command(1,"ERR?",NULL,serialZ);
    checkZ = read_Zanswer2();
   }
 

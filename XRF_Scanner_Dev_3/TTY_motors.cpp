@@ -27,10 +27,9 @@ extern int portZ, IniZ, IniZready, serialZ;
 
 
 extern int SerialiStatus;
-extern int invia_comando_X(int chan,const char *comando, const char *parametri);
-extern int invia_comando_Y(int chan,const char *comando, const char *parametri);
-extern int invia_comando_Z(int chan,const char *comando, const char *parametri);
 
+extern int serialX,serialY,serialZ;
+extern int send_command(int chan,const char *comando, const char *parametri, int port);
 extern string read_Xanswer2();
 extern string read_Yanswer2();
 extern string read_Zanswer2();
@@ -43,7 +42,7 @@ QString TTY_X="/dev/"; QString TTY_Y="/dev/"; QString TTY_Z="/dev/"; QString TTY
 
 int RispPortX=2, RispPortY=2; int RispPortZ=2;
 
-int Sx=0; int Sy=1; int Sz=2;
+int Sx=1; int Sy=0; int Sz=2;
 
 //bool go_x=true; bool go_y=true; bool go_z=true;
 
@@ -57,7 +56,8 @@ void MainWindow::NameX(int numberx)     //////// CALLED FROM --> spinBox_assignX
 void MainWindow::NameY(int numbery)     //////// CALLED FROM --> spinBox_assignY (in mainwindow.cpp)
 {Sy=numbery;}
 void MainWindow::NameZ(int numberz)     //////// CALLED FROM --> spinBox_assignZ (in mainwindow.cpp)
-{Sz=numberz;}
+{Sz=numberz; }
+
 
 /////////////// PUSHBUTTONS
 
@@ -85,10 +85,9 @@ qDebug()<<"Connection Y already established!!!";
 void MainWindow::AssignZ()
 {
 i_Z1=0; i_Z2=0;
-if(!ZConnected)
-QString NameTTY_Z=SetSerialZName(Sz);
-else
-qDebug()<<"Connection Z already established!!!";
+if(!ZConnected) QString NameTTY_Z=SetSerialZName(Sz);
+else qDebug()<<"Connection Z already established!!!";
+return;
 }
 
 
@@ -118,7 +117,8 @@ if(portX==3)  {MYTTY_X="/dev/ttyUSB3"; commentoX.append(" on ttyUSB3");}
 
 qDebug()<< MYTTY_X <<'\n';
 
-  serialX=open(MYTTY_X,O_RDWR,0677); 
+  serialX=open(MYTTY_X,O_RDWR,0677);
+  qDebug()<<"This is the value for serialX: "<<serialX;
  
   if(serialX<0)
     {
@@ -136,8 +136,9 @@ else   /////////////// START CONNECTION WITH FILE DESCRIPTOR
   struct termios new_termios;
 
   tcgetattr( serialX, &my_termios );
-  int h=cfsetospeed(&my_termios,B9600);	
-  int h1=cfgetospeed(&my_termios);
+  cfsetospeed(&my_termios,B9600);
+  //int h=cfsetospeed(&my_termios,B9600);
+  //int h1=cfgetospeed(&my_termios);
 
   my_termios.c_oflag &= (unsigned short)(~(ONLCR | OPOST));
   my_termios.c_cflag |= CLOCAL;
@@ -151,10 +152,11 @@ else   /////////////// START CONNECTION WITH FILE DESCRIPTOR
   FD_SET(serialX, &rfds);
   tv.tv_sec=3;
   tv.tv_usec=0;
-  invia_comando_X(1,"*IDN?",NULL);
+  send_command(1,"*IDN?",NULL,serialX);
   Nfd=serialX+1;
   retval=select(Nfd, &rfds, NULL,NULL, &tv);
-  string vediamo=read_Xanswer2();
+  //string vediamo=read_Xanswer2();
+  read_Xanswer2();
 
 
   if (retval==0)   RispPortX=0;
@@ -206,7 +208,8 @@ if(portY==3)  {MYTTY_Y="/dev/ttyUSB3"; commentoY.append(" on ttyUSB3");}
 
 qDebug()<< MYTTY_Y <<'\n';
 
-  serialY=open(MYTTY_Y,O_RDWR,0677); 
+  serialY=open(MYTTY_Y,O_RDWR,0677);
+  qDebug()<<"This is the value for serialY: "<<serialY;
 
   if(serialY<0)
     {
@@ -224,8 +227,9 @@ else   /////////////// START Y-CONNECTION WITH FILE DESCRIPTOR
   struct termios new_termios;
 
   tcgetattr( serialY, &my_termios );
-  int h=cfsetospeed(&my_termios,B9600);
-  int h1=cfgetospeed(&my_termios);
+  cfsetospeed(&my_termios,B9600);
+  //int h=cfsetospeed(&my_termios,B9600);
+  //int h1=cfgetospeed(&my_termios);
   my_termios.c_oflag &= (unsigned short)(~(ONLCR | OPOST));
   my_termios.c_cflag |= CLOCAL;
   my_termios.c_lflag &= (unsigned short)(~(ICANON | ECHO | ISIG));  
@@ -238,10 +242,10 @@ else   /////////////// START Y-CONNECTION WITH FILE DESCRIPTOR
   tv.tv_sec=3;
   tv.tv_usec=0;
 
-  invia_comando_Y(1,"*IDN?",NULL);
+  send_command(1,"*IDN?",NULL,serialY);
   Nfd=serialY+1;
   retval=select(Nfd, &rfds, NULL,NULL, &tv);
-  string vediamo2=read_Yanswer2();
+  read_Yanswer2();
   if (retval==0)   RispPortY=0;
   else RispPortY=1;
 }
@@ -287,8 +291,8 @@ if(portZ==3)  {MYTTY_Z="/dev/ttyUSB3"; commentoZ.append(" on ttyUSB3");}
 
 qDebug()<< MYTTY_Z <<'\n';
 
-  serialZ=open(MYTTY_Z,O_RDWR,0677); 
- 
+  serialZ=open(MYTTY_Z,O_RDWR);
+  qDebug()<<"This is the serialZ value: "<<serialZ;
   if(serialZ<0)
     {
      qDebug()<< "ERROR opening"<< MYTTY_Z<< strerror(errno)<<'\n';
@@ -303,8 +307,9 @@ else   /////////////// START Z-CONNECTION WITH FILE DESCRIPTOR
   struct termios my_termios;
   struct termios new_termios;
   tcgetattr( serialZ, &my_termios );
-  int h=cfsetospeed(&my_termios,B9600);
-  int h1=cfgetospeed(&my_termios);
+  //int h=cfsetospeed(&my_termios,B9600);
+  cfsetospeed(&my_termios,B9600);
+  //int h1=cfgetospeed(&my_termios);
   my_termios.c_oflag &= (unsigned short)(~(ONLCR | OPOST));
   my_termios.c_cflag |= CLOCAL;
   my_termios.c_lflag &= (unsigned short)(~(ICANON | ECHO | ISIG));  
@@ -316,17 +321,17 @@ else   /////////////// START Z-CONNECTION WITH FILE DESCRIPTOR
   FD_SET(serialZ, &rfds);
   tv.tv_sec=3;
   tv.tv_usec=0;
-  invia_comando_Z(1,"*IDN?",NULL);
+  send_command(1,"*IDN?",NULL,serialZ);
   Nfd=serialZ+1;
   retval=select(Nfd, &rfds, NULL,NULL, &tv);
-  string vediamo=read_Zanswer2();
+  //string vediamo=read_Zanswer2();
+  read_Zanswer2();
 
    if (retval==0)   RispPortZ=0;
    else RispPortZ=1;
 
    INIT_Z_pushButton->setEnabled(true); STOP_Z_INIT_pushButton->setEnabled(true);
-
-}
+   }
 
 ///////////////////////////////////////////// RETURNING Z-PORT CONNECTION RESULT AND WRITING COMMENTS
 
@@ -347,7 +352,7 @@ return TTY_Z;
 
 void MainWindow::Enabling_Tabwidget()
 {
-if (XConnected || YConnected) {tab2_2 ->setEnabled(true);}
+//if (XConnected || YConnected) {tab2_2 ->setEnabled(true);}
 if (IniXready || IniYready) {tab2_3 ->setEnabled(true); tab2_4 ->setEnabled(true); }
 if (ZConnected) {INIT_Z_pushButton->setEnabled(true); STOP_Z_INIT_pushButton->setEnabled(true);}
 }
@@ -370,18 +375,26 @@ void MainWindow::NameACM(int numberacm)     //////// CALLED FROM --> spinBox_ass
 void MainWindow::AssignACM()               //////// CALLED FROM --> pushButton_assignACM_port (in mainwindow.cpp)
 {
 if(noKeyence_init)
-InizializzazioneKeyence();                 ///// CALL FOR THE ACM PORT CONNECTION  (return mising!!!!!!!!!)
+Init_KeyenceLaser();
 else
 qDebug()<<"Connection ACM already established!!!";
 }
 
 
-void MainWindow::InizializzazioneKeyence()
+void MainWindow::Init_KeyenceLaser()
 {
-QString commentoACM="ACM"; QString commentoACM_long=""; 
+
+QString commentoACM="Arduino"; QString commentoACM_long=""; QString NameNumber;
 
 const char *MYTTY_ACM;
      TTY_ACM="/dev/";
+    
+portACM=Sacm;
+
+qDebug()<<"Arduino port is: "<< portACM <<'\n';
+
+NameNumber.setNum(Sacm);
+TTY_ACM.append(NameNumber); 
     
 if(portACM==0)  {MYTTY_ACM="/dev/ttyACM0"; commentoACM.append(" on ttyACM0");}
 else          
@@ -393,7 +406,7 @@ if(portACM==3)  {MYTTY_ACM="/dev/ttyACM3"; commentoACM.append(" on ttyACM3");}
 
   errno=0; //RispPortZ=2; i_Z2=0;
 
-qDebug()<< MYTTY_ACM <<'\n';
+qDebug()<<"The communication bus is: "<<MYTTY_ACM<<'\n';
 
 
 if (noKeyence_init)
@@ -407,6 +420,7 @@ if (noKeyence_init)
       qDebug()<<"ERROR opening ACM port"<< MYTTY_ACM<< strerror(errno);
 //      exit(-1);
     }
+  else{
   struct termios my_termios;
   struct termios new_termios;
 
@@ -422,11 +436,13 @@ if (noKeyence_init)
 
 
 noKeyence_init=false;
-
-tab_4->setEnabled(true);
+CurrentActionACM->setText(commentoACM);
+AUTOFOCUS_ON_pushButton->setEnabled(true);
 } 
 
 readKeyence();
+qDebug()<<"Function readKeyence() exited succesfully";
+}
 }
 
 

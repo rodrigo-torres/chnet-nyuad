@@ -27,10 +27,9 @@ extern float Yo,vy,Xo,vx,temp;
 extern QString line1;
 extern char process[30];
 
-extern int invia_comando_X(int chan,const char *comando, const char *parametri);
-extern int invia_comando_Y(int chan,const char *comando, const char *parametri);
-
-extern double numpixelforaccel;     extern double posXforacceleration;     extern double accelerationtime;
+extern int serialX,serialY;
+extern int send_command(int chan,const char *comando, const char *parametri, int port);
+extern double numpixelforaccel;     extern double posXforacceleration;     extern double accelerationtime;	extern int accelerationtimesleep;
 
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -70,8 +69,8 @@ temp=Xmax;
 
    if(NscanY==0 && XOnTarget==true && YOnTarget==true)
      {
-     invia_comando_X(1,"VEL 1 10",NULL);
-     invia_comando_Y(1,"VEL 1 10",NULL);
+     send_command(1,"VEL 1 10",NULL,serialX);
+     send_command(1,"VEL 1 10",NULL,serialY);
       qDebug()<<"Spostamento a Xmin e Ymin....."<<"che sarebbero "<<positionX<<" "<<positionY<<'\n'; 
       MoveX(positionX); 
       //XOnTarget=false;
@@ -92,7 +91,7 @@ temp=Xmax;
             if(onlyOne==0) 
                {char v[10];
                 sprintf(v,"%f",V);
-                invia_comando_Y(1,"VEL",v);         
+                send_command(1,"VEL",v,serialY);
                 onlyOne=1;
                 }
              
@@ -122,7 +121,7 @@ temp=Xmax;
                        }
                 
 
-                 else{                                                                         //La scansione è finita
+                 else{                                                                         //La scansione ï¿½ finita
 			YXscanning=false; NscanY=0;Clock2=0;timerPos->stop();onlyOne=0;
                            if(*(shared_memory_cmd+70)==1)
                               {   qDebug()<<*(shared_memory2+4);
@@ -151,112 +150,111 @@ temp=Xmax;
 
 void MainWindow::ScanXY()
 {
+    temp=Ymax;
 
-temp=Ymax;
+    if((*(shared_memory_cmd+70)==0) && ask==false) {
+        ask=true;
+        if(DAQ_TYPE==1) {
+            QMessageBox::StandardButton reply;
+            reply=QMessageBox::question(this, "WARNING", "[!] Start USB DAQ?", QMessageBox::Yes|QMessageBox::No);
+            if (reply == QMessageBox::Yes) {
+                system("./ADCXRF_USB &");
+                *(shared_memory_cmd+70)=1;
+            }
+        }
+        if(DAQ_TYPE==0) {
+            QMessageBox::StandardButton reply;
+            reply=QMessageBox::question(this, "WARNING", "[!] Start Optical DAQ?", QMessageBox::Yes|QMessageBox::No);
+            if (reply == QMessageBox::Yes) {
+                system("./ADCXRF_Optical_Link &");
+                *(shared_memory_cmd+70)=1;
+                Sleeper::msleep(2000);
+            }
+        }
+    }
 
-    if((*(shared_memory_cmd+70)==0) && ask==false)
-         {
-	  ask=true;
-          if(DAQ_TYPE==1)
-            {
-             QMessageBox::StandardButton reply;
-             reply=QMessageBox::question(this, "WAENING", "Starting USB DAQ?", QMessageBox::Yes|QMessageBox::No);
-             if (reply == QMessageBox::Yes) 
-	        {system("./ADCXRF_USB &"); *(shared_memory_cmd+70)=1;}
-             }
-          if(DAQ_TYPE==0)
-            {
-             QMessageBox::StandardButton reply;
-             reply=QMessageBox::question(this, "WARNING", "Starting OPTICAL DAQ?", QMessageBox::Yes|QMessageBox::No);
-             if (reply == QMessageBox::Yes) 
-                 {system("./ADCXRF_Optical_Link &");*(shared_memory_cmd+70)=1;Sleeper::msleep(2000);}
-             }
-	    }
+    if(NscanX==0 && XOnTarget==true && YOnTarget==true) {
+        send_command(1,"VEL 1 10",NULL,serialX);
+        send_command(1,"VEL 1 10",NULL,serialY);
+        qDebug()<<"... Moving motors to the scan origin with coordinates :"<<positionX/1000<<" "<<positionY/1000<<'\n';
 
+        positionX=Xmin-posXforacceleration;
 
-   if(NscanX==0 && XOnTarget==true && YOnTarget==true)
-     {
-     invia_comando_X(1,"VEL 1 10",NULL);
-     invia_comando_Y(1,"VEL 1 10",NULL);
-      qDebug()<<"Spostamento a Xmin e Ymin....."<<"che sarebbero "<<positionX/1000<<" "<<positionY/1000<<'\n'; 
-      MoveX(positionX); 
-      //XOnTarget=false;
-      MoveY(positionY); 
-      //YOnTarget=false;
-      YHasMoved=true;
-      NscanX++;
-     }
+        MoveX(positionX);
+        MoveY(positionY);
 
-   else
-     {
-      
-      if(XOnTarget==true && YOnTarget==true && YHasMoved==true)       //si inizia a muovere X        
-        {
-	    
+        YHasMoved=true;
+        NscanX++;
+    }
+
+    else {
+        if(XOnTarget==true && YOnTarget==true && YHasMoved==true) {
+            //X motor starts to move
             Clock2=0;
             //timerPos->start(tempoPos);
-            if(onlyOne==0) 
-               {char v[10];
-                sprintf(v,"%f",V);                     
-                //invia_comando_Y(1,"VEL",v);  
-                invia_comando_X(1,"VEL",v); 
+            if(onlyOne==0) {
+                char v[10];
+                sprintf(v,"%f",V);                       
+                send_command(1,"VEL",v,serialX);
                 onlyOne=1;
-                }
-             
-             YHasMoved=false;
-             if(positionX==Xmin-posXforacceleration) {positionX=Xmax+posXforacceleration; Xo=Xmin; vx=V;} 
-             else
-             if(positionX==Xmax+posXforacceleration) {positionX=Xmin-posXforacceleration; Xo=Xmax; vx=-V;}  
-             //XOnTarget=false;
-            //qDebug()<<"Xmin Xmax"<<Xmin<<Xmax<<"Vx "<<vx<<'\n';
-            //qDebug()<<"Xmin1 Xmax1"<<Xmin1<<Xmax1<<"V "<<V<<'\n';
-	    
-	    MoveX(positionX);
-	    Sleeper::msleep(accelerationtime*1000);
+            }
+
+            YHasMoved=false;
             *(shared_memory2+3)=1;
+            if(positionX==Xmin-posXforacceleration) {positionX=Xmax+posXforacceleration; Xo=Xmin; vx=V;}
+            else if(positionX==Xmax+posXforacceleration) {positionX=Xmin-posXforacceleration; Xo=Xmax; vx=-V;}
 
-             //timerPos->start(tempoPos);
+            MoveX(positionX);
+            qDebug()<<"Sleeping for a druation of 'accelerationtimesleep' :"<<accelerationtimesleep;
+            Sleeper::msleep(accelerationtimesleep);
+
+
+            //timerPos->start(tempoPos);
         }
-                              
-      if(XOnTarget==true && YOnTarget==true && YHasMoved==false)  //si inizia a muovere Y
-        {
-             
-            if(positionY<Ymax)
-                       {
-                     
-                        positionY=positionY+Py; 
-                        //timerPos->stop();
-                        Clock2=0;
-			while(*(shared_memory2+8)!=1)Sleeper::msleep(100);
-                        MoveY(positionY);
-			*(shared_memory2+8)=0;
-                        //YOnTarget=false;
-                        YHasMoved=true;
-                       }
-                
 
-                 else{                                                               //La scansione è finita
-			XYscanning=false; NscanX=0;Clock2=0; //timerPos->stop();
-                        onlyOne=0;
-                        if(*(shared_memory_cmd+70)==1)
-                              {                     
-                                  int pidVme=*(shared_memory_cmd+80);
-                                  //sprintf(process, "kill -s TERM %i &", pidVme);
-                                  //system(process);
-				  int counting=0;
-				  while(*(shared_memory2+8)!=1 && counting<5){Sleeper::msleep(tempoPos); counting++;}
-                                  *(shared_memory_cmd+70)=0;
-				 *(shared_memory2+8)=0;
-                                  ask=false;
-                                  SaveTxt();
+        if(XOnTarget==true && YOnTarget==true && YHasMoved==false) {
 
-                              }
-                      }
-           }
+            //Y motor starts to move
+            qDebug()<<"Inside second loop";
+            if(positionY<Ymax) {
+                    positionY=positionY+Py;
+                    //timerPos->stop();
+                    Clock2=0;
 
-       }
+                    while(*(shared_memory2+8)!=1) Sleeper::msleep(100);
+                    qDebug()<<"... Function MoveY about to be called with position argument: "<<positionY;
+                    MoveY(positionY);
+                    qDebug()<<"... Function MoveY succesfully called\n"
+                              "... Value of *(shared_memory2+8) is: "<<(shared_memory2+8);
+                    *(shared_memory2+8)=0;
+                    //YOnTarget=false;
+                    YHasMoved=true;
+            }
 
+            else {
 
+                //The scan is done
+                XYscanning=false;
+                NscanX=0;Clock2=0;
+                //timerPos->stop();
+                onlyOne=0;
+                if(*(shared_memory_cmd+70)==1) {
+                    //int pidVme=*(shared_memory_cmd+80);
+                    //sprintf(process, "kill -s TERM %i &", pidVme);
+                    //system(process);
+                    int counting=0;
+                    while(*(shared_memory2+8)!=1 && counting<5) {
+                        Sleeper::msleep(tempoPos);
+                        counting++;
+                    }
+                    *(shared_memory_cmd+70)=0;
+                    *(shared_memory2+8)=0;
+                    ask=false;
+                    SaveTxt();
+                }
+            }
+        }
+    }
 }
 
 

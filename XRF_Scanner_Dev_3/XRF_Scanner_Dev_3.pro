@@ -19,7 +19,6 @@ HEADERS += mainwindow.h ../Header.h ../Shm.h ../variables.h ../QT_variables.h
 SOURCES += autofocus.cpp \
            Connections_Creator.cpp \
            export.cpp \
-           export_pymca.cpp \
            external_programs.cpp \
            GUI_Creator.cpp \
            laser.cpp \
@@ -31,12 +30,9 @@ SOURCES += autofocus.cpp \
            mainwindow_online.cpp \
            mainwindow_showMap.cpp \
            Menu.cpp \
-           move_motors.cpp \
+           motors_move.cpp \
            ScanYX_XY.cpp \
            SHM_Creator.cpp \
-           Stage_selection.cpp \
            TTY_motors.cpp \
-           X_Init.cpp \
-           Y_Init.cpp \
-           Z_Init.cpp
+           motors_init.cpp
 RESOURCES += Resource.qrc

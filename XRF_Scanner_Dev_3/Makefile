@@ -35,7 +35,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = XRF_Scanner_Dev_31.0.0
-DISTDIR = /home/frao/Desktop/Github/XRFOnedet_v8.0/XRF_Scanner_Dev_3/.tmp/XRF_Scanner_Dev_31.0.0
+DISTDIR = /home/rtorres/Desktop/Github/XRFMultidet_v9.0/XRF_Scanner_Dev_3/.tmp/XRF_Scanner_Dev_31.0.0
 LINK          = g++
 LFLAGS        = -Wl,-O1
 LIBS          = $(SUBLIBS) -lpthread -lQt5OpenGL -lQt5Widgets -lQt5Gui -lQt5Sql -lQt5Xml -lQt5Core -lGL 
@@ -53,7 +53,6 @@ OBJECTS_DIR   = ./
 SOURCES       = autofocus.cpp \
 		Connections_Creator.cpp \
 		export.cpp \
-		export_pymca.cpp \
 		external_programs.cpp \
 		GUI_Creator.cpp \
 		laser.cpp \
@@ -65,19 +64,15 @@ SOURCES       = autofocus.cpp \
 		mainwindow_online.cpp \
 		mainwindow_showMap.cpp \
 		Menu.cpp \
-		move_motors.cpp \
+		motors_move.cpp \
 		ScanYX_XY.cpp \
 		SHM_Creator.cpp \
-		Stage_selection.cpp \
 		TTY_motors.cpp \
-		X_Init.cpp \
-		Y_Init.cpp \
-		Z_Init.cpp qrc_Resource.cpp \
+		motors_init.cpp qrc_Resource.cpp \
 		moc_mainwindow.cpp
 OBJECTS       = autofocus.o \
 		Connections_Creator.o \
 		export.o \
-		export_pymca.o \
 		external_programs.o \
 		GUI_Creator.o \
 		laser.o \
@@ -89,14 +84,11 @@ OBJECTS       = autofocus.o \
 		mainwindow_online.o \
 		mainwindow_showMap.o \
 		Menu.o \
-		move_motors.o \
+		motors_move.o \
 		ScanYX_XY.o \
 		SHM_Creator.o \
-		Stage_selection.o \
 		TTY_motors.o \
-		X_Init.o \
-		Y_Init.o \
-		Z_Init.o \
+		motors_init.o \
 		qrc_Resource.o \
 		moc_mainwindow.o
 DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
@@ -142,9 +134,6 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_core_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_dbus.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_dbus_private.pri \
-		/usr/lib64/qt5/mkspecs/modules/qt_lib_designer.pri \
-		/usr/lib64/qt5/mkspecs/modules/qt_lib_designer_private.pri \
-		/usr/lib64/qt5/mkspecs/modules/qt_lib_designercomponents_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_devicediscovery_support_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_edid_support_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_egl_support_private.pri \
@@ -158,8 +147,6 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_glx_support_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_gui.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_gui_private.pri \
-		/usr/lib64/qt5/mkspecs/modules/qt_lib_help.pri \
-		/usr/lib64/qt5/mkspecs/modules/qt_lib_help_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_input_support_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_kms_support_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_linuxaccessibility_support_private.pri \
@@ -214,9 +201,6 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_testlib.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_testlib_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_theme_support_private.pri \
-		/usr/lib64/qt5/mkspecs/modules/qt_lib_uiplugin.pri \
-		/usr/lib64/qt5/mkspecs/modules/qt_lib_uitools.pri \
-		/usr/lib64/qt5/mkspecs/modules/qt_lib_uitools_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_waylandclient.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_waylandclient_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_waylandcompositor.pri \
@@ -266,7 +250,6 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		../QT_variables.h autofocus.cpp \
 		Connections_Creator.cpp \
 		export.cpp \
-		export_pymca.cpp \
 		external_programs.cpp \
 		GUI_Creator.cpp \
 		laser.cpp \
@@ -278,14 +261,11 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		mainwindow_online.cpp \
 		mainwindow_showMap.cpp \
 		Menu.cpp \
-		move_motors.cpp \
+		motors_move.cpp \
 		ScanYX_XY.cpp \
 		SHM_Creator.cpp \
-		Stage_selection.cpp \
 		TTY_motors.cpp \
-		X_Init.cpp \
-		Y_Init.cpp \
-		Z_Init.cpp
+		motors_init.cpp
 QMAKE_TARGET  = XRF_Scanner_Dev_3
 DESTDIR       = 
 TARGET        = XRF_Scanner_Dev_3
@@ -340,9 +320,6 @@ Makefile: XRF_Scanner_Dev_3.pro /usr/lib64/qt5/mkspecs/linux-g++/qmake.conf /usr
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_core_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_dbus.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_dbus_private.pri \
-		/usr/lib64/qt5/mkspecs/modules/qt_lib_designer.pri \
-		/usr/lib64/qt5/mkspecs/modules/qt_lib_designer_private.pri \
-		/usr/lib64/qt5/mkspecs/modules/qt_lib_designercomponents_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_devicediscovery_support_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_edid_support_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_egl_support_private.pri \
@@ -356,8 +333,6 @@ Makefile: XRF_Scanner_Dev_3.pro /usr/lib64/qt5/mkspecs/linux-g++/qmake.conf /usr
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_glx_support_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_gui.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_gui_private.pri \
-		/usr/lib64/qt5/mkspecs/modules/qt_lib_help.pri \
-		/usr/lib64/qt5/mkspecs/modules/qt_lib_help_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_input_support_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_kms_support_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_linuxaccessibility_support_private.pri \
@@ -412,9 +387,6 @@ Makefile: XRF_Scanner_Dev_3.pro /usr/lib64/qt5/mkspecs/linux-g++/qmake.conf /usr
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_testlib.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_testlib_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_theme_support_private.pri \
-		/usr/lib64/qt5/mkspecs/modules/qt_lib_uiplugin.pri \
-		/usr/lib64/qt5/mkspecs/modules/qt_lib_uitools.pri \
-		/usr/lib64/qt5/mkspecs/modules/qt_lib_uitools_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_waylandclient.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_waylandclient_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_waylandcompositor.pri \
@@ -509,9 +481,6 @@ Makefile: XRF_Scanner_Dev_3.pro /usr/lib64/qt5/mkspecs/linux-g++/qmake.conf /usr
 /usr/lib64/qt5/mkspecs/modules/qt_lib_core_private.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_dbus.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_dbus_private.pri:
-/usr/lib64/qt5/mkspecs/modules/qt_lib_designer.pri:
-/usr/lib64/qt5/mkspecs/modules/qt_lib_designer_private.pri:
-/usr/lib64/qt5/mkspecs/modules/qt_lib_designercomponents_private.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_devicediscovery_support_private.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_edid_support_private.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_egl_support_private.pri:
@@ -525,8 +494,6 @@ Makefile: XRF_Scanner_Dev_3.pro /usr/lib64/qt5/mkspecs/linux-g++/qmake.conf /usr
 /usr/lib64/qt5/mkspecs/modules/qt_lib_glx_support_private.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_gui.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_gui_private.pri:
-/usr/lib64/qt5/mkspecs/modules/qt_lib_help.pri:
-/usr/lib64/qt5/mkspecs/modules/qt_lib_help_private.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_input_support_private.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_kms_support_private.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_linuxaccessibility_support_private.pri:
@@ -581,9 +548,6 @@ Makefile: XRF_Scanner_Dev_3.pro /usr/lib64/qt5/mkspecs/linux-g++/qmake.conf /usr
 /usr/lib64/qt5/mkspecs/modules/qt_lib_testlib.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_testlib_private.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_theme_support_private.pri:
-/usr/lib64/qt5/mkspecs/modules/qt_lib_uiplugin.pri:
-/usr/lib64/qt5/mkspecs/modules/qt_lib_uitools.pri:
-/usr/lib64/qt5/mkspecs/modules/qt_lib_uitools_private.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_waylandclient.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_waylandclient_private.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_waylandcompositor.pri:
@@ -651,7 +615,7 @@ distdir: FORCE
 	$(COPY_FILE) --parents Resource.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib64/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents mainwindow.h ../Header.h ../Shm.h ../variables.h ../QT_variables.h $(DISTDIR)/
-	$(COPY_FILE) --parents autofocus.cpp Connections_Creator.cpp export.cpp export_pymca.cpp external_programs.cpp GUI_Creator.cpp laser.cpp main.cpp mainwindow.cpp mainwindow_DefinePixels.cpp mainwindow_loadSHM.cpp mainwindow_mouse.cpp mainwindow_online.cpp mainwindow_showMap.cpp Menu.cpp move_motors.cpp ScanYX_XY.cpp SHM_Creator.cpp Stage_selection.cpp TTY_motors.cpp X_Init.cpp Y_Init.cpp Z_Init.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents autofocus.cpp Connections_Creator.cpp export.cpp external_programs.cpp GUI_Creator.cpp laser.cpp main.cpp mainwindow.cpp mainwindow_DefinePixels.cpp mainwindow_loadSHM.cpp mainwindow_mouse.cpp mainwindow_online.cpp mainwindow_showMap.cpp Menu.cpp motors_move.cpp ScanYX_XY.cpp SHM_Creator.cpp TTY_motors.cpp motors_init.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -698,7 +662,7 @@ moc_mainwindow.cpp: ../Shm.h \
 		mainwindow.h \
 		moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
-	/usr/lib64/qt5/bin/moc $(DEFINES) --include ./moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Desktop/Github/XRFOnedet_v8.0/XRF_Scanner_Dev_3 -I/home/frao/Desktop/Github/XRFOnedet_v8.0/XRF_Scanner_Dev_3 -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/6.3.1 -I/usr/include/c++/6.3.1/x86_64-redhat-linux -I/usr/include/c++/6.3.1/backward -I/usr/lib/gcc/x86_64-redhat-linux/6.3.1/include -I/usr/local/include -I/usr/include -I/usr/include/c++/8 -I/usr/include/c++/8/x86_64-redhat-linux -I/usr/include/c++/8/backward -I/usr/lib/gcc/x86_64-redhat-linux/8/include -I/usr/local/include -I/usr/include mainwindow.h -o moc_mainwindow.cpp
+	/usr/lib64/qt5/bin/moc $(DEFINES) --include ./moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/rtorres/Desktop/Github/XRFMultidet_v9.0/XRF_Scanner_Dev_3 -I/home/rtorres/Desktop/Github/XRFMultidet_v9.0/XRF_Scanner_Dev_3 -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/6.4.1 -I/usr/include/c++/6.4.1/x86_64-redhat-linux -I/usr/include/c++/6.4.1/backward -I/usr/lib/gcc/x86_64-redhat-linux/6.4.1/include -I/usr/local/include -I/usr/include -I/usr/include/c++/8 -I/usr/include/c++/8/x86_64-redhat-linux -I/usr/include/c++/8/backward -I/usr/lib/gcc/x86_64-redhat-linux/8/include -I/usr/local/include -I/usr/include mainwindow.h -o moc_mainwindow.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -731,11 +695,6 @@ export.o: export.cpp mainwindow.h \
 		../Header.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o export.o export.cpp
 
-export_pymca.o: export_pymca.cpp ../Header.h \
-		mainwindow.h \
-		../Shm.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o export_pymca.o export_pymca.cpp
-
 external_programs.o: external_programs.cpp mainwindow.h \
 		../Shm.h \
 		../Header.h
@@ -752,7 +711,8 @@ laser.o: laser.cpp ../Header.h \
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o laser.o laser.cpp
 
 main.o: main.cpp mainwindow.h \
-		../Shm.h
+		../Shm.h \
+		../Header.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 mainwindow.o: mainwindow.cpp ../Header.h \
@@ -788,10 +748,10 @@ Menu.o: Menu.cpp mainwindow.h \
 		../Shm.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Menu.o Menu.cpp
 
-move_motors.o: move_motors.cpp mainwindow.h \
+motors_move.o: motors_move.cpp mainwindow.h \
 		../Shm.h \
 		../Header.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o move_motors.o move_motors.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o motors_move.o motors_move.cpp
 
 ScanYX_XY.o: ScanYX_XY.cpp mainwindow.h \
 		../Shm.h \
@@ -803,30 +763,15 @@ SHM_Creator.o: SHM_Creator.cpp mainwindow.h \
 		../Header.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o SHM_Creator.o SHM_Creator.cpp
 
-Stage_selection.o: Stage_selection.cpp ../Header.h \
-		mainwindow.h \
-		../Shm.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Stage_selection.o Stage_selection.cpp
-
 TTY_motors.o: TTY_motors.cpp mainwindow.h \
 		../Shm.h \
 		../Header.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o TTY_motors.o TTY_motors.cpp
 
-X_Init.o: X_Init.cpp mainwindow.h \
+motors_init.o: motors_init.cpp mainwindow.h \
 		../Shm.h \
 		../Header.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o X_Init.o X_Init.cpp
-
-Y_Init.o: Y_Init.cpp mainwindow.h \
-		../Shm.h \
-		../Header.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Y_Init.o Y_Init.cpp
-
-Z_Init.o: Z_Init.cpp mainwindow.h \
-		../Shm.h \
-		../Header.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Z_Init.o Z_Init.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o motors_init.o motors_init.cpp
 
 qrc_Resource.o: qrc_Resource.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qrc_Resource.o qrc_Resource.cpp

@@ -211,6 +211,7 @@ fclose(filech);
 
 void MainWindow::quit() {
 *(shared_memory_cmd+75)=0; // OnLineMap
+
 //printf("oi3\n");
 qApp->quit();}
 
@@ -324,6 +325,7 @@ void MainWindow::enableOnLine(bool OnLine)
  MainWindow::~MainWindow()
  {
 *(shared_memory_cmd+75)=0;
+
 qApp->quit();
  }
 
@@ -403,6 +405,17 @@ void MainWindow::displayImageOnLine()
 			
 			case 2:
 			{       
+				if(dataread>19999999 && dataread<30000000){
+				if(*(shared_memory_cmd+100)==1){break;}
+				else {dataread=dataread-20000000;}
+				}
+				if(dataread>29999999){
+				if(*(shared_memory_cmd+100)==0){break;}
+				else 
+				if(*(shared_memory_cmd+100)==2){dataread=(int)round((((dataread-30000000)*(*(shared_memory_cmd+101)))+(*(shared_memory_cmd+102)))/(*(shared_memory_cmd+103)));}
+				else {dataread=dataread-30000000;}
+				}
+
 				if (dataread>chlowmap1 && dataread<chhighmap1) {integralmap1[numberpoints]=integralmap1[numberpoints]+1;}
 				if(integralmap1[numberpoints]>MaxIntegralMap1) MaxIntegralMap1=integralmap1[numberpoints];
 				if (dataread>chlowmap2 && dataread<chhighmap2) {integralmap2[numberpoints]=integralmap2[numberpoints]+1;}

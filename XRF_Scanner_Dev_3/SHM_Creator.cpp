@@ -26,157 +26,162 @@ extern int portX, portY, portZ, IniX, IniY, IniZ, IniXready, IniYready, IniZread
 
 void MainWindow::SHM_CREATOR()
 {
-   key_cmd = 6900;
-   shmid_cmd = shmget (6900, SHMSZ_CMD_STATUS, IPC_CREAT | 0666);
-       if (shmid_cmd == -1) qDebug()<<"Errore  "<< strerror(errno)<<'\n';
-   shared_memory_cmd =(int *) shmat(shmid_cmd, NULL, 0);
-   cout << "Data Memory attached at :" << (int *)shared_memory_cmd<< endl << " with shmid_cmd: " << shmid_cmd << endl;
+    key_cmd = 6900;
+    shmid_cmd = shmget (6900, SHMSZ_CMD_STATUS, IPC_CREAT | 0666);
+    if (shmid_cmd == -1) {
+        qDebug()<<"[!] Shared memory allocation error"<<strerror(errno)<<'\n';
+    }
+    shared_memory_cmd =(int *) shmat(shmid_cmd, NULL, 0);
+    cout << "Data Memory attached at :" << (int *)shared_memory_cmd<< endl << " with ID: " << shmid_cmd << endl;
 
-   key = 7000;
-   shmid = shmget (7000, SHMSZ, IPC_CREAT | 0666);
-       if (shmid == -1) qDebug()<<"Errore  "<< strerror(errno)<<'\n';
-   shared_memory =(int *) shmat(shmid, NULL, 0);
-   cout << "Data Memory attached at :" << (int *)shared_memory<< endl << " with shmid2: " << shmid << endl;
+    key = 7000;
+    shmid = shmget (7000, SHMSZ, IPC_CREAT | 0666);
+    if (shmid_cmd == -1) {
+       qDebug()<<"[!] Shared memory allocation error"<<strerror(errno)<<'\n';
+    }
+    shared_memory =(int *) shmat(shmid, NULL, 0);
+    cout << "Data Memory attached at :" << (int *)shared_memory<< endl << " with ID: " << shmid << endl;
 
-   key2 = 7200;
-   shmid2 = shmget (7200, SHMSZBIG, IPC_CREAT | 0666);
-       if (shmid2 == -1) qDebug()<<"Errore  "<< strerror(errno)<<'\n';
-   shared_memory2 =(int *) shmat(shmid2, NULL, 0);
-   cout << "Data Memory attached at :" << (int *)shared_memory2<< endl << " with shmid2: " << shmid2 << endl;
-
-
-  ///////////////////////////////// FOR AUTOFOCUS ///////////////////////////
-
-   key3 = 7300;
-   shmid3 = shmget (7300, SHMSZHISTO, IPC_CREAT | 0666);
-       if (shmid3 == -1) qDebug()<<"Errore  "<< strerror(errno)<<'\n';
-   shared_memory3 =(int *) shmat(shmid3, NULL, 0);
-   cout << "Data Memory attached at :" << (int *)shared_memory3<< endl << " with shmid4: " << shmid3 << endl;
-
-  /////////////////////////////// FOR DIGITISER /////////////////////////////
-
-   key4 = 7400;
-   shmid4 = shmget (7400, SHMSZDIGI, IPC_CREAT | 0666);
-       if (shmid4 == -1) qDebug()<<"Errore  "<< strerror(errno)<<'\n';
-   shared_memory4 =(int *) shmat(shmid4, NULL, 0);
-   cout << "Data Memory attached at :" << (int *)shared_memory4<< endl << " with shmid5: " << shmid4 << endl;
-
-  /////////////////////////////// FOR RATE METER /////////////////////////////
-
-   key_rate = 7500;
-   shmid_rate = shmget (7500, SHMSZRATE, IPC_CREAT | 0666);
-       if (shmid_rate == -1) qDebug()<<"Errore  "<< strerror(errno)<<'\n';
-   shared_memory_rate =(int *) shmat(shmid_rate, NULL, 0);
-   cout << "Data Memory attached at :" << (int *)shared_memory_rate<< endl << " with shmid6: " << shmid_rate << endl;
+    key2 = 7200;
+    shmid2 = shmget (7200, SHMSZBIG, IPC_CREAT | 0666);
+    if (shmid_cmd == -1) {
+       qDebug()<<"[!] Shared memory allocation error"<<strerror(errno)<<'\n';
+    }
+    shared_memory2 =(int *) shmat(shmid2, NULL, 0);
+    cout << "Data Memory attached at :" << (int *)shared_memory2<< endl << " with ID: " << shmid2 << endl;
 
 
-   ////////////////   SHARED MEMORY STARTING CONFIGURATION   ///////////////////////////////////////
-   /////////////////////////////////////////////////////////////////////////////////////////////////
-   /////////////// REDEFINED (DEC-2016) SHM_CMD INTRODUCED   ///////////////////////////////////////
+    ///////////////////////////////// FOR AUTOFOCUS ///////////////////////////
 
-                     *shared_memory_cmd=MotoreWindowStatus;       /// XY Motor status
-                     *(shared_memory_cmd+1)=MotoreWindowStatus;   /// Z Motor status
-                     *(shared_memory_cmd+2)=SerialiStatus;        /// not used
+    key3 = 7300;
+    shmid3 = shmget (7300, SHMSZHISTO, IPC_CREAT | 0666);
+    if (shmid_cmd == -1) {
+       qDebug()<<"[!] Shared memory allocation error"<<strerror(errno)<<'\n';
+    }
+    shared_memory3 =(int *) shmat(shmid3, NULL, 0);
+    cout << "Data Memory attached at :" << (int *)shared_memory3<< endl << " with ID: " << shmid3 << endl;
 
-                     *(shared_memory_cmd+10)=portX;               /// X Port (default=0) initialization in variables.h
-                     *(shared_memory_cmd+11)=portY;               /// Y Port (default=1)
-                     *(shared_memory_cmd+12)=portZ;               /// Z Port (default=2)
+    /////////////////////////////// FOR DIGITISER /////////////////////////////
 
-                     *(shared_memory_cmd+20)=IniX;                /// X motor not inited (default=0) initialization in variables.h
-                     *(shared_memory_cmd+21)=IniY;                /// Y motor not inited (default=0)
-                     *(shared_memory_cmd+22)=IniZ;                /// Z motor not inited (default=0)
+    key4 = 7400;
+    shmid4 = shmget (7400, SHMSZDIGI, IPC_CREAT | 0666);
+    if (shmid_cmd == -1) {
+       qDebug()<<"[!] Shared memory allocation error"<<strerror(errno)<<'\n';
+    }
+    shared_memory4 =(int *) shmat(shmid4, NULL, 0);
+    cout << "Data Memory attached at :" << (int *)shared_memory4<< endl << " with ID: " << shmid4 << endl;
 
-                     *(shared_memory_cmd+30)=IniXready;           /// X motor status (default=0) initialization in variables.h
-                     *(shared_memory_cmd+31)=IniYready;           /// Y motor status (default=0)
-                     *(shared_memory_cmd+32)=IniZready;           /// Z motor status (default=0)
+    /////////////////////////////// FOR RATE METER /////////////////////////////
 
-                     *(shared_memory_cmd+40)=0;                   /// X[point] Position (default=0) 
-                     *(shared_memory_cmd+41)=0;                   /// Y[point] Position (default=0)
-                     *(shared_memory_cmd+42)=0;                   /// Z Position (default=0) 
-                     *(shared_memory_cmd+43)=0;                   /// Integral[point] (default=0) 
+    key_rate = 7500;
+    shmid_rate = shmget (7500, SHMSZRATE, IPC_CREAT | 0666);
+    if (shmid_cmd == -1) {
+        qDebug()<<"[!] Shared memory allocation error"<<strerror(errno)<<'\n';
+    }
+    shared_memory_rate =(int *) shmat(shmid_rate, NULL, 0);
+    cout << "Data Memory attached at :" << (int *)shared_memory_rate<< endl << " with ID: " << shmid_rate << endl;
 
-                     *(shared_memory_cmd+50)=0;                   /// Xmin (default=0) 
-                     *(shared_memory_cmd+51)=0;                   /// Xmax (default=0) 
-                     *(shared_memory_cmd+52)=0;                   /// Ymin (default=0) 
-                     *(shared_memory_cmd+53)=0;                   /// Ymax (default=0) 
-                     *(shared_memory_cmd+54)=0;                   /// Zmin (default=0) 
-                     *(shared_memory_cmd+55)=0;                   /// Zmax (default=0) 
 
-                     *(shared_memory_cmd+60)=PassoX;              /// X step (default=0) 
-                     *(shared_memory_cmd+61)=PassoY;              /// Y step (default=0) 
-                     *(shared_memory_cmd+62)=PassoZ;              /// Z step (default=0) 
-                     *(shared_memory_cmd+64)=0;                   /// X movement (default=0) 
-                     *(shared_memory_cmd+65)=0;                   /// Y movement (default=0)
-                     *(shared_memory_cmd+66)=0;                   /// Z movement (default=0)
-		     *(shared_memory_cmd+67)=1;                   /// Scan velocity (default=1 mm/s)
+    ////////////////   SHARED MEMORY STARTING CONFIGURATION   ///////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////// REDEFINED (DEC-2016) SHM_CMD INTRODUCED   ///////////////////////////////////////
 
-                     *(shared_memory_cmd+70)=0;                   /// VME/ADCXRF STATUS (default=0) 
-                     *(shared_memory_cmd+71)=0;                   /// XRF SPECTRUM STATUS (default=0) 
-                     *(shared_memory_cmd+72)=0;                   /// Digitiser_interface STATUS (default=0) 
-                     *(shared_memory_cmd+73)=0;                   /// Rate mater STATUS (default=0) 
-                     *(shared_memory_cmd+74)=0;                   /// Xray Table STATUS (default=0) 
-                     *(shared_memory_cmd+75)=0;                   /// OnLineMap STATUS (default=0) 
-                     *(shared_memory_cmd+76)=0;                   /// Motor test tool STATUS (default=0) 
-                     *(shared_memory_cmd+77)=0;                   /// PI parameter table STATUS (default=0) 
+                    *shared_memory_cmd=MotoreWindowStatus;       /// XY Motor status
+                    *(shared_memory_cmd+1)=MotoreWindowStatus;   /// Z Motor status
+                    *(shared_memory_cmd+2)=SerialiStatus;        /// not used
 
-                     *(shared_memory_cmd+80)=10000;               /// PID ADCXRF (default=10000) 
-                     *(shared_memory_cmd+81)=10000;               /// PID XRF SPECTRUM (default=10000)
-                     *(shared_memory_cmd+82)=10000;               /// PID Digitiser_interface (default=10000)
-                     *(shared_memory_cmd+83)=10000;               /// PID Rate Meter (default=10000)
-                     *(shared_memory_cmd+84)=10000;               /// PID Xray Table (default=10000)
-                     *(shared_memory_cmd+85)=10000;               /// PID OnLineMap (default=10000)
-                     *(shared_memory_cmd+86)=10000;               /// PID Motor test tool STATUS (default=10000) 
-                     *(shared_memory_cmd+87)=10000;               /// PID PI parameter table (default=10000) 
+                    *(shared_memory_cmd+10)=portX;               /// X Port (default=0) initialization in variables.h
+                    *(shared_memory_cmd+11)=portY;               /// Y Port (default=1)
+                    *(shared_memory_cmd+12)=portZ;               /// Z Port (default=2)
+
+                    *(shared_memory_cmd+20)=IniX;                /// X motor not inited (default=0) initialization in variables.h
+                    *(shared_memory_cmd+21)=IniY;                /// Y motor not inited (default=0)
+                    *(shared_memory_cmd+22)=IniZ;                /// Z motor not inited (default=0)
+
+                    *(shared_memory_cmd+30)=IniXready;           /// X motor status (default=0) initialization in variables.h
+                    *(shared_memory_cmd+31)=IniYready;           /// Y motor status (default=0)
+                    *(shared_memory_cmd+32)=IniZready;           /// Z motor status (default=0)
+
+                    *(shared_memory_cmd+40)=0;                   /// X[point] Position (default=0)
+                    *(shared_memory_cmd+41)=0;                   /// Y[point] Position (default=0)
+                    *(shared_memory_cmd+42)=0;                   /// Z Position (default=0)
+                    *(shared_memory_cmd+43)=0;                   /// Integral[point] (default=0)
+
+                    *(shared_memory_cmd+50)=0;                   /// Xmin (default=0)
+                    *(shared_memory_cmd+51)=0;                   /// Xmax (default=0)
+                    *(shared_memory_cmd+52)=0;                   /// Ymin (default=0)
+                    *(shared_memory_cmd+53)=0;                   /// Ymax (default=0)
+                    *(shared_memory_cmd+54)=0;                   /// Zmin (default=0)
+                    *(shared_memory_cmd+55)=0;                   /// Zmax (default=0)
+
+                    *(shared_memory_cmd+60)=PassoX;              /// X step (default=0)
+                    *(shared_memory_cmd+61)=PassoY;              /// Y step (default=0)
+                    *(shared_memory_cmd+62)=PassoZ;              /// Z step (default=0)
+                    *(shared_memory_cmd+64)=0;                   /// X movement (default=0)
+                    *(shared_memory_cmd+65)=0;                   /// Y movement (default=0)
+                    *(shared_memory_cmd+66)=0;                   /// Z movement (default=0)
+                    *(shared_memory_cmd+67)=1;                   /// Scan velocity (default=1 mm/s)
+
+                    *(shared_memory_cmd+70)=0;                   /// VME/ADCXRF STATUS (default=0)
+                    *(shared_memory_cmd+71)=0;                   /// XRF SPECTRUM STATUS (default=0)
+                    *(shared_memory_cmd+72)=0;                   /// Digitiser_interface STATUS (default=0)
+                    *(shared_memory_cmd+73)=0;                   /// Rate mater STATUS (default=0)
+                    *(shared_memory_cmd+74)=0;                   /// Xray Table STATUS (default=0)
+                    *(shared_memory_cmd+75)=0;                   /// OnLineMap STATUS (default=0)
+                    *(shared_memory_cmd+76)=0;                   /// Motor test tool STATUS (default=0)
+                    *(shared_memory_cmd+77)=0;                   /// PI parameter table STATUS (default=0)
+
+                    *(shared_memory_cmd+80)=10000;               /// PID ADCXRF (default=10000)
+                    *(shared_memory_cmd+81)=10000;               /// PID XRF SPECTRUM (default=10000)
+                    *(shared_memory_cmd+82)=10000;               /// PID Digitiser_interface (default=10000)
+                    *(shared_memory_cmd+83)=10000;               /// PID Rate Meter (default=10000)
+                    *(shared_memory_cmd+84)=10000;               /// PID Xray Table (default=10000)
+                    *(shared_memory_cmd+85)=10000;               /// PID OnLineMap (default=10000)
+                    *(shared_memory_cmd+86)=10000;               /// PID Motor test tool STATUS (default=10000)
+                    *(shared_memory_cmd+87)=10000;               /// PID PI parameter table (default=10000)
+
+                    *(shared_memory_cmd+100)=0;                  /// Used for multidetector version, if 0, then the digitizer's channel 0 is active, 										if 1 then channel 1 is active, if 2 then both are active and we are working 										with the sum of both
+                    *(shared_memory_cmd+101)=1;                  /// Multidetector angular (A) calibration parameter (for sum mode)
+                    *(shared_memory_cmd+102)=0;                  /// Multidetector linear (B) calibration parameter (for sum mode)
+                    *(shared_memory_cmd+103)=1;                  /// Multidetector scale factor calibration parameter (number to which parameters A and B parameters must be divided since shared memory does not accept double values)
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-                                     *(shared_memory+13)=0;          ///...News per mappa online
-				     *(shared_memory+19)=0;         //Avviso spostamento motore
-                                     *(shared_memory+22)=0;          //MergePos x sommare diverse scansioni
-				     *(shared_memory+24)=0;        ///Spettro in canale o energia (0 canale) (1 energia)
+                    *(shared_memory+13)=0;          //...News per mappa online
+                    *(shared_memory+19)=0;         //Avviso spostamento motore
+                    *(shared_memory+22)=0;          //MergePos x sommare diverse scansioni
+                    *(shared_memory+24)=0;        //Spettro in canale o energia (0 canale) (1 energia)
 
 
-                                     *(shared_memory+39)=0;  //Rate meter
-                                     *(shared_memory+40)=10; //Low energy cut
+                    *(shared_memory+39)=0;  //Rate meter
+                    *(shared_memory+40)=10; //Low energy cut
 
 
-                                     *(shared_memory+42)=0; //MAP_ON_LINE: News
-                                     *(shared_memory+43)=0; //MAP_ON_LINE: Integral
-                                     *(shared_memory+44)=0; //MAP_ON_LINE: X[point]
-                                     *(shared_memory+45)=0; //MAP_ON_LINE: Y[point]
-
-
-
-
-                                    *(shared_memory+99)=0;           ///...News per show pixel histo  
-                                    *(shared_memory+100)=0;          ///Da questo punto inizia il vettore da plottare per mostrare lo spettro
+                    *(shared_memory+42)=0; //MAP_ON_LINE: News
+                    *(shared_memory+43)=0; //MAP_ON_LINE: Integral
+                    *(shared_memory+44)=0; //MAP_ON_LINE: X[point]
+                    *(shared_memory+45)=0; //MAP_ON_LINE: Y[point]
 
 
 
 
-                                   *(shared_memory2+1)=0;    //// Posiz X
-                                   *(shared_memory2+2)=0;    //// Posiz Y
-                                   *(shared_memory2+3)=0;    //// ontarget if 1
-
-                                   ///*(shared_memory2+4)=0;    //// Numero dati in memoria (posizioni e energie)
-                                    *(shared_memory2+5)=0;     ///NEvents totali ADC per mappa online
-
-                       		   //*(shared_memory2+100)=0;    //partenza per mappa on line       NO!!!!  
-                                   //  *(shared_memory2+6);     ///N vicino a SegFault
-                                   //  *(shared_memory2+7);     ///Eventi adc via via che avanza la scansione (per rate)
-				   *(shared_memory2+8)=0; //usato per indicare timer stop prime di cambiare righa
-				   *(shared_memory2+9)=0; //usato quando l'acquisizione viene chiamata senza scanzione
-
-                                   // *(shared_memory2+8-10);    //// Posizioni libere se ci pungesse vaghezza di aggiungere qualche variabile
-                                   // *(shared_memory2+11);      //// Da qui inizia a scrivere Position
-
-
-				  // *(shared_memory3)=0; ////From here file histo
+                    *(shared_memory+99)=0;           //...News per show pixel histo
+                    *(shared_memory+100)=0;          //Da questo punto inizia il vettore da plottare per mostrare lo spettro
 
 
 
+
+                    *(shared_memory2+1)=0;    // Posiz X
+                    *(shared_memory2+2)=0;    // Posiz Y
+                    *(shared_memory2+3)=0;    // ontarget if 1
+
+                    *(shared_memory2+5)=0;    // NEvents totali ADC per mappa online
+
+
+                    *(shared_memory2+8)=0; //usato per indicare timer stop prime di cambiare righa
+                    *(shared_memory2+9)=0; //usato quando l'acquisizione viene chiamata senza scanzione
 
 
 ////////////////////////////////////////////// DIGITISER PARAMETERS

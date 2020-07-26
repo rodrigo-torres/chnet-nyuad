@@ -61,6 +61,8 @@ bool autoscaleOn=false;
 bool provaRun=false;
 
 int lenght=16384; int resolution=0;
+/////////////////////////////////////////
+extern bool digichannel0sel, digichannel1sel, digichannel0and1sel;
 
 
 class Zoomer: public QwtPlotZoomer
@@ -405,15 +407,17 @@ void MainWindow::exportTxt()
    //file2.remove();
    file1.open(QIODevice::ReadWrite);
    QTextStream out(&file1);
-
+     
       for(int i=0;i<=16384;i++)
       {      
-       out<<*(shared_memory+100+i)<<'\n';
+       out<<*(shared_memory+100+i)<<"	"<<*(shared_memory+20000+i)<<'\n';
 	//qDebug()<<*(shared_memory+100+i)<<'\n';
         *(shared_memory+100+i)=0;
+	*(shared_memory+20000+i)=0;
       }
    file1.close();
    qDebug()<<"file ready!\n";
+
 }
 
 

@@ -93,11 +93,15 @@ int X1,Y1,X2,Y2; // in mainwindow_mouse.cpp
 double numpixelforaccel;
 double posXforacceleration;
 double accelerationtime;
+int accelerationtimesleep;
 
 ///////////////Variables for the composed map visualization (sum of three different elements)///////////
 
 //int ChMin1=0, ChMax1=0, ChMin2=0, ChMax2=0, ChMin3=0, ChMax3=0;
 //int ChMinBa, ChMaxBa, ChMinCa, ChMaxCa, ChMinK, ChMaxK, ChMinCo, ChMaxCo, ChMinAg, ChMaxAg, ChMinCr, ChMaxCr, ChMinCu, ChMaxCu, ChMinPbL, ChMaxPbL, ChMinAu, ChMaxAu, ChMinHg, ChMaxHg, ChMinSi, ChMaxSi, ChMinTi, ChMaxTi, ChMinSn, ChMaxSn, ChMinFe, ChMaxFe, ChMinZn, ChMaxZn, ChMinPbM, ChMaxPbM;
+
+////Variables for the multidetector expansion////
+
 
 
 

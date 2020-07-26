@@ -17,6 +17,7 @@
 
 #include "plot.h"
 #include "mainwindow.h"
+
 #if QT_VERSION < 0x040601
 #define qExp(x) ::exp(x)
 #define qAtan2(y, x) ::atan2(y, x)
@@ -53,11 +54,17 @@ extern int *shm; extern int *shmCommand;
 extern int shmid; extern int shmidString; 
 extern key_t key; extern key_t keyString;
 extern int *shared_memory;
+extern int *shm_cmd, *shmCommand_cmd, shmid_cmd, shmidString_cmd; 
+extern key_t key_cmd; extern key_t keyString_cmd;
+extern int *shared_memory_cmd;
+
 extern bool calculate_cal;
 extern bool new_calibration_ready;
 extern bool logchecked;
 
 extern void Unchecklog();
+
+
 
 //static void CalibratedSpace( double *array, int size, double xmin, double xmax )
 
@@ -245,8 +252,9 @@ void Plot::Open()
 {
 //if(logchecked==true)Unchecklog();
  max=0;min=0;
-int iLine=0, iLineCounts=0; int datotmp=0; int j2count=0, j4count=0;
+int iLinedet1=0, iLinedet2=0, iLineCounts=0; int datotmp=0; int j2count=0, j4count=0;
 bool doReplot;
+int dato=0, dato1=0, dato2=0;
 
 
 fileName = QFileDialog::getOpenFileName(this, tr("Open File .plot"),
@@ -272,26 +280,18 @@ fileName = QFileDialog::getOpenFileName(this, tr("Open File .plot"),
                while (!fileOpened.atEnd())
                 { 
                 QString line = fileOpened.readLine();
+		QStringList list1 = line.split('	');
 
-		  switch (resolution)
-		  {case 0: //16k
-			
- 			 {int dato=line.toInt();  counts[iLine]=dato; if(dato>=max)max=dato; break;}
-  		  
-		  case 1: //8k
-			
- 			 {int dato1=line.toInt(); datotmp=datotmp+dato1; j2count++; if(j2count==2) {counts[iLineCounts]=datotmp; if(datotmp>=max)max=datotmp; datotmp=0; j2count=0; iLineCounts++;} break;}
-			 
- 		  case 2: //4k
-			
- 			 {int dato2=line.toInt(); datotmp=datotmp+dato2; j4count++; if(j4count==4) {counts[iLineCounts]=datotmp; if(datotmp>=max)max=datotmp; datotmp=0; j4count=0; iLineCounts++;} break;}
-			 
-  		  }//end switch
+		*(shared_memory+100+iLinedet1)=list1[0].toInt();
+		if(*(shared_memory_cmd+100)==1){
+                	*(shared_memory+20000+iLinedet1)=list1[1].toInt();
+		}
+		if(*(shared_memory_cmd+100)==2){
+			iLinedet2=qRound((double)((iLinedet1*(*(shared_memory_cmd+101)))+*(shared_memory_cmd+102))/(*(shared_memory_cmd+103)));
+			*(shared_memory+20000+iLinedet2)=list1[1].toInt();
+		}
 
-//                int dato=line.toInt(); 
-//                counts[iLine]=dato;
-//                if(dato>=max)max=dato;
-                iLine++;
+                iLinedet1++;
                 }// end while
 
           fileOpened.close();
@@ -300,13 +300,7 @@ fileName = QFileDialog::getOpenFileName(this, tr("Open File .plot"),
        }//end if
 
 //    qDebug()<<"max"<<max;
-
-if(autoscaleOn)    setAxisScale(QwtPlot::yLeft, min, max);
-
-
-    showData(canali, counts, lenght ); //ArraySize
-    setAutoReplot( doReplot );
-    replot();
+showPixelHisto();
 
 }
 
@@ -333,18 +327,23 @@ void Plot::showPixelHisto()
     const bool doReplot = autoReplot();
 
 
-
 int j2count=0, j4count=0; int datotmp=0, dato1=0, dato2=0; int k=0;
 
 
  for(int h=0;h<16384;h++)
   {
-	
+   counts[k]=0;	
    if(EnergyOn) canali[h]=h*step + offset; else canali[h]=h*no_step + no_offset;
 
   switch (resolution)
 	  {case 0: //16k
-		 {counts[k]=(double)(*(shared_memory+100+h)); 
+		 {
+			if(*(shared_memory_cmd+100)==1){counts[k]=(double)(*(shared_memory+20000+h));}
+			else
+			if(*(shared_memory_cmd+100)==2){counts[k]=(double)(*(shared_memory+100+h))+(double)(*(shared_memory+20000+h));}
+                        else
+			if(*(shared_memory_cmd+100)==0)
+			counts[k]=(double)(*(shared_memory+100+h));
 		  
 	          if(logchecked==true && counts[k]>0)
 		  {
@@ -356,7 +355,10 @@ int j2count=0, j4count=0; int datotmp=0, dato1=0, dato2=0; int k=0;
   		  
 	  case 1: //8k
 		 {
-			dato1=int(*(shared_memory+100+h)); 
+			if(*(shared_memory_cmd+100)==0){dato1=(int)(*(shared_memory+100+h));}
+			if(*(shared_memory_cmd+100)==1){dato1=(int)(*(shared_memory+20000+h));}
+			if(*(shared_memory_cmd+100)==2){dato1=(int)(*(shared_memory+100+h))+(int)(*(shared_memory+20000+h));}			
+			 
 			datotmp=datotmp+dato1; 
 			j2count++;
 		  	if(j2count==2) 
@@ -376,7 +378,10 @@ int j2count=0, j4count=0; int datotmp=0, dato1=0, dato2=0; int k=0;
 	 
 	  case 2: //4k
 		 {
-			dato2=int(*(shared_memory+100+h)); 
+			if(*(shared_memory_cmd+100)==0){dato2=(int)(*(shared_memory+100+h));}
+			if(*(shared_memory_cmd+100)==1){dato2=(int)(*(shared_memory+20000+h));}
+			if(*(shared_memory_cmd+100)==2){dato2=(int)(*(shared_memory+100+h))+(int)(*(shared_memory+20000+h));}
+
 			datotmp=datotmp+dato2; 
 			j4count++;
 		  	if(j4count==4) 

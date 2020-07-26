@@ -119,18 +119,16 @@ void MainWindow::CONNECTIONS_CREATOR()
      connect(ENABLE_TRACKING_checkBox, SIGNAL(clicked()),
             this, SLOT(TrackingON()));
 
-     connect(Z_VELOCITY_doubleSpinBox, SIGNAL(valueChanged(double)), 
-          this, SLOT(VelocityZ(double)));
+     //connect(Z_VELOCITY_doubleSpinBox, SIGNAL(valueChanged(double)),this, SLOT(VelocityZ(double)));
      
-     connect(Z_STEP_doubleSpinBox, SIGNAL(valueChanged(double)), 
-          this, SLOT(PassoZ_Func(double)));
+     //connect(Z_STEP_doubleSpinBox, SIGNAL(valueChanged(double)),this, SLOT(PassoZ_Func(double)));
 
 
 /////////////////////////////////// ARDUINO //////////////////
 
 
      connect(spinBox_assignACM, SIGNAL(valueChanged(int)), 
-          this, SLOT(NameZ(int)));
+          this, SLOT(NameACM(int)));
      
      connect(AssignACM_pushButton, SIGNAL(released()),
             this, SLOT(AssignACM()));

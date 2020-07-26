@@ -4,13 +4,13 @@
 
 TEMPLATE = app
 TARGET = Spectrum
-INCLUDEPATH += /usr/include/qwt/
-INCLUDEPATH+= /usr/local/qwt6-6.1.3/include
+INCLUDEPATH += /usr/local/qwt-6.1.3/
+INCLUDEPATH+= /usr/local/qwt-6.1.3/include/
 
-LIBS += -L/usr/local/qwt-6.1.3/lib -lqwt -L/usr/include/qwt5-qt4
+LIBS += -L/usr/local/qwt-6.1.3/lib -lqwt
 
 QT += widgets
-QT += printsupport 
+QT += printsupport
 CONFIG += qwt
 
 

@@ -11,6 +11,7 @@ extern int NshiftX,NshiftY;
 extern int *shared_memory2;
 extern int *shared_memory3;
 extern int *shared_memory;
+extern int *shared_memory_cmd;
 extern int mempos;
 extern double ChMin, ChMax;
 extern int PassoX; extern int PassoY;
@@ -18,8 +19,11 @@ extern int Xmin_map, Xmax_map, Ymin_map, Ymax_map;
 ///////////////Variables for the composed map visualization (sum of three different elements)///////////
 extern int ChMin1, ChMax1, ChMin2, ChMax2, ChMin3, ChMax3;
 /////////////////////////////////////////////////////////////////////////////
+////Variables for multidetector expansion/////
+extern bool digichannel0sel, digichannel1sel, digichannel0and1sel;
 
 
+//int det2shift = 30000000
 
 
 void MainWindow::LoadNewFileWithNoCorrection_SHM()
@@ -177,6 +181,28 @@ void MainWindow::LoadNewFileWithNoCorrection_SHM()
                case 2:    
                      {
 //    qDebug()<<"sono nel caso 2"<<'\n';
+		      if(lettura>19999999 && lettura<30000000){
+				if(*(shared_memory_cmd+100)==1){j++; break;}
+				else {lettura=lettura-20000000;}
+		      }
+              if(lettura> 30000000){
+				if(*(shared_memory_cmd+100)==0){j++; break;}
+				else 
+                if(*(shared_memory_cmd+100)==2){
+                    lettura=(int)round((((lettura-30000000)*(*(shared_memory_cmd+101)))+(*(shared_memory_cmd+102)))/(*(shared_memory_cmd+103)));
+                    //create an array [int] (outside loop)
+                    // for every vec[i]=lettura
+
+                }
+                else {lettura=lettura-30000000;
+                    // vec[i] = lettura
+                }
+                // here is the assignment of larger bins into smaller bins with vec[int]
+                // which comes from histogramscript in XRFData/Oct26
+                // translated line by line
+		      }		
+
+
                       vectorMap[lettura+3]=vectorMap[lettura+3]+1; // il vettore e' in shift di 3 posizioni 
 		     
                       if(lettura>=ChMin && lettura<=ChMax){vectorMap[2]=vectorMap[2]+1;}//aggiorna integrale
@@ -626,6 +652,17 @@ while(j<Ntot)
                case 2:    
                      {
 //    qDebug()<<"sono nel caso 2"<<'\n';
+		      if(lettura>19999999 && lettura<30000000){
+				if(*(shared_memory_cmd+100)==1){break;}
+				else {lettura=lettura-20000000;}
+				}
+				if(lettura>29999999){
+				if(*(shared_memory_cmd+100)==0){break;}
+				else 
+				if(*(shared_memory_cmd+100)==2){lettura=(int)round((((lettura-30000000)*(*(shared_memory_cmd+101)))+(*(shared_memory_cmd+102)))/(*(shared_memory_cmd+103)));}
+				else {lettura=lettura-30000000;}
+				}
+
 		      vectorMap[lettura+5]=vectorMap[lettura+5]+1;
 		      if(lettura>ChMin1 && lettura<ChMax1) {vectorMap[2]=vectorMap[2]+1;}
 		      if(lettura>ChMin2 && lettura<ChMax2) {vectorMap[3]=vectorMap[3]+1;}

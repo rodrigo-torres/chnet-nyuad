@@ -35,6 +35,11 @@ void MainWindow::createActions()
     MergeTxtAct->setStatusTip(tr("Merge maps with same area"));
     connect(MergeTxtAct, SIGNAL(triggered()), this, SLOT(MergeTxt()));
 
+    SaveTxtAct = new QAction(tr("SaveMap"), this);
+    SaveTxtAct->setStatusTip(tr("Save map"));
+    connect(SaveTxtAct, SIGNAL(triggered()), this, SLOT(SaveTxt()));
+
+
     exitAct = new QAction(tr("Exit"), this);
     exitAct->setStatusTip(tr("Quit the program"));
     connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
@@ -87,6 +92,28 @@ void MainWindow::createActions()
     SelTime->setStatusTip(tr("Select measurement time"));
     connect(SelTime, SIGNAL(triggered()), this, SLOT(SelMeasTime()));
 
+    DigitizerChannel0=new QAction(tr("Select Digitizer Channel 0"), this);
+    DigitizerChannel0->setStatusTip(tr("Select Digitizer Channel 0"));
+    connect(DigitizerChannel0, SIGNAL(triggered()), this, SLOT(SelDigiCh0()));
+    DigitizerChannel0->setCheckable(true);
+    DigitizerChannel0->setChecked(true);
+    
+
+    DigitizerChannel1=new QAction(tr("Select Digitizer Channel 1"), this);
+    DigitizerChannel1->setStatusTip(tr("Select Digitizer Channel 1"));
+    connect(DigitizerChannel1, SIGNAL(triggered()), this, SLOT(SelDigiCh1()));
+    DigitizerChannel1->setCheckable(true);
+
+    DigitizerChannel0and1=new QAction(tr("Select Digitizer Channel 0 and 1 (Sum)"), this);
+    DigitizerChannel0and1->setStatusTip(tr("Select Digitizer Channel 0 and 1 (Sum)"));
+    connect(DigitizerChannel0and1, SIGNAL(triggered()), this, SLOT(SelDigiCh0and1()));
+    DigitizerChannel0and1->setCheckable(true);
+
+    Changemultidetcalpar=new QAction(tr("Change calibration parameters for multidetector sum"), this);
+    Changemultidetcalpar->setStatusTip(tr("Change calibration parameters for multidetector sum"));
+    connect(Changemultidetcalpar, SIGNAL(triggered()), this, SLOT(Changeparameters()));
+    
+
     RunVme = new QAction(tr("Start acquisition"), this);
     RunVme->setStatusTip(tr("Start acquisition"));
     connect(RunVme, SIGNAL(triggered()), this, SLOT(StartVme()));
@@ -123,16 +150,16 @@ void MainWindow::createActions()
 
 /// In menu PyMca
 
-    PyMcaExpAct = new QAction(tr("Export spectrum for PyMca"), this);
-    PyMcaExpAct->setStatusTip(tr("Exports the spectrum"));
-    connect(PyMcaExpAct, SIGNAL(triggered()), this, SLOT(exportpymca()));
+    //PyMcaExpAct = new QAction(tr("Export spectrum for PyMca"), this);
+    //PyMcaExpAct->setStatusTip(tr("Exports the spectrum"));
+    //connect(PyMcaExpAct, SIGNAL(triggered()), this, SLOT(exportpymca()));
 
-    RunPyMcaAct = new QAction(tr("Run PyMca"), this);
-    RunPyMcaAct->setStatusTip(tr("Run PyMca"));
+    //RunPyMcaAct = new QAction(tr("Run PyMca"), this);
+    //RunPyMcaAct->setStatusTip(tr("Run PyMca"));
     //connect(RunPyMcaAct, SIGNAL(triggered()), this, SLOT(RunPyMca()));
 
-    InstallPyMcaAct = new QAction(tr("Install PyMca"), this);
-    InstallPyMcaAct->setStatusTip(tr("Install PyMca"));
+    //InstallPyMcaAct = new QAction(tr("Install PyMca"), this);
+    //InstallPyMcaAct->setStatusTip(tr("Install PyMca"));
     //connect(InstallPyMcaAct, SIGNAL(triggered()), this, SLOT(InstallPyMca()));
 
 /// In menu TOOLS
@@ -200,6 +227,7 @@ void MainWindow::CREATE_MENU()
     fileMenu = menuBar()->addMenu(tr("File"));
     fileMenu->addAction(openAct1);
     fileMenu->addAction(MergeTxtAct);
+    fileMenu->addAction(SaveTxtAct);
     fileMenu->addSeparator();
     fileMenu->addAction(exitAct);
 
@@ -218,6 +246,11 @@ void MainWindow::CREATE_MENU()
 
     AcqMenu = menuBar()->addMenu(tr("Acquisition"));
     AcqMenu->addAction(SelTime);
+    ActiveChannel=AcqMenu->addMenu("Active Digitizer Channel");
+    ActiveChannel->addAction(DigitizerChannel0);
+    ActiveChannel->addAction(DigitizerChannel1);
+    ActiveChannel->addAction(DigitizerChannel0and1);
+    ActiveChannel->addAction(Changemultidetcalpar);
     AcqMenu->addAction(RunVme);
     AcqMenu->addAction(RateAct);
     AcqMenu->addAction(StopVme);
@@ -229,10 +262,10 @@ void MainWindow::CREATE_MENU()
     TreDMenu->addAction(DueDAct);
     TreDMenu->addAction(TreDAct);
 
-    PyMcaMenu = menuBar()->addMenu(tr("PyMca"));
-    PyMcaMenu->addAction(PyMcaExpAct);
-    PyMcaMenu->addAction(RunPyMcaAct);
-    PyMcaMenu->addAction(InstallPyMcaAct);
+    //PyMcaMenu = menuBar()->addMenu(tr("PyMca"));
+    //PyMcaMenu->addAction(PyMcaExpAct);
+    //PyMcaMenu->addAction(RunPyMcaAct);
+    //PyMcaMenu->addAction(InstallPyMcaAct);
 
     TOOLMenu = menuBar()->addMenu(tr("Tools"));
     TOOLMenu->addAction(Open_motor_test);

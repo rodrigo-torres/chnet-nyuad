@@ -1,4 +1,4 @@
-#include <mainwindow.h>
+﻿#include <mainwindow.h>
 #include <../Header.h>
 #include <../Shm.h>
 
@@ -6,7 +6,23 @@ extern int Resolution_mode;
 
 void MainWindow::GUI_CREATOR()
 {
-        centralWidget = new QWidget;
+        // Putting this here for future use.
+        QFont font7;
+        font7.setFamily(QString::fromUtf8("Helvetica"));
+        font7.setPointSize(18);
+
+        QFont font1;
+        font1.setFamily(QString::fromUtf8("Cantarell"));
+        font1.setPointSize(9);
+        font1.setBold(true);
+
+        QFont font2;
+        font2.setFamily(QString::fromUtf8("Cantarell"));
+        font2.setPointSize(12);
+        font2.setBold(true);
+        font2.setWeight(75);
+
+        centralWidget = new QWidget();
         setCentralWidget(centralWidget);
         QGroupBox *groupBox = new QGroupBox(centralWidget); //QGroupBox(tr("DAQ Type"));
         QRadioButton *radioUSB = new QRadioButton(groupBox);
@@ -19,10 +35,10 @@ void MainWindow::GUI_CREATOR()
         VLC_Button = new QPushButton(centralWidget);
         LASER_label = new QLabel(centralWidget);
         LASER_Button = new QPushButton(centralWidget);
-        HELIUM_label = new QLabel(centralWidget);
-        HELIUM_Button = new QPushButton(centralWidget);
-        lcdNumber = new QLCDNumber(centralWidget);
-        horizontalSlider = new QSlider(centralWidget);
+        //HELIUM_label = new QLabel(centralWidget);
+        //HELIUM_Button = new QPushButton(centralWidget);
+        //lcdNumber = new QLCDNumber(centralWidget);
+        //horizontalSlider = new QSlider(centralWidget);
         DAQ_label = new QLabel(centralWidget);
         Digitizer_Button = new QPushButton(centralWidget);
         Detector_Button = new QPushButton(centralWidget);
@@ -37,16 +53,16 @@ void MainWindow::GUI_CREATOR()
         line_2 = new QFrame(centralWidget);
         line_3 = new QFrame(centralWidget);
         line_4 = new QFrame(centralWidget);
-        GAS_label = new QLabel(centralWidget);
+        //GAS_label = new QLabel(centralWidget);
         XRAY_TABLE_Button = new QPushButton(centralWidget);
         tabWidget = new QTabWidget(centralWidget);
         tab = new QWidget(tabWidget);
-        TTY_Z_label = new QLabel(tab);
+        //TTY_Z_label = new QLabel(tab);
         spinBox_assignZ = new QSpinBox(tab);
         AssignZ_pushButton = new QPushButton(tab);
-        linedit_Z_Assignement = new QLineEdit(tab);
-        line_6_tab = new QFrame(tab);
-        label_6_tab = new QLabel(tab);
+        //linedit_Z_Assignement = new QLineEdit(tab);
+        //line_6_tab = new QFrame(tab);
+        //label_6_tab = new QLabel(tab);
         INIT_Z_pushButton = new QPushButton(tab);
         STOP_Z_INIT_pushButton = new QPushButton(tab);
         tab_2 = new QWidget(tabWidget);
@@ -58,42 +74,42 @@ void MainWindow::GUI_CREATOR()
         MOVE_Z_BACKWARD_pushButton = new QPushButton(tab_2);
         STOP_Z_MOVE_pushButton = new QPushButton(tab_2);
         tab_3 = new QWidget(tabWidget);
-        ACM_label = new QLabel(tab_3);
+        //ACM_label = new QLabel(tab_3);
         spinBox_assignACM = new QSpinBox(tab_3);
         AssignACM_pushButton = new QPushButton(tab_3);
-        CurrentActionACM = new QLineEdit(tab_3);
-        tab_4 = new QWidget(tabWidget);
-        AUTOFOCUS_ON_pushButton = new QPushButton(tab_4);
-        AUTOFOCUS_STATUS_checkBox = new QCheckBox(tab_4);
-        label_23_tab_4 = new QLabel(tab_4);
-        lineEdit_2_tab_4 = new QLineEdit(tab_4);
-        ENABLE_TRACKING_checkBox = new QCheckBox(tab_4);
-        label_7_below_tab = new QLabel(centralWidget);
-        Z_VELOCITY_doubleSpinBox = new QDoubleSpinBox(centralWidget);
-        line_11 = new QFrame(centralWidget);
-        label_8_below_tab = new QLabel(centralWidget);
-        Z_STEP_doubleSpinBox = new QDoubleSpinBox(centralWidget);
-        line_14 = new QFrame(centralWidget);
+        CurrentActionACM = new QLineEdit(centralWidget);
+        //tab_4 = new QWidget(tabWidget);
+        AUTOFOCUS_ON_pushButton = new QPushButton(tab_3);
+        //AUTOFOCUS_STATUS_checkBox = new QCheckBox(tab_4);
+        label_23_tab_4 = new QLabel(tab_3);
+        lineEdit_2_tab_4 = new QLineEdit(tab_3);
+        ENABLE_TRACKING_checkBox = new QCheckBox(tab_3);
+        //label_7_below_tab = new QLabel(centralWidget);
+        //Z_VELOCITY_doubleSpinBox = new QDoubleSpinBox(centralWidget);
+        //line_11 = new QFrame(centralWidget);
+        //label_8_below_tab = new QLabel(centralWidget);
+        //Z_STEP_doubleSpinBox = new QDoubleSpinBox(centralWidget);
+        //line_14 = new QFrame(centralWidget);
         label_17_below_tab = new QLabel(centralWidget);
         lineEdit_below_tab = new QLineEdit(centralWidget);
-        label_18_below_tab = new QLabel(centralWidget);
-        tabWidget2 = new QTabWidget(centralWidget);
-        tab2_1 = new QWidget(tabWidget2);
-        label_tab_2_bX = new QLabel(tab2_1);
-        spinBox_assignX = new QSpinBox(tab2_1);
-        pushButton_assignX_port = new QPushButton(tab2_1);
-        label_tab_2_bY = new QLabel(tab2_1);
-        spinBox_assignY = new QSpinBox(tab2_1);
-        pushButton_assignY_port = new QPushButton(tab2_1);
-        tab2_2 = new QWidget(tabWidget2);
-        label_tab_2_2 = new QLabel(tab2_2);
-        label_tab_2_2X = new QLabel(tab2_2);
-        label_tab_2_2Y = new QLabel(tab2_2);
-        pushButton_tab_2_2X = new QPushButton(tab2_2);
-        pushButton_tab_2_2Y = new QPushButton(tab2_2);
+        //label_18_below_tab = new QLabel(centralWidget);
+        //tabWidget2 = new QTabWidget(centralWidget);
+        //tab2_1 = new QWidget(tabWidget2);
+        //label_tab_2_bX = new QLabel(tab2_1);
+        spinBox_assignX = new QSpinBox(tab);
+        pushButton_assignX_port = new QPushButton(tab);
+        //label_tab_2_bY = new QLabel(tab2_1);
+        spinBox_assignY = new QSpinBox(tab);
+        pushButton_assignY_port = new QPushButton(tab);
+        //tab2_2 = new QWidget(tabWidget2);
+        //label_tab_2_2 = new QLabel(tab2_2);
+        //label_tab_2_2X = new QLabel(tab2_2);
+        //label_tab_2_2Y = new QLabel(tab2_2);
+        pushButton_tab_2_2X = new QPushButton(tab);
+        pushButton_tab_2_2Y = new QPushButton(tab);
 //        pushButton_tab_2_2XY = new QPushButton(tab2_2);
-        pushButton_tab_2_2ABORT = new QPushButton(tab2_2);
-        tab2_3 = new QWidget(tabWidget2);
+        pushButton_tab_2_2ABORT = new QPushButton(tab);
+        tab2_3 = new QWidget(tabWidget);
         MOVE_label = new QLabel(tab2_3);
         MOVEUP_pushButton = new QPushButton(tab2_3);
         MOVELEFT_pushButton = new QPushButton(tab2_3);
@@ -104,7 +120,7 @@ void MainWindow::GUI_CREATOR()
         MOVE_TO_X_doubleSpinBox = new QDoubleSpinBox(tab2_3);
         MOVE_TO_Y_pushButton = new QPushButton(tab2_3);
         MOVE_TO_Y_doubleSpinBox = new QDoubleSpinBox(tab2_3);
-        tab2_4 = new QWidget(tabWidget2);
+        tab2_4 = new QWidget(tabWidget);
         SCAN_X_label = new QLabel(tab2_4);
         SET_SCAN_X_MIN_doubleSpinBox = new QDoubleSpinBox(tab2_4);
         SET_SCAN_X_MAX_doubleSpinBox = new QDoubleSpinBox(tab2_4);
@@ -128,7 +144,7 @@ void MainWindow::GUI_CREATOR()
         Y_POSITION_lineEdit = new QLineEdit(centralWidget);                 ///// linedit_2
 
 ///////////////////// MOTOR SELECTION /////////////
-
+/*
         QComboBox *comboBox_XMotor = new QComboBox(tab2_2); ////// X Motor Selection
         comboBox_XMotor->insertItems(0, QStringList()
         << QApplication::translate("mywidget", "-- select motor --", 0)
@@ -162,7 +178,7 @@ void MainWindow::GUI_CREATOR()
         << QApplication::translate("mywidget", "VT80-200", 0)
         );
 
-
+*/
 
    
 //   qDebug()<<"GuiMode: "<<Resolution_mode;
@@ -218,7 +234,10 @@ void MainWindow::GUI_CREATOR()
         LASER_Button->setObjectName(QString::fromUtf8("pushButton_5"));
         LASER_Button->setGeometry(QRect(530, 940, 160, 56));
         LASER_Button->setText(QApplication::translate("MainWindow", "On/Off", 0));
-
+/*
+ *      Deprecated this entire section, as the controls are only relevant to helium control, and we're choosing a hardware based negative feedback control loop,
+ *      as opposed to a software based negative feedback loop.
+ *
         HELIUM_label->setObjectName(QString::fromUtf8("label_13"));
         HELIUM_label->setGeometry(QRect(780, 940, 120, 56));
         HELIUM_label->setFont(font);
@@ -245,7 +264,7 @@ void MainWindow::GUI_CREATOR()
         horizontalSlider->setGeometry(QRect(1320, 948, 220, 40));
         horizontalSlider->setMaximum(100);
         horizontalSlider->setOrientation(Qt::Horizontal);
-
+*/
 ///////////////////////////////////////////////// BOTTONI E LINE_EDIT A DX
 
 
@@ -330,7 +349,7 @@ void MainWindow::GUI_CREATOR()
 
 
 ////////////////////////////////////// GAS LABEL
-
+/*
         GAS_label->setObjectName(QString::fromUtf8("label_12"));
         GAS_label->setGeometry(QRect(1120, 940, 180, 56));
         QFont font1;
@@ -340,7 +359,7 @@ void MainWindow::GUI_CREATOR()
         font1.setWeight(75);
         GAS_label->setFont(font1);
         GAS_label->setText(QApplication::translate("MainWindow", "Flux (0-100)%", 0));
-
+*/
 
 ////////////////////////////// XRAY TABLE BUTTON /////////////////////////////////
 
@@ -373,9 +392,9 @@ void MainWindow::GUI_CREATOR()
         tab->setObjectName(QString::fromUtf8("tab"));
         tab->setEnabled(true);
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////MODIFIED
-        TTY_Z_label->setObjectName(QString::fromUtf8("label_22"));
-        TTY_Z_label->setGeometry(QRect(20, 50, 250, 54));     // Y MOD (-10)
-        TTY_Z_label->setText(QApplication::translate("MyWidget", "/dev/ttyUSB", 0));
+        //TTY_Z_label->setObjectName(QString::fromUtf8("label_22"));
+        //TTY_Z_label->setGeometry(QRect(20, 50, 250, 54));     // Y MOD (-10)
+        //TTY_Z_label->setText(QApplication::translate("MyWidget", "/dev/ttyUSB", 0));
 
         spinBox_assignZ->setObjectName(QString::fromUtf8("spinBox"));
         spinBox_assignZ->setGeometry(QRect(330, 50, 250, 54)); // Y MOD (-10)
@@ -386,21 +405,21 @@ void MainWindow::GUI_CREATOR()
         AssignZ_pushButton->setGeometry(QRect(20, 140, 250, 64)); // Y MOD (-20)
         AssignZ_pushButton->setText(QApplication::translate("MyWidget", "Assign port Z", 0));
 
-        linedit_Z_Assignement->setObjectName(QString::fromUtf8("lineEdit_4"));
-        linedit_Z_Assignement->setEnabled(false);
-        linedit_Z_Assignement->setGeometry(QRect(330, 140, 250, 64)); // Y MOD (-20)
+        //linedit_Z_Assignement->setObjectName(QString::fromUtf8("lineEdit_4"));
+        //linedit_Z_Assignement->setEnabled(false);
+        //linedit_Z_Assignement->setGeometry(QRect(330, 140, 250, 64)); // Y MOD (-20)
 
-        line_6_tab->setObjectName(QString::fromUtf8("line_6"));
-        line_6_tab->setGeometry(QRect(10, 220, 600, 20)); // Y MOD (-20)
-        line_6_tab->setFrameShape(QFrame::HLine);
-        line_6_tab->setFrameShadow(QFrame::Sunken);
+        //line_6_tab->setObjectName(QString::fromUtf8("line_6"));
+        //line_6_tab->setGeometry(QRect(10, 220, 600, 20)); // Y MOD (-20)
+        //line_6_tab->setFrameShape(QFrame::HLine);
+        //line_6_tab->setFrameShadow(QFrame::Sunken);
 
-        comboBox_ZMotor->setGeometry(QRect(20, 270, 250, 60));
+        //comboBox_ZMotor->setGeometry(QRect(20, 270, 250, 60));
 
-        label_6_tab->setObjectName(QString::fromUtf8("label_6"));
-        label_6_tab->setGeometry(QRect(420, 270, 134, 44)); // X MOD (+150)
-        label_6_tab->setFont(font);
-        label_6_tab->setText(QApplication::translate("MyWidget", "Z Init", 0));
+        //label_6_tab->setObjectName(QString::fromUtf8("label_6"));
+        //label_6_tab->setGeometry(QRect(420, 270, 134, 44)); // X MOD (+150)
+        //label_6_tab->setFont(font);
+        //label_6_tab->setText(QApplication::translate("MyWidget", "Z Init", 0));
 
         INIT_Z_pushButton->setObjectName(QString::fromUtf8("INIT_Z_pushButton"));
         INIT_Z_pushButton->setGeometry(QRect(20, 350, 250, 64)); // Y MOD (+20)
@@ -457,9 +476,9 @@ void MainWindow::GUI_CREATOR()
         tab_3->setObjectName(QString::fromUtf8("tab_3"));
         tab_3->setEnabled(true);
 
-        ACM_label->setObjectName(QString::fromUtf8("label_22"));
-        ACM_label->setGeometry(QRect(20, 60, 250, 54));
-        ACM_label->setText(QApplication::translate("MyWidget", "/dev/ttyACM", 0));
+        //ACM_label->setObjectName(QString::fromUtf8("label_22"));
+        //ACM_label->setGeometry(QRect(20, 60, 250, 54));
+        //ACM_label->setText(QApplication::translate("MyWidget", "/dev/ttyACM", 0));
 
         spinBox_assignACM->setObjectName(QString::fromUtf8("spinBox"));
         spinBox_assignACM->setGeometry(QRect(330, 60, 250, 54));
@@ -476,18 +495,18 @@ void MainWindow::GUI_CREATOR()
 
 ///////////////////////////////// WIDGET 1 TAB4
 
-        tab_4->setObjectName(QString::fromUtf8("tab_4"));
-        tab_4->setEnabled(false);
+        //tab_4->setObjectName(QString::fromUtf8("tab_4"));
+        //tab_4->setEnabled(false);
 
         AUTOFOCUS_ON_pushButton->setObjectName(QString::fromUtf8("AUTOFOCUS_ON_pushButton"));
         AUTOFOCUS_ON_pushButton->setGeometry(QRect(100, 60, 400, 60));
         AUTOFOCUS_ON_pushButton->setText(QApplication::translate("MyWidget", "Autofocus ON (ttyACM)", 0));
 
-        AUTOFOCUS_STATUS_checkBox->setObjectName(QString::fromUtf8("checkBox_3"));
-        AUTOFOCUS_STATUS_checkBox->setEnabled(false);
-        AUTOFOCUS_STATUS_checkBox->setGeometry(QRect(150, 140, 300, 50));
-        AUTOFOCUS_STATUS_checkBox->setCheckable(true);
-        AUTOFOCUS_STATUS_checkBox->setText(QApplication::translate("MyWidget", "Autofocus status", 0));
+        //AUTOFOCUS_STATUS_checkBox->setObjectName(QString::fromUtf8("checkBox_3"));
+        //AUTOFOCUS_STATUS_checkBox->setEnabled(false);
+        //AUTOFOCUS_STATUS_checkBox->setGeometry(QRect(150, 140, 300, 50));
+        //AUTOFOCUS_STATUS_checkBox->setCheckable(true);
+        //AUTOFOCUS_STATUS_checkBox->setText(QApplication::translate("MyWidget", "Autofocus status", 0));
 
         label_23_tab_4->setObjectName(QString::fromUtf8("label_23"));
         label_23_tab_4->setGeometry(QRect(100, 240, 420, 50));
@@ -504,83 +523,81 @@ void MainWindow::GUI_CREATOR()
 
         tabWidget->addTab(tab_2, QString());
         tabWidget->addTab(tab_3, QString());
-        tabWidget->addTab(tab_4, QString());
+        //tabWidget->addTab(tab_4, QString());
         tabWidget->setTabText(tabWidget->indexOf(tab), QApplication::translate("MyWidget", "TTY_Z", 0));
         tabWidget->setTabText(tabWidget->indexOf(tab_2), QApplication::translate("MyWidget", "Move_Z", 0));
         tabWidget->setTabText(tabWidget->indexOf(tab_3), QApplication::translate("MyWidget", "ACM", 0));
-        tabWidget->setTabText(tabWidget->indexOf(tab_4), QApplication::translate("MyWidget", "Autofocus", 0));
+        //tabWidget->setTabText(tabWidget->indexOf(tab_4), QApplication::translate("MyWidget", "Autofocus", 0));
         tabWidget->setCurrentIndex(0);
 
 //////////////////////// zone below WIDGET 1 //// X da 640 
 
-        label_7_below_tab->setObjectName(QString::fromUtf8("label_7"));
-        label_7_below_tab->setGeometry(QRect(1160, 540, 240, 54));
-        label_7_below_tab->setFont(font);
-        label_7_below_tab->setText(QApplication::translate("MyWidget", "Z_Speed (mm/s)", 0));
+        //label_7_below_tab->setObjectName(QString::fromUtf8("label_7"));
+        //label_7_below_tab->setGeometry(QRect(1160, 540, 240, 54));
+        //label_7_below_tab->setFont(font);
+        //label_7_below_tab->setText(QApplication::translate("MyWidget", "Z_Speed (mm/s)", 0));
 
-        Z_VELOCITY_doubleSpinBox->setObjectName(QString::fromUtf8("Z_VELOCITY_doubleSpinBox"));
-        Z_VELOCITY_doubleSpinBox->setGeometry(QRect(1420, 540, 300, 54));
-        Z_VELOCITY_doubleSpinBox->setDecimals(3);
-        Z_VELOCITY_doubleSpinBox->setMaximum(50);
-        Z_VELOCITY_doubleSpinBox->setSingleStep(0.001);
-        Z_VELOCITY_doubleSpinBox->setValue(10);
+        //Z_VELOCITY_doubleSpinBox->setObjectName(QString::fromUtf8("Z_VELOCITY_doubleSpinBox"));
+        //Z_VELOCITY_doubleSpinBox->setGeometry(QRect(1420, 540, 300, 54));
+        //Z_VELOCITY_doubleSpinBox->setDecimals(3);
+        //Z_VELOCITY_doubleSpinBox->setMaximum(50);
+        //Z_VELOCITY_doubleSpinBox->setSingleStep(0.001);
+        //Z_VELOCITY_doubleSpinBox->setValue(10);
 
-        line_11->setObjectName(QString::fromUtf8("line_11"));
-        line_11->setGeometry(QRect(1130, 610, 600, 20));
-        line_11->setFrameShape(QFrame::HLine);
-        line_11->setFrameShadow(QFrame::Sunken);
+        //line_11->setObjectName(QString::fromUtf8("line_11"));
+        //line_11->setGeometry(QRect(1130, 610, 600, 20));
+        //line_11->setFrameShape(QFrame::HLine);
+        //line_11->setFrameShadow(QFrame::Sunken);
 
-        label_8_below_tab->setObjectName(QString::fromUtf8("label_8"));
-        label_8_below_tab->setGeometry(QRect(1160, 650, 240, 54));
-        label_8_below_tab->setFont(font);
-        label_8_below_tab->setText(QApplication::translate("MyWidget", "Step Z (mm)", 0));
+        //label_8_below_tab->setObjectName(QString::fromUtf8("label_8"));
+        //label_8_below_tab->setGeometry(QRect(1160, 650, 240, 54));
+        //label_8_below_tab->setFont(font);
+        //label_8_below_tab->setText(QApplication::translate("MyWidget", "Step Z (mm)", 0));
 
-        Z_STEP_doubleSpinBox->setObjectName(QString::fromUtf8("Z_STEP_doubleSpinBox"));
-        Z_STEP_doubleSpinBox->setGeometry(QRect(1420, 650, 300, 54));
-        Z_STEP_doubleSpinBox->setDecimals(3);
-        Z_STEP_doubleSpinBox->setMaximum(50);
-        Z_STEP_doubleSpinBox->setSingleStep(0.001);
-        Z_STEP_doubleSpinBox->setValue(1);
+        //Z_STEP_doubleSpinBox->setObjectName(QString::fromUtf8("Z_STEP_doubleSpinBox"));
+        //Z_STEP_doubleSpinBox->setGeometry(QRect(1420, 650, 300, 54));
+        //Z_STEP_doubleSpinBox->setDecimals(3);
+        //Z_STEP_doubleSpinBox->setMaximum(50);
+        //Z_STEP_doubleSpinBox->setSingleStep(0.001);
+        //Z_STEP_doubleSpinBox->setValue(1);
 
-        line_14->setObjectName(QString::fromUtf8("line_14"));
-        line_14->setGeometry(QRect(1130, 720, 600, 20));
-        line_14->setFrameShape(QFrame::HLine);
-        line_14->setFrameShadow(QFrame::Sunken);
+        //line_14->setObjectName(QString::fromUtf8("line_14"));
+        //line_14->setGeometry(QRect(1130, 720, 600, 20));
+        //line_14->setFrameShape(QFrame::HLine);
+        //line_14->setFrameShadow(QFrame::Sunken);
 
         label_17_below_tab->setObjectName(QString::fromUtf8("label_17"));
         label_17_below_tab->setGeometry(QRect(1160, 750, 240, 54));
         label_17_below_tab->setFont(font);
         label_17_below_tab->setText(QApplication::translate("MyWidget", "Z - position:", 0));
 
-        lineEdit_below_tab->setObjectName(QString::fromUtf8("lineEdit"));
+       // lineEdit_below_tab->setObjectName(QString::fromUtf8("lineEdit"));
         lineEdit_below_tab->setEnabled(false);
         lineEdit_below_tab->setGeometry(QRect(1420, 750, 300, 54));
 
-        label_18_below_tab->setObjectName(QString::fromUtf8("label_18"));
-        label_18_below_tab->setGeometry(QRect(1160, 810, 520, 50));
-        QFont font7;
-        font7.setFamily(QString::fromUtf8("Cantarell"));
-        font7.setPointSize(12);
-        label_18_below_tab->setFont(font7);
-        label_18_below_tab->setText(QApplication::translate("MyWidget", "Z-axis linear stage absolute position", 0));
+        //label_18_below_tab->setObjectName(QString::fromUtf8("label_18"));
+        //label_18_below_tab->setGeometry(QRect(1160, 810, 520, 50));
+
+        //label_18_below_tab->setFont(font7);
+        //label_18_below_tab->setText(QApplication::translate("MyWidget", "Z-axis linear stage absolute position", 0));
 
 
 ///////////////////////// TABWIDGET X-Y WIDGET 2 ////////////////////
 
-        tabWidget2->setObjectName(QString::fromUtf8("tabWidget2"));
-        tabWidget2->setEnabled(true);
-        tabWidget2->setGeometry(QRect(1770, 20, 620, 500));
+        //tabWidget2->setObjectName(QString::fromUtf8("tabWidget2"));
+        //tabWidget2->setEnabled(true);
+        //tabWidget2->setGeometry(QRect(1770, 20, 620, 500));
 //        tabWidget->setMaximumSize(QSize(16777215, 16777215));
 
 ///////////////////////////////// WIDGET 2 TAB1 ASSIGN X & Y PORT
 
-        tab2_1->setObjectName(QString::fromUtf8("tab2_1"));
-        tab2_1->setEnabled(true);
+        //tab2_1->setObjectName(QString::fromUtf8("tab2_1"));
+        //tab2_1->setEnabled(true);
 
-        label_tab_2_bX->setObjectName(QString::fromUtf8("label_10"));
-        label_tab_2_bX->setGeometry(QRect(230, 40, 340, 40));
-        label_tab_2_bX->setFont(font);
-        label_tab_2_bX->setText(QApplication::translate("MyWidget", "X Motor", 0));
+        //label_tab_2_bX->setObjectName(QString::fromUtf8("label_10"));
+        //label_tab_2_bX->setGeometry(QRect(230, 40, 340, 40));
+        //label_tab_2_bX->setFont(font);
+        //label_tab_2_bX->setText(QApplication::translate("MyWidget", "X Motor", 0));
 
         spinBox_assignX->setObjectName(QString::fromUtf8("spinBox"));
         spinBox_assignX->setGeometry(QRect(330, 120, 250, 54));
@@ -590,10 +607,10 @@ void MainWindow::GUI_CREATOR()
         pushButton_assignX_port->setGeometry(QRect(40, 120, 240, 54));
         pushButton_assignX_port->setText(QApplication::translate("MyWidget", "Assign port X", 0));
 
-        label_tab_2_bY->setObjectName(QString::fromUtf8("label_10"));
-        label_tab_2_bY->setGeometry(QRect(230, 240, 340, 40));
-        label_tab_2_bY->setFont(font);
-        label_tab_2_bY->setText(QApplication::translate("MyWidget", "Y Motor", 0));
+        //label_tab_2_bY->setObjectName(QString::fromUtf8("label_10"));
+        //label_tab_2_bY->setGeometry(QRect(230, 240, 340, 40));
+        //label_tab_2_bY->setFont(font);
+        //label_tab_2_bY->setText(QApplication::translate("MyWidget", "Y Motor", 0));
 
         spinBox_assignY->setObjectName(QString::fromUtf8("spinBox"));
         spinBox_assignY->setGeometry(QRect(330, 320, 250, 54));
@@ -607,26 +624,26 @@ void MainWindow::GUI_CREATOR()
 
 ///////////////////////////////////////WIDGET 2 TAB 2///////////INIT////////////////////////////////
 
-        tab2_2->setObjectName(QString::fromUtf8("tab2_2"));
-        tab2_2->setEnabled(false);
+        //tab2_2->setObjectName(QString::fromUtf8("tab2_2"));
+        //tab2_2->setEnabled(false);
 
-        label_tab_2_2->setObjectName(QString::fromUtf8("label_10"));
-        label_tab_2_2->setGeometry(QRect(170, 40, 340, 40));
-        label_tab_2_2->setFont(font);
-        label_tab_2_2->setText(QApplication::translate("MyWidget", "Motor initialisation", 0));
+        //label_tab_2_2->setObjectName(QString::fromUtf8("label_10"));
+        //label_tab_2_2->setGeometry(QRect(170, 40, 340, 40));
+        //label_tab_2_2->setFont(font);
+        //label_tab_2_2->setText(QApplication::translate("MyWidget", "Motor initialisation", 0));
 
-        label_tab_2_2X->setObjectName(QString::fromUtf8("label_10"));
-        label_tab_2_2X->setGeometry(QRect(100, 100, 340, 40)); // X moved (-30)
-        label_tab_2_2X->setFont(font);
-        label_tab_2_2X->setText(QApplication::translate("MyWidget", "X motor", 0));
+        //label_tab_2_2X->setObjectName(QString::fromUtf8("label_10"));
+        //label_tab_2_2X->setGeometry(QRect(100, 100, 340, 40)); // X moved (-30)
+        //label_tab_2_2X->setFont(font);
+        //label_tab_2_2X->setText(QApplication::translate("MyWidget", "X motor", 0));
 
-        label_tab_2_2Y->setObjectName(QString::fromUtf8("label_10"));
-        label_tab_2_2Y->setGeometry(QRect(400, 100, 340, 40)); // X moved (30)
-        label_tab_2_2Y->setFont(font);
-        label_tab_2_2Y->setText(QApplication::translate("MyWidget", "Y motor", 0));
+        //label_tab_2_2Y->setObjectName(QString::fromUtf8("label_10"));
+        //label_tab_2_2Y->setGeometry(QRect(400, 100, 340, 40)); // X moved (30)
+        //label_tab_2_2Y->setFont(font);
+        //label_tab_2_2Y->setText(QApplication::translate("MyWidget", "Y motor", 0));
 
-        comboBox_XMotor->setGeometry(QRect(30, 170, 250, 60));
-        comboBox_YMotor->setGeometry(QRect(340, 170, 250, 60));
+        //comboBox_XMotor->setGeometry(QRect(30, 170, 250, 60));
+        //comboBox_YMotor->setGeometry(QRect(340, 170, 250, 60));
 
         pushButton_tab_2_2X->setObjectName(QString::fromUtf8("pushButton_8"));
         pushButton_tab_2_2X->setGeometry(QRect(70, 270, 180, 54)); // XY moved (-30, +130)
@@ -753,20 +770,7 @@ void MainWindow::GUI_CREATOR()
         SCAN_ABORT_pushButton->setText(QApplication::translate("MyWidget", "ABORT SCAN", 0));
 
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        tabWidget2->addTab(tab2_1, QString());
-        tabWidget2->addTab(tab2_2, QString());
-        tabWidget2->addTab(tab2_3, QString());
-        tabWidget2->addTab(tab2_4, QString());
-        tabWidget2->setTabText(tabWidget2->indexOf(tab2_1), QApplication::translate("MyWidget", "TTY_XY", 0));
-        tabWidget2->setTabText(tabWidget2->indexOf(tab2_2), QApplication::translate("MyWidget", "Init", 0));
-        tabWidget2->setTabText(tabWidget2->indexOf(tab2_3), QApplication::translate("MyWidget", "Move_XY", 0));
-        tabWidget2->setTabText(tabWidget2->indexOf(tab2_4), QApplication::translate("MyWidget", "Scan", 0));
-        tabWidget2->setCurrentIndex(0);
-
-////////////////////////// AREA BELOW TABWIDGET2
+///////////////////////// AREA BELOW TABWIDGET2
 
         XY_SPEED_label->setObjectName(QString::fromUtf8("XY_SPEED_label"));
         XY_SPEED_label->setGeometry(QRect(1800, 540, 240, 54));
@@ -866,7 +870,7 @@ void MainWindow::GUI_CREATOR()
 
 
         CAMERA_label->setObjectName(QString::fromUtf8("label_9"));
-        CAMERA_label->setGeometry(QRect(30, 705, 90, 42));
+        CAMERA_label->setGeometry(QRect(15, 705, 90, 42));
         QFont font;
         font.setFamily(QString::fromUtf8("Cantarell"));
         font.setPointSize(12);
@@ -874,18 +878,18 @@ void MainWindow::GUI_CREATOR()
         CAMERA_label->setText(QApplication::translate("MainWindow", "Camera", 0));
 
         VLC_Button->setObjectName(QString::fromUtf8("pushButton_4"));
-        VLC_Button->setGeometry(QRect(128, 705, 120, 42));
+        VLC_Button->setGeometry(QRect(113, 705, 120, 42));
         VLC_Button->setText(QApplication::translate("MainWindow", "VLC", 0));
 
         LASER_label->setObjectName(QString::fromUtf8("label_11"));
-        LASER_label->setGeometry(QRect(315, 705, 90, 42));
+        LASER_label->setGeometry(QRect(300, 705, 90, 42));
         LASER_label->setFont(font);
         LASER_label->setText(QApplication::translate("MainWindow", "Laser", 0));
 
         LASER_Button->setObjectName(QString::fromUtf8("pushButton_5"));
-        LASER_Button->setGeometry(QRect(398, 705, 120, 42));
+        LASER_Button->setGeometry(QRect(383, 705, 120, 42));
         LASER_Button->setText(QApplication::translate("MainWindow", "On/Off", 0));
-
+/*
         HELIUM_label->setObjectName(QString::fromUtf8("label_13"));
         HELIUM_label->setGeometry(QRect(585, 705, 90, 42));
         HELIUM_label->setFont(font);
@@ -912,7 +916,7 @@ void MainWindow::GUI_CREATOR()
         horizontalSlider->setGeometry(QRect(990, 711, 165, 30));
         horizontalSlider->setMaximum(100);
         horizontalSlider->setOrientation(Qt::Horizontal);
-
+*/
 
 ///////////////////////////////////////////////// BOTTONI E LINE_EDIT A DX
 
@@ -947,22 +951,27 @@ void MainWindow::GUI_CREATOR()
         TTY_label->setObjectName(QString::fromUtf8("label_2"));
         TTY_label->setGeometry(QRect(675, 337, 167, 32));
         TTY_label->setFont(font);
-        TTY_label->setText(QApplication::translate("MainWindow", "TTY status", 0));
+        TTY_label->setText(QApplication::translate("MainWindow", "Ports Status", 0));
 
         CurrentActionX->setObjectName(QString::fromUtf8("CurrentActionX"));
         CurrentActionX->setEnabled(false);
-        CurrentActionX->setGeometry(QRect(637, 375, 182, 44));
-        CurrentActionX->setText("X on TTYUSB0");
+        CurrentActionX->setGeometry(QRect(637, 375, 182, 30));
+        CurrentActionX->setText("Motor X Disconnected");
 
         CurrentActionY->setObjectName(QString::fromUtf8("CurrentActionY"));
         CurrentActionY->setEnabled(false);
-        CurrentActionY->setGeometry(QRect(637, 427, 182, 44));
-        CurrentActionY->setText("Y on TTYUSB1");
+        CurrentActionY->setGeometry(QRect(637, 415, 182, 30));
+        CurrentActionY->setText("Motor Y Disconnected");
 
         CurrentActionZ->setObjectName(QString::fromUtf8("CurrentActionY_2"));
         CurrentActionZ->setEnabled(false);
-        CurrentActionZ->setGeometry(QRect(637, 480, 182, 44));
-        CurrentActionZ->setText("Z on TTYUSB2");
+        CurrentActionZ->setGeometry(QRect(637, 455, 182, 30));
+        CurrentActionZ->setText("Motor Z Disconnected");
+
+        CurrentActionACM->setObjectName(QString::fromUtf8("CurrentActionACM"));
+        CurrentActionACM->setEnabled(false);
+        CurrentActionACM->setGeometry(QRect(637, 495, 182, 30));
+        CurrentActionACM->setText("Arduino Disconnected");
 
         Export_Button->setObjectName(QString::fromUtf8("pushButton_3"));
         Export_Button->setGeometry(QRect(637, 562, 182, 41));
@@ -992,7 +1001,7 @@ void MainWindow::GUI_CREATOR()
         line_4->setFrameShape(QFrame::HLine);
         line_4->setFrameShadow(QFrame::Sunken);
 
-
+/*
 ////////////////////////////////////// GAS LABEL
 
         GAS_label->setObjectName(QString::fromUtf8("label_12"));
@@ -1004,7 +1013,7 @@ void MainWindow::GUI_CREATOR()
         font1.setWeight(75);
         GAS_label->setFont(font1);
         GAS_label->setText(QApplication::translate("MainWindow", "Flux (0-100)%", 0));
-
+*/
 
 
 ////////////////////////////// XRAY TABLE BUTTON /////////////////////////////////
@@ -1012,7 +1021,7 @@ void MainWindow::GUI_CREATOR()
 
         XRAY_TABLE_Button->setObjectName(QString::fromUtf8("pushButton_X"));
         XRAY_TABLE_Button->setText(QApplication::translate("MainWindow", "X-Ray Table", 0));
-        XRAY_TABLE_Button->setGeometry(QRect(1350, 705, 420, 45));
+        XRAY_TABLE_Button->setGeometry(QRect(585, 705, 233, 42));
 
 
 
@@ -1043,40 +1052,56 @@ void MainWindow::GUI_CREATOR()
         tab->setObjectName(QString::fromUtf8("tab"));
         tab->setEnabled(true);
 
-        TTY_Z_label->setObjectName(QString::fromUtf8("label_22"));
-        TTY_Z_label->setGeometry(QRect(15, 45, 188, 41));
-        TTY_Z_label->setText(QApplication::translate("MyWidget", "/dev/ttyUSB", 0));
+        //TTY_Z_label->setObjectName(QString::fromUtf8("label_22"));
+        //TTY_Z_label->setGeometry(QRect(15, 45, 188, 41));
+        //TTY_Z_label->setText(QApplication::translate("MyWidget", "/dev/ttyUSB", 0));
 
-        spinBox_assignZ->setObjectName(QString::fromUtf8("spinBox"));
-        spinBox_assignZ->setGeometry(QRect(248, 45, 188, 41));
-        spinBox_assignZ->setMaximum(3);
-        spinBox_assignZ->setValue(2);
+        pushButton_assignX_port->setObjectName(QString::fromUtf8("pushButton_8"));
+        pushButton_assignX_port->setGeometry(QRect(15, 85, 180, 31));
+        pushButton_assignX_port->setText(QApplication::translate("MyWidget", "Assign port X", 0));
+
+        spinBox_assignX->setObjectName(QString::fromUtf8("spinBox"));
+        spinBox_assignX->setGeometry(QRect(222, 85, 100, 31));
+        spinBox_assignX->setMaximum(3);
+        spinBox_assignX->setValue(2);
+
+        pushButton_tab_2_2X->setObjectName(QString::fromUtf8("pushButton_8"));
+        pushButton_tab_2_2X->setGeometry(QRect(360, 85, 80, 31));
+        pushButton_tab_2_2X->setText(QApplication::translate("MyWidget", "Init X", 0));
+
+        pushButton_assignY_port->setObjectName(QString::fromUtf8("pushButton_8"));
+        pushButton_assignY_port->setGeometry(QRect(15, 135, 180, 31));
+        pushButton_assignY_port->setText(QApplication::translate("MyWidget", "Assign port Y", 0));
+
+        spinBox_assignY->setObjectName(QString::fromUtf8("spinBox"));
+        spinBox_assignY->setGeometry(QRect(222, 135, 100, 31));
+        spinBox_assignY->setMaximum(3);
+        spinBox_assignY->setValue(0);
+
+        pushButton_tab_2_2Y->setObjectName(QString::fromUtf8("pushButton_8"));
+        pushButton_tab_2_2Y->setGeometry(QRect(360, 135, 80, 31));
+        pushButton_tab_2_2Y->setText(QApplication::translate("MyWidget", "Init Y", 0));
 
         AssignZ_pushButton->setObjectName(QString::fromUtf8("pushButton_12"));
-        AssignZ_pushButton->setGeometry(QRect(15, 120, 188, 48));
+        AssignZ_pushButton->setGeometry(QRect(15, 35, 180, 31));
         AssignZ_pushButton->setText(QApplication::translate("MyWidget", "Assign port Z", 0));
 
-        linedit_Z_Assignement->setObjectName(QString::fromUtf8("lineEdit_4"));
-        linedit_Z_Assignement->setEnabled(false);
-        linedit_Z_Assignement->setGeometry(QRect(247, 120, 188, 48));
-
-        line_6_tab->setObjectName(QString::fromUtf8("line_6"));
-        line_6_tab->setGeometry(QRect(8, 180, 450, 15));
-        line_6_tab->setFrameShape(QFrame::HLine);
-        line_6_tab->setFrameShadow(QFrame::Sunken);
-
-        label_6_tab->setObjectName(QString::fromUtf8("label_6"));
-        label_6_tab->setGeometry(QRect(203, 203, 101, 33));
-        label_6_tab->setFont(font);
-        label_6_tab->setText(QApplication::translate("MyWidget", "Z Init", 0));
+        spinBox_assignZ->setObjectName(QString::fromUtf8("spinBox"));
+        spinBox_assignZ->setGeometry(QRect(222, 35, 100, 31));
+        spinBox_assignZ->setMaximum(3);
+        spinBox_assignZ->setValue(1);
 
         INIT_Z_pushButton->setObjectName(QString::fromUtf8("INIT_Z_pushButton"));
-        INIT_Z_pushButton->setGeometry(QRect(15, 248, 188, 48));
-        INIT_Z_pushButton->setText(QApplication::translate("MyWidget", " INIT Z", 0));
+        INIT_Z_pushButton->setGeometry(QRect(360, 35, 80, 31));
+        INIT_Z_pushButton->setText(QApplication::translate("MyWidget", " Init Z", 0));
 
         STOP_Z_INIT_pushButton->setObjectName(QString::fromUtf8("STOP_Z_INIT_pushButton"));
-        STOP_Z_INIT_pushButton->setGeometry(QRect(248, 248, 188, 48));
-        STOP_Z_INIT_pushButton->setText(QApplication::translate("MyWidget", "STOP", 0));
+        STOP_Z_INIT_pushButton->setGeometry(QRect(25, 248, 150, 50));
+        STOP_Z_INIT_pushButton->setText(QApplication::translate("MyWidget", "ABORT Z", 0));
+
+        pushButton_tab_2_2ABORT->setObjectName(QString::fromUtf8("pushButton_8"));
+        pushButton_tab_2_2ABORT->setGeometry(QRect(290, 248, 150, 50));
+        pushButton_tab_2_2ABORT->setText(QApplication::translate("MyWidget", "ABORT X OR Y", 0));
 
 
         tabWidget->addTab(tab, QString());
@@ -1125,194 +1150,136 @@ void MainWindow::GUI_CREATOR()
         tab_3->setObjectName(QString::fromUtf8("tab_3"));
         tab_3->setEnabled(true);
 
-        ACM_label->setObjectName(QString::fromUtf8("label_22"));
-        ACM_label->setGeometry(QRect(15, 45, 194, 41));
-        ACM_label->setText(QApplication::translate("MyWidget", "/dev/ttyACM", 0));
+        //ACM_label->setObjectName(QString::fromUtf8("label_22"));
+        //ACM_label->setGeometry(QRect(15, 45, 194, 41));
+        //ACM_label->setText(QApplication::translate("MyWidget", "/dev/ttyACM", 0));
 
         spinBox_assignACM->setObjectName(QString::fromUtf8("spinBox"));
-        spinBox_assignACM->setGeometry(QRect(248, 45, 194, 41));
+        spinBox_assignACM->setGeometry(QRect(248, 45, 194, 40));
         spinBox_assignACM->setMaximum(3);
 
         AssignACM_pushButton->setObjectName(QString::fromUtf8("pushButton_12"));
-        AssignACM_pushButton->setGeometry(QRect(15, 120, 194, 48));
+        AssignACM_pushButton->setGeometry(QRect(15, 45, 194, 40));
         AssignACM_pushButton->setText(QApplication::translate("MyWidget", "Assign ACM port", 0));
 
-        CurrentActionACM->setObjectName(QString::fromUtf8("CurrentActionACM"));
-        CurrentActionACM->setEnabled(false);
-        CurrentActionACM->setGeometry(QRect(128, 218, 248, 44));
-        CurrentActionACM->setText("Arduino on TTYACM0");
+
 
 ///////////////////////////////// WIDGET 1 TAB4
 
-        tab_4->setObjectName(QString::fromUtf8("tab_4"));
-        tab_4->setEnabled(false);
+        //tab_4->setObjectName(QString::fromUtf8("tab_4"));
+        //tab_4->setEnabled(false);
 
         AUTOFOCUS_ON_pushButton->setObjectName(QString::fromUtf8("AUTOFOCUS_ON_pushButton"));
-        AUTOFOCUS_ON_pushButton->setGeometry(QRect(75, 45, 300, 45));
+        AUTOFOCUS_ON_pushButton->setGeometry(QRect(248, 100, 194, 40));
         AUTOFOCUS_ON_pushButton->setText(QApplication::translate("MyWidget", "Autofocus ON (ttyACM)", 0));
+        AUTOFOCUS_ON_pushButton->setEnabled(false);
 
-        AUTOFOCUS_STATUS_checkBox->setObjectName(QString::fromUtf8("checkBox_3"));
-        AUTOFOCUS_STATUS_checkBox->setEnabled(false);
-        AUTOFOCUS_STATUS_checkBox->setGeometry(QRect(113, 105, 225, 38));
-        AUTOFOCUS_STATUS_checkBox->setCheckable(true);
-        AUTOFOCUS_STATUS_checkBox->setText(QApplication::translate("MyWidget", "Autofocus status", 0));
+        //AUTOFOCUS_STATUS_checkBox->setObjectName(QString::fromUtf8("checkBox_3"));
+        //AUTOFOCUS_STATUS_checkBox->setEnabled(false);
+        //AUTOFOCUS_STATUS_checkBox->setGeometry(QRect(113, 105, 225, 38));
+        //AUTOFOCUS_STATUS_checkBox->setCheckable(true);
+        //AUTOFOCUS_STATUS_checkBox->setText(QApplication::translate("MyWidget", "Autofocus status", 0));
 
         label_23_tab_4->setObjectName(QString::fromUtf8("label_23"));
-        label_23_tab_4->setGeometry(QRect(75, 180, 315, 38));
+        label_23_tab_4->setGeometry(QRect(15, 180, 315, 40));
         label_23_tab_4->setText(QApplication::translate("MyWidget", "Distance from target (mm)", 0));
 
         lineEdit_2_tab_4->setObjectName(QString::fromUtf8("lineEdit_2"));
         lineEdit_2_tab_4->setEnabled(false);
-        lineEdit_2_tab_4->setGeometry(QRect(90, 225, 270, 41));
+        lineEdit_2_tab_4->setGeometry(QRect(15, 225, 270, 40));
 
         ENABLE_TRACKING_checkBox->setObjectName(QString::fromUtf8("ENABLE_TRACKING_checkBox"));
-        ENABLE_TRACKING_checkBox->setGeometry(QRect(120, 270, 210, 38));
+        ENABLE_TRACKING_checkBox->setGeometry(QRect(15, 270, 210, 40));
         ENABLE_TRACKING_checkBox->setText(QApplication::translate("MyWidget", "Enable tracking", 0));
+        ENABLE_TRACKING_checkBox->setEnabled(false);
 
         tabWidget->addTab(tab_2, QString());
         tabWidget->addTab(tab_3, QString());
-        tabWidget->addTab(tab_4, QString());
+        //tabWidget->addTab(tab_4, QString());
+        tabWidget->addTab(tab2_3, QString());
+        tabWidget->addTab(tab2_4, QString());
         tabWidget->setTabText(tabWidget->indexOf(tab), QApplication::translate("MyWidget", "TTY_Z", 0));
         tabWidget->setTabText(tabWidget->indexOf(tab_2), QApplication::translate("MyWidget", "Move_Z", 0));
         tabWidget->setTabText(tabWidget->indexOf(tab_3), QApplication::translate("MyWidget", "ACM", 0));
-        tabWidget->setTabText(tabWidget->indexOf(tab_4), QApplication::translate("MyWidget", "Autofocus", 0));
+        tabWidget->setTabText(tabWidget->indexOf(tab2_3), QApplication::translate("MyWidget", "Move XY", 0));
+        //tabWidget->setTabText(tabWidget->indexOf(tab_4), QApplication::translate("MyWidget", "Autofocus", 0));
+        tabWidget->setTabText(tabWidget->indexOf(tab2_4), QApplication::translate("MyWidget", "Scan", 0));
         tabWidget->setCurrentIndex(0);
 
 //////////////////////// zone below WIDGET 1 //// X da 640 
 
-        label_7_below_tab->setObjectName(QString::fromUtf8("label_7"));
-        label_7_below_tab->setGeometry(QRect(870, 405, 180, 41));
-        label_7_below_tab->setFont(font);
-        label_7_below_tab->setText(QApplication::translate("MyWidget", "Z_Speed (mm/s)", 0));
+        XY_SPEED_label->setObjectName(QString::fromUtf8("XY_SPEED_label"));
+        XY_SPEED_label->setGeometry(QRect(865, 405, 180, 41));
+        XY_SPEED_label->setFont(font);
+        XY_SPEED_label->setText(QApplication::translate("MyWidget", "XY_Speed (mm/s)", 0));
 
-        Z_VELOCITY_doubleSpinBox->setObjectName(QString::fromUtf8("Z_VELOCITY_doubleSpinBox"));
-        Z_VELOCITY_doubleSpinBox->setGeometry(QRect(1065, 405, 225, 41));
-        Z_VELOCITY_doubleSpinBox->setDecimals(3);
-        Z_VELOCITY_doubleSpinBox->setMaximum(50);
-        Z_VELOCITY_doubleSpinBox->setSingleStep(0.001);
-        Z_VELOCITY_doubleSpinBox->setValue(10);
+        XY_SPEED_doubleSpinBox->setObjectName(QString::fromUtf8("XY_SPEED_doubleSpinBox"));
+        XY_SPEED_doubleSpinBox->setGeometry(QRect(1053, 405, 225, 41));
+        XY_SPEED_doubleSpinBox->setDecimals(3);
+        XY_SPEED_doubleSpinBox->setMaximum(50);
+        XY_SPEED_doubleSpinBox->setSingleStep(0.001);
+        XY_SPEED_doubleSpinBox->setValue(1);
 
-        line_11->setObjectName(QString::fromUtf8("line_11"));
-        line_11->setGeometry(QRect(848, 458, 450, 15));
-        line_11->setFrameShape(QFrame::HLine);
-        line_11->setFrameShadow(QFrame::Sunken);
+        XY_SPEED_line->setObjectName(QString::fromUtf8("XY_SPEED_line"));
+        XY_SPEED_line->setGeometry(QRect(850, 446, 450, 15));
+        XY_SPEED_line->setFrameShape(QFrame::HLine);
+        XY_SPEED_line->setFrameShadow(QFrame::Sunken);
 
-        label_8_below_tab->setObjectName(QString::fromUtf8("label_8"));
-        label_8_below_tab->setGeometry(QRect(870, 488, 180, 41));
-        label_8_below_tab->setFont(font);
-        label_8_below_tab->setText(QApplication::translate("MyWidget", "Step Z (mm)", 0));
+        X_STEP_label->setObjectName(QString::fromUtf8("X_STEP_label"));
+        X_STEP_label->setGeometry(QRect(865, 465, 180, 41));
+        X_STEP_label->setFont(font);
+        X_STEP_label->setText(QApplication::translate("MyWidget", "Step X (mm)", 0));
 
-        Z_STEP_doubleSpinBox->setObjectName(QString::fromUtf8("Z_STEP_doubleSpinBox"));
-        Z_STEP_doubleSpinBox->setGeometry(QRect(1065, 488, 225, 41));
-        Z_STEP_doubleSpinBox->setDecimals(3);
-        Z_STEP_doubleSpinBox->setMaximum(50);
-        Z_STEP_doubleSpinBox->setSingleStep(0.001);
-        Z_STEP_doubleSpinBox->setValue(1);
+        X_STEP_doubleSpinBox->setObjectName(QString::fromUtf8("X_STEP_doubleSpinBox"));
+        X_STEP_doubleSpinBox->setGeometry(QRect(1053, 465, 225, 41));
+        X_STEP_doubleSpinBox->setDecimals(3);
+        X_STEP_doubleSpinBox->setMaximum(50);
+        X_STEP_doubleSpinBox->setSingleStep(0.001);
+        X_STEP_doubleSpinBox->setValue(1);
 
-        line_14->setObjectName(QString::fromUtf8("line_14"));
-        line_14->setGeometry(QRect(848, 540, 450, 15));
-        line_14->setFrameShape(QFrame::HLine);
-        line_14->setFrameShadow(QFrame::Sunken);
+        XY_STEP_line->setObjectName(QString::fromUtf8("XY_STEP_line"));
+        XY_STEP_line->setGeometry(QRect(850, 507, 450, 15));
+        XY_STEP_line->setFrameShape(QFrame::HLine);
+        XY_STEP_line->setFrameShadow(QFrame::Sunken);
+
+        Y_STEP_label->setObjectName(QString::fromUtf8("Y_STEP_label"));
+        Y_STEP_label->setGeometry(QRect(865, 525, 180, 41));
+        Y_STEP_label->setFont(font);
+        Y_STEP_label->setText(QApplication::translate("MyWidget", "Step Y (mm)", 0));
+
+        Y_STEP_doubleSpinBox->setObjectName(QString::fromUtf8("Y_STEP_doubleSpinBox"));
+        Y_STEP_doubleSpinBox->setGeometry(QRect(1053, 525, 225, 41));
+        Y_STEP_doubleSpinBox->setDecimals(3);
+        Y_STEP_doubleSpinBox->setMaximum(50);
+        Y_STEP_doubleSpinBox->setSingleStep(0.001);
+        Y_STEP_doubleSpinBox->setValue(1);
+
+        X_POSITION_label->setObjectName(QString::fromUtf8("X_POSITION_label"));
+        X_POSITION_label->setGeometry(QRect(865, 585, 180, 41));
+        X_POSITION_label->setFont(font);
+        X_POSITION_label->setText(QApplication::translate("MyWidget", "X - position:", 0));
+
+        X_POSITION_lineEdit->setObjectName(QString::fromUtf8("X_POSITION_lineEdit"));
+        X_POSITION_lineEdit->setEnabled(false);
+        X_POSITION_lineEdit->setGeometry(QRect(1053, 585, 225, 41));
+
+        Y_POSITION_label->setObjectName(QString::fromUtf8("Y_POSITION_label"));
+        Y_POSITION_label->setGeometry(QRect(865, 630, 180, 41));
+        Y_POSITION_label->setFont(font);
+        Y_POSITION_label->setText(QApplication::translate("MyWidget", "Y - position:", 0));
+
+        Y_POSITION_lineEdit->setObjectName(QString::fromUtf8("Y_POSITION_lineEdit"));
+        Y_POSITION_lineEdit->setEnabled(false);
+        Y_POSITION_lineEdit->setGeometry(QRect(1053, 630, 225, 41));
 
         label_17_below_tab->setObjectName(QString::fromUtf8("label_17"));
-        label_17_below_tab->setGeometry(QRect(870, 563, 180, 41));
+        label_17_below_tab->setGeometry(QRect(865, 675, 180, 41));
         label_17_below_tab->setFont(font);
         label_17_below_tab->setText(QApplication::translate("MyWidget", "Z - position:", 0));
 
         lineEdit_below_tab->setObjectName(QString::fromUtf8("lineEdit"));
         lineEdit_below_tab->setEnabled(false);
-        lineEdit_below_tab->setGeometry(QRect(1065, 563, 225, 41));
-
-        label_18_below_tab->setObjectName(QString::fromUtf8("label_18"));
-        label_18_below_tab->setGeometry(QRect(870, 608, 390, 38));
-        QFont font7;
-        font7.setFamily(QString::fromUtf8("Cantarell"));
-        font7.setPointSize(12);
-        label_18_below_tab->setFont(font7);
-        label_18_below_tab->setText(QApplication::translate("MyWidget", "Z-axis linear stage absolute position", 0));
-
-
-
-
-///////////////////////// TABWIDGET X-Y WIDGET 2 ////////////////////
-
-        tabWidget2->setObjectName(QString::fromUtf8("tabWidget2"));
-        tabWidget2->setEnabled(true);
-        tabWidget2->setGeometry(QRect(1328, 15, 465, 375));
-//        tabWidget->setMaximumSize(QSize(1677732c5, 1677732c5));
-
-///////////////////////////////// WIDGET 2 TAB1 ASSIGN X & Y PORT
-
-        tab2_1->setObjectName(QString::fromUtf8("tab2_1"));
-        tab2_1->setEnabled(true);
-
-        label_tab_2_bX->setObjectName(QString::fromUtf8("label_10"));
-        label_tab_2_bX->setGeometry(QRect(173, 30, 255, 30));
-        label_tab_2_bX->setFont(font);
-        label_tab_2_bX->setText(QApplication::translate("MyWidget", "X Motor", 0));
-
-        spinBox_assignX->setObjectName(QString::fromUtf8("spinBox"));
-        spinBox_assignX->setGeometry(QRect(248, 90, 188, 41));
-        spinBox_assignX->setMaximum(3);
-
-        pushButton_assignX_port->setObjectName(QString::fromUtf8("pushButton_8"));
-        pushButton_assignX_port->setGeometry(QRect(30, 90, 180, 41));
-        pushButton_assignX_port->setText(QApplication::translate("MyWidget", "Assign port X", 0));
-
-        label_tab_2_bY->setObjectName(QString::fromUtf8("label_10"));
-        label_tab_2_bY->setGeometry(QRect(173, 180, 255, 30));
-        label_tab_2_bY->setFont(font);
-        label_tab_2_bY->setText(QApplication::translate("MyWidget", "Y Motor", 0));
-
-        spinBox_assignY->setObjectName(QString::fromUtf8("spinBox"));
-        spinBox_assignY->setGeometry(QRect(248, 240, 188, 41));
-        spinBox_assignY->setMaximum(3);
-        spinBox_assignY->setValue(1);
-
-        pushButton_assignY_port->setObjectName(QString::fromUtf8("pushButton_8"));
-        pushButton_assignY_port->setGeometry(QRect(30, 240, 180, 41));
-        pushButton_assignY_port->setText(QApplication::translate("MyWidget", "Assign port Y", 0));
-
-
-///////////////////////////////////////WIDGET 2 TAB 2///////////INIT////////////////////////////////
-
-        tab2_2->setObjectName(QString::fromUtf8("tab2_2"));
-        tab2_2->setEnabled(false);
-
-        label_tab_2_2->setObjectName(QString::fromUtf8("label_10"));
-        label_tab_2_2->setGeometry(QRect(128, 30, 255, 30));
-        label_tab_2_2->setFont(font);
-        label_tab_2_2->setText(QApplication::translate("MyWidget", "Motor initialisation", 0));
-
-        label_tab_2_2X->setObjectName(QString::fromUtf8("label_10"));
-        label_tab_2_2X->setGeometry(QRect(98, 75, 225, 30));
-        label_tab_2_2X->setFont(font);
-        label_tab_2_2X->setText(QApplication::translate("MyWidget", "X motor", 0));
-
-        label_tab_2_2Y->setObjectName(QString::fromUtf8("label_10"));
-        label_tab_2_2Y->setGeometry(QRect(278, 75, 255, 30));
-        label_tab_2_2Y->setFont(font);
-        label_tab_2_2Y->setText(QApplication::translate("MyWidget", "Y motor", 0));
-
-        comboBox_XMotor->setGeometry(QRect(30, 170, 250, 60));
-        comboBox_YMotor->setGeometry(QRect(340, 170, 250, 60));
-
-        pushButton_tab_2_2X->setObjectName(QString::fromUtf8("pushButton_8"));
-        pushButton_tab_2_2X->setGeometry(QRect(83, 113, 135, 41));
-        pushButton_tab_2_2X->setText(QApplication::translate("MyWidget", "Init X", 0));
-
-        pushButton_tab_2_2Y->setObjectName(QString::fromUtf8("pushButton_8"));
-        pushButton_tab_2_2Y->setGeometry(QRect(225, 113, 135, 41));
-        pushButton_tab_2_2Y->setText(QApplication::translate("MyWidget", "Init Y", 0));
-
-  //      pushButton_tab_2_2XY->setObjectName(QString::fromUtf8("pushButton_8"));
-   //     pushButton_tab_2_2XY->setGeometry(QRect(143, 180, 195, 41));
-     //   pushButton_tab_2_2XY->setText(QApplication::translate("MyWidget", "Init X+Y", 0));
-
-        pushButton_tab_2_2ABORT->setObjectName(QString::fromUtf8("pushButton_8"));
-        pushButton_tab_2_2ABORT->setGeometry(QRect(113, 255, 255, 41));
-        pushButton_tab_2_2ABORT->setText(QApplication::translate("MyWidget", "STOP", 0));
-
+        lineEdit_below_tab->setGeometry(QRect(1053, 675, 225, 41));
 
 ///////////////////////////////// WIDGET 2 TAB3 (MOVE XY)
 
@@ -1427,81 +1394,9 @@ void MainWindow::GUI_CREATOR()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        tabWidget2->addTab(tab2_1, QString());
-        tabWidget2->addTab(tab2_2, QString());
-        tabWidget2->addTab(tab2_3, QString());
-        tabWidget2->addTab(tab2_4, QString());
-        tabWidget2->setTabText(tabWidget2->indexOf(tab2_1), QApplication::translate("MyWidget", "TTY_XY", 0));
-        tabWidget2->setTabText(tabWidget2->indexOf(tab2_2), QApplication::translate("MyWidget", "Init", 0));
-        tabWidget2->setTabText(tabWidget2->indexOf(tab2_3), QApplication::translate("MyWidget", "Move_XY", 0));
-        tabWidget2->setTabText(tabWidget2->indexOf(tab2_4), QApplication::translate("MyWidget", "Scan", 0));
-        tabWidget2->setCurrentIndex(0);
+        centralWidget->setMinimumSize(QSize(1320, 780));
+        centralWidget->setMaximumSize(QSize(1320, 780));
 
-////////////////////////// AREA BELOW TABWIDGET2
-
-        XY_SPEED_label->setObjectName(QString::fromUtf8("XY_SPEED_label"));
-        XY_SPEED_label->setGeometry(QRect(1350, 405, 180, 41));
-        XY_SPEED_label->setFont(font);
-        XY_SPEED_label->setText(QApplication::translate("MyWidget", "XY_Speed (mm/s)", 0));
-
-        XY_SPEED_doubleSpinBox->setObjectName(QString::fromUtf8("XY_SPEED_doubleSpinBox"));
-        XY_SPEED_doubleSpinBox->setGeometry(QRect(1538, 405, 225, 41));
-        XY_SPEED_doubleSpinBox->setDecimals(3);
-        XY_SPEED_doubleSpinBox->setMaximum(50);
-        XY_SPEED_doubleSpinBox->setSingleStep(0.001);
-        XY_SPEED_doubleSpinBox->setValue(1);
-
-        XY_SPEED_line->setObjectName(QString::fromUtf8("XY_SPEED_line"));
-        XY_SPEED_line->setGeometry(QRect(1335, 446, 450, 15));
-        XY_SPEED_line->setFrameShape(QFrame::HLine);
-        XY_SPEED_line->setFrameShadow(QFrame::Sunken);
-
-        X_STEP_label->setObjectName(QString::fromUtf8("X_STEP_label"));
-        X_STEP_label->setGeometry(QRect(1350, 465, 180, 41));
-        X_STEP_label->setFont(font);
-        X_STEP_label->setText(QApplication::translate("MyWidget", "Step X (mm)", 0));
-
-        X_STEP_doubleSpinBox->setObjectName(QString::fromUtf8("X_STEP_doubleSpinBox"));
-        X_STEP_doubleSpinBox->setGeometry(QRect(1538, 465, 225, 41));
-        X_STEP_doubleSpinBox->setDecimals(3);
-        X_STEP_doubleSpinBox->setMaximum(50);
-        X_STEP_doubleSpinBox->setSingleStep(0.001);
-        X_STEP_doubleSpinBox->setValue(1);
-
-        XY_STEP_line->setObjectName(QString::fromUtf8("XY_STEP_line"));
-        XY_STEP_line->setGeometry(QRect(1335, 507, 450, 15));
-        XY_STEP_line->setFrameShape(QFrame::HLine);
-        XY_STEP_line->setFrameShadow(QFrame::Sunken);
-
-        Y_STEP_label->setObjectName(QString::fromUtf8("Y_STEP_label"));
-        Y_STEP_label->setGeometry(QRect(1350, 525, 180, 41));
-        Y_STEP_label->setFont(font);
-        Y_STEP_label->setText(QApplication::translate("MyWidget", "Step Y (mm)", 0));
-
-        Y_STEP_doubleSpinBox->setObjectName(QString::fromUtf8("Y_STEP_doubleSpinBox"));
-        Y_STEP_doubleSpinBox->setGeometry(QRect(1538, 525, 225, 41));
-        Y_STEP_doubleSpinBox->setDecimals(3);
-        Y_STEP_doubleSpinBox->setMaximum(50);
-        Y_STEP_doubleSpinBox->setSingleStep(0.001);
-        Y_STEP_doubleSpinBox->setValue(1);
-
-        X_POSITION_label->setObjectName(QString::fromUtf8("X_POSITION_label"));
-        X_POSITION_label->setGeometry(QRect(1350, 585, 180, 41));
-        X_POSITION_label->setFont(font);
-        X_POSITION_label->setText(QApplication::translate("MyWidget", "X - position:", 0));
-
-        X_POSITION_lineEdit->setObjectName(QString::fromUtf8("X_POSITION_lineEdit"));
-        X_POSITION_lineEdit->setEnabled(false);
-        X_POSITION_lineEdit->setGeometry(QRect(1538, 585, 225, 41));
-
-        Y_POSITION_label->setObjectName(QString::fromUtf8("Y_POSITION_label"));
-        Y_POSITION_label->setGeometry(QRect(1350, 630, 180, 41));
-        Y_POSITION_label->setFont(font);
-        Y_POSITION_label->setText(QApplication::translate("MyWidget", "Y - position:", 0));
-
-        Y_POSITION_lineEdit->setObjectName(QString::fromUtf8("Y_POSITION_lineEdit"));
-        Y_POSITION_lineEdit->setEnabled(false);
-        Y_POSITION_lineEdit->setGeometry(QRect(1538, 630, 225, 41));
 
         break;
 
@@ -1556,7 +1451,7 @@ void MainWindow::GUI_CREATOR()
         LASER_Button->setObjectName(QString::fromUtf8("pushButton_5"));
         LASER_Button->setGeometry(QRect(265, 470, 80, 28));
         LASER_Button->setText(QApplication::translate("MainWindow", "On/Off", 0));
-
+/*
         HELIUM_label->setObjectName(QString::fromUtf8("label_13"));
         HELIUM_label->setGeometry(QRect(390, 470, 60, 28));
         HELIUM_label->setFont(font);
@@ -1568,11 +1463,6 @@ void MainWindow::GUI_CREATOR()
 
         lcdNumber->setObjectName(QString::fromUtf8("lcdNumber"));
         lcdNumber->setGeometry(QRect(780, 468, 70, 32));
-        QFont font2;
-        font2.setFamily(QString::fromUtf8("Cantarell"));
-        font2.setPointSize(12);
-        font2.setBold(true);
-        font2.setWeight(75);
         lcdNumber->setFont(font2);
         lcdNumber->setLineWidth(2);
         lcdNumber->setMidLineWidth(0);
@@ -1583,7 +1473,7 @@ void MainWindow::GUI_CREATOR()
         horizontalSlider->setGeometry(QRect(660, 474, 110, 20));
         horizontalSlider->setMaximum(100);
         horizontalSlider->setOrientation(Qt::Horizontal);
-
+*/
 
 
 
@@ -1673,7 +1563,7 @@ void MainWindow::GUI_CREATOR()
 
 
 ////////////////////////////////////// GAS LABEL
-
+/*
         GAS_label->setObjectName(QString::fromUtf8("label_12"));
         GAS_label->setGeometry(QRect(560, 470, 90, 28));
         QFont font1;
@@ -1684,7 +1574,7 @@ void MainWindow::GUI_CREATOR()
         GAS_label->setFont(font1);
         GAS_label->setText(QApplication::translate("MainWindow", "Flux (0-100)%", 0));
 
-
+*/
 
 ////////////////////////////// XRAY TABLE BUTTON /////////////////////////////////
 
@@ -1718,9 +1608,9 @@ void MainWindow::GUI_CREATOR()
         tab->setEnabled(true);
 
 
-        TTY_Z_label->setObjectName(QString::fromUtf8("label_22"));
-        TTY_Z_label->setGeometry(QRect(10, 30, 125, 27));
-        TTY_Z_label->setText(QApplication::translate("MyWidget", "/dev/ttyUSB", 0));
+        //TTY_Z_label->setObjectName(QString::fromUtf8("label_22"));
+        //TTY_Z_label->setGeometry(QRect(10, 30, 125, 27));
+        //TTY_Z_label->setText(QApplication::translate("MyWidget", "/dev/ttyUSB", 0));
 
         spinBox_assignZ->setObjectName(QString::fromUtf8("spinBox"));
         spinBox_assignZ->setGeometry(QRect(165, 30, 125, 27));
@@ -1731,19 +1621,19 @@ void MainWindow::GUI_CREATOR()
         AssignZ_pushButton->setGeometry(QRect(10, 80, 125, 32));
         AssignZ_pushButton->setText(QApplication::translate("MyWidget", "Assign port Z", 0));
 
-        linedit_Z_Assignement->setObjectName(QString::fromUtf8("lineEdit_4"));
-        linedit_Z_Assignement->setEnabled(false);
-        linedit_Z_Assignement->setGeometry(QRect(165, 80, 125, 32));
+        //linedit_Z_Assignement->setObjectName(QString::fromUtf8("lineEdit_4"));
+        //linedit_Z_Assignement->setEnabled(false);
+        //linedit_Z_Assignement->setGeometry(QRect(165, 80, 125, 32));
 
-        line_6_tab->setObjectName(QString::fromUtf8("line_6"));
-        line_6_tab->setGeometry(QRect(5, 120, 300, 10));
-        line_6_tab->setFrameShape(QFrame::HLine);
-        line_6_tab->setFrameShadow(QFrame::Sunken);
+        //line_6_tab->setObjectName(QString::fromUtf8("line_6"));
+        //line_6_tab->setGeometry(QRect(5, 120, 300, 10));
+        //line_6_tab->setFrameShape(QFrame::HLine);
+        //line_6_tab->setFrameShadow(QFrame::Sunken);
 
-        label_6_tab->setObjectName(QString::fromUtf8("label_6"));
-        label_6_tab->setGeometry(QRect(135, 135, 67, 22));
-        label_6_tab->setFont(font);
-        label_6_tab->setText(QApplication::translate("MyWidget", "Z Init", 0));
+        //label_6_tab->setObjectName(QString::fromUtf8("label_6"));
+        //label_6_tab->setGeometry(QRect(135, 135, 67, 22));
+        //label_6_tab->setFont(font);
+        //label_6_tab->setText(QApplication::translate("MyWidget", "Z Init", 0));
 
         INIT_Z_pushButton->setObjectName(QString::fromUtf8("INIT_Z_pushButton"));
         INIT_Z_pushButton->setGeometry(QRect(10, 165, 125, 32));
@@ -1798,11 +1688,11 @@ void MainWindow::GUI_CREATOR()
 ///////////////////////////////// WIDGET 1 TAB3
 
         tab_3->setObjectName(QString::fromUtf8("tab_3"));
-        tab_3->setEnabled(true);
+        tab_3->setEnabled(false);
 
-        ACM_label->setObjectName(QString::fromUtf8("label_22"));
-        ACM_label->setGeometry(QRect(10, 30, 125, 27));
-        ACM_label->setText(QApplication::translate("MyWidget", "/dev/ttyACM", 0));
+        //ACM_label->setObjectName(QString::fromUtf8("label_22"));
+        //ACM_label->setGeometry(QRect(10, 30, 125, 27));
+        //ACM_label->setText(QApplication::translate("MyWidget", "/dev/ttyACM", 0));
 
         spinBox_assignACM->setObjectName(QString::fromUtf8("spinBox"));
         spinBox_assignACM->setGeometry(QRect(165, 30, 125, 27));
@@ -1819,18 +1709,18 @@ void MainWindow::GUI_CREATOR()
 
 ///////////////////////////////// WIDGET 1 TAB4
 
-        tab_4->setObjectName(QString::fromUtf8("tab_4"));
-        tab_4->setEnabled(false);
+        //tab_4->setObjectName(QString::fromUtf8("tab_4"));
+        //tab_4->setEnabled(false);
 
         AUTOFOCUS_ON_pushButton->setObjectName(QString::fromUtf8("AUTOFOCUS_ON_pushButton"));
         AUTOFOCUS_ON_pushButton->setGeometry(QRect(50, 30, 200, 30));
         AUTOFOCUS_ON_pushButton->setText(QApplication::translate("MyWidget", "Autofocus ON (ttyACM)", 0));
 
-        AUTOFOCUS_STATUS_checkBox->setObjectName(QString::fromUtf8("checkBox_3"));
-        AUTOFOCUS_STATUS_checkBox->setEnabled(false);
-        AUTOFOCUS_STATUS_checkBox->setGeometry(QRect(75, 70, 150, 25));
-        AUTOFOCUS_STATUS_checkBox->setCheckable(true);
-        AUTOFOCUS_STATUS_checkBox->setText(QApplication::translate("MyWidget", "Autofocus status", 0));
+        //AUTOFOCUS_STATUS_checkBox->setObjectName(QString::fromUtf8("checkBox_3"));
+        //AUTOFOCUS_STATUS_checkBox->setEnabled(false);
+        //AUTOFOCUS_STATUS_checkBox->setGeometry(QRect(75, 70, 150, 25));
+        //AUTOFOCUS_STATUS_checkBox->setCheckable(true);
+        //AUTOFOCUS_STATUS_checkBox->setText(QApplication::translate("MyWidget", "Autofocus status", 0));
 
         label_23_tab_4->setObjectName(QString::fromUtf8("label_23"));
         label_23_tab_4->setGeometry(QRect(50, 120, 210, 25));
@@ -1847,49 +1737,49 @@ void MainWindow::GUI_CREATOR()
 
         tabWidget->addTab(tab_2, QString());
         tabWidget->addTab(tab_3, QString());
-        tabWidget->addTab(tab_4, QString());
+        //tabWidget->addTab(tab_4, QString());
         tabWidget->setTabText(tabWidget->indexOf(tab), QApplication::translate("MyWidget", "TTY_Z", 0));
         tabWidget->setTabText(tabWidget->indexOf(tab_2), QApplication::translate("MyWidget", "Move_Z", 0));
         tabWidget->setTabText(tabWidget->indexOf(tab_3), QApplication::translate("MyWidget", "ACM", 0));
-        tabWidget->setTabText(tabWidget->indexOf(tab_4), QApplication::translate("MyWidget", "Autofocus", 0));
+        //tabWidget->setTabText(tabWidget->indexOf(tab_4), QApplication::translate("MyWidget", "Autofocus", 0));
         tabWidget->setCurrentIndex(0);
 
 
 //////////////////////// zone below WIDGET 1 //// X da 640 
 
-        label_7_below_tab->setObjectName(QString::fromUtf8("label_7"));
-        label_7_below_tab->setGeometry(QRect(580, 270, 120, 27));
-        label_7_below_tab->setFont(font);
-        label_7_below_tab->setText(QApplication::translate("MyWidget", "Z_Speed (mm/s)", 0));
+        //label_7_below_tab->setObjectName(QString::fromUtf8("label_7"));
+        //label_7_below_tab->setGeometry(QRect(580, 270, 120, 27));
+        //label_7_below_tab->setFont(font);
+        //label_7_below_tab->setText(QApplication::translate("MyWidget", "Z_Speed (mm/s)", 0));
 
-        Z_VELOCITY_doubleSpinBox->setObjectName(QString::fromUtf8("Z_VELOCITY_doubleSpinBox"));
-        Z_VELOCITY_doubleSpinBox->setGeometry(QRect(710, 270, 150, 27));
-        Z_VELOCITY_doubleSpinBox->setDecimals(3);
-        Z_VELOCITY_doubleSpinBox->setMaximum(50);
-        Z_VELOCITY_doubleSpinBox->setSingleStep(0.001);
-        Z_VELOCITY_doubleSpinBox->setValue(10);
+        //Z_VELOCITY_doubleSpinBox->setObjectName(QString::fromUtf8("Z_VELOCITY_doubleSpinBox"));
+        //Z_VELOCITY_doubleSpinBox->setGeometry(QRect(710, 270, 150, 27));
+        //Z_VELOCITY_doubleSpinBox->setDecimals(3);
+        //Z_VELOCITY_doubleSpinBox->setMaximum(50);
+        //Z_VELOCITY_doubleSpinBox->setSingleStep(0.001);
+        //Z_VELOCITY_doubleSpinBox->setValue(10);
 
-        line_11->setObjectName(QString::fromUtf8("line_11"));
-        line_11->setGeometry(QRect(565, 305, 300, 10));
-        line_11->setFrameShape(QFrame::HLine);
-        line_11->setFrameShadow(QFrame::Sunken);
+        //line_11->setObjectName(QString::fromUtf8("line_11"));
+        //line_11->setGeometry(QRect(565, 305, 300, 10));
+        //line_11->setFrameShape(QFrame::HLine);
+        //line_11->setFrameShadow(QFrame::Sunken);
 
-        label_8_below_tab->setObjectName(QString::fromUtf8("label_8"));
-        label_8_below_tab->setGeometry(QRect(580, 325, 120, 27));
-        label_8_below_tab->setFont(font);
-        label_8_below_tab->setText(QApplication::translate("MyWidget", "Step Z (mm)", 0));
+        //label_8_below_tab->setObjectName(QString::fromUtf8("label_8"));
+        //label_8_below_tab->setGeometry(QRect(580, 325, 120, 27));
+        //label_8_below_tab->setFont(font);
+        //label_8_below_tab->setText(QApplication::translate("MyWidget", "Step Z (mm)", 0));
 
-        Z_STEP_doubleSpinBox->setObjectName(QString::fromUtf8("Z_STEP_doubleSpinBox"));
-        Z_STEP_doubleSpinBox->setGeometry(QRect(710, 325, 150, 27));
-        Z_STEP_doubleSpinBox->setDecimals(3);
-        Z_STEP_doubleSpinBox->setMaximum(50);
-        Z_STEP_doubleSpinBox->setSingleStep(0.001);
-        Z_STEP_doubleSpinBox->setValue(1);
+        //Z_STEP_doubleSpinBox->setObjectName(QString::fromUtf8("Z_STEP_doubleSpinBox"));
+        //Z_STEP_doubleSpinBox->setGeometry(QRect(710, 325, 150, 27));
+        //Z_STEP_doubleSpinBox->setDecimals(3);
+        //Z_STEP_doubleSpinBox->setMaximum(50);
+        //Z_STEP_doubleSpinBox->setSingleStep(0.001);
+        //Z_STEP_doubleSpinBox->setValue(1);
 
-        line_14->setObjectName(QString::fromUtf8("line_14"));
-        line_14->setGeometry(QRect(565, 360, 300, 10));
-        line_14->setFrameShape(QFrame::HLine);
-        line_14->setFrameShadow(QFrame::Sunken);
+        //line_14->setObjectName(QString::fromUtf8("line_14"));
+        //line_14->setGeometry(QRect(565, 360, 300, 10));
+        //line_14->setFrameShape(QFrame::HLine);
+        //line_14->setFrameShadow(QFrame::Sunken);
 
         label_17_below_tab->setObjectName(QString::fromUtf8("label_17"));
         label_17_below_tab->setGeometry(QRect(580, 375, 120, 27));
@@ -1900,33 +1790,31 @@ void MainWindow::GUI_CREATOR()
         lineEdit_below_tab->setEnabled(false);
         lineEdit_below_tab->setGeometry(QRect(710, 375, 150, 27));
 
-        label_18_below_tab->setObjectName(QString::fromUtf8("label_18"));
-        label_18_below_tab->setGeometry(QRect(580, 405, 260, 25));
-        QFont font7;
-        font7.setFamily(QString::fromUtf8("Cantarell"));
-        font7.setPointSize(12);
-        label_18_below_tab->setFont(font7);
-        label_18_below_tab->setText(QApplication::translate("MyWidget", "Z-axis linear stage absolute position", 0));
+        //label_18_below_tab->setObjectName(QString::fromUtf8("label_18"));
+        //label_18_below_tab->setGeometry(QRect(580, 405, 260, 25));
+
+        //label_18_below_tab->setFont(font7);
+        //label_18_below_tab->setText(QApplication::translate("MyWidget", "Z-axis linear stage absolute position", 0));
 
 
 
 
 ///////////////////////// TABWIDGET X-Y WIDGET 2 ////////////////////
 
-        tabWidget2->setObjectName(QString::fromUtf8("tabWidget2"));
-        tabWidget2->setEnabled(true);
-        tabWidget2->setGeometry(QRect(885, 10, 310, 250));
+        //tabWidget2->setObjectName(QString::fromUtf8("tabWidget2"));
+        //tabWidget2->setEnabled(true);
+        //tabWidget2->setGeometry(QRect(885, 10, 310, 250));
 //        tabWidget->setMaximumSize(QSize(16777215, 16777215));
 
 ///////////////////////////////// WIDGET 2 TAB1 ASSIGN X & Y PORT
 
-        tab2_1->setObjectName(QString::fromUtf8("tab2_1"));
-        tab2_1->setEnabled(true);
+        //tab2_1->setObjectName(QString::fromUtf8("tab2_1"));
+        //tab2_1->setEnabled(true);
 
-        label_tab_2_bX->setObjectName(QString::fromUtf8("label_10"));
-        label_tab_2_bX->setGeometry(QRect(115, 20, 170, 20));
-        label_tab_2_bX->setFont(font);
-        label_tab_2_bX->setText(QApplication::translate("MyWidget", "X Motor", 0));
+        //label_tab_2_bX->setObjectName(QString::fromUtf8("label_10"));
+        //label_tab_2_bX->setGeometry(QRect(115, 20, 170, 20));
+        //label_tab_2_bX->setFont(font);
+        //label_tab_2_bX->setText(QApplication::translate("MyWidget", "X Motor", 0));
 
         spinBox_assignX->setObjectName(QString::fromUtf8("spinBox"));
         spinBox_assignX->setGeometry(QRect(165, 60, 125, 27));
@@ -1936,10 +1824,10 @@ void MainWindow::GUI_CREATOR()
         pushButton_assignX_port->setGeometry(QRect(20, 60, 120, 27));
         pushButton_assignX_port->setText(QApplication::translate("MyWidget", "Assign port X", 0));
 
-        label_tab_2_bY->setObjectName(QString::fromUtf8("label_10"));
-        label_tab_2_bY->setGeometry(QRect(115, 120, 170, 20));
-        label_tab_2_bY->setFont(font);
-        label_tab_2_bY->setText(QApplication::translate("MyWidget", "Y Motor", 0));
+        //label_tab_2_bY->setObjectName(QString::fromUtf8("label_10"));
+        //label_tab_2_bY->setGeometry(QRect(115, 120, 170, 20));
+        //label_tab_2_bY->setFont(font);
+        //label_tab_2_bY->setText(QApplication::translate("MyWidget", "Y Motor", 0));
 
         spinBox_assignY->setObjectName(QString::fromUtf8("spinBox"));
         spinBox_assignY->setGeometry(QRect(165, 160, 125, 27));
@@ -1952,26 +1840,26 @@ void MainWindow::GUI_CREATOR()
 
 ///////////////////////////////////////WIDGET 2 TAB 2///////////INIT////////////////////////////////
 
-        tab2_2->setObjectName(QString::fromUtf8("tab2_2"));
-        tab2_2->setEnabled(false);
+        //tab2_2->setObjectName(QString::fromUtf8("tab2_2"));
+        //tab2_2->setEnabled(false);
 
-        label_tab_2_2->setObjectName(QString::fromUtf8("label_10"));
-        label_tab_2_2->setGeometry(QRect(85, 20, 170, 20));
-        label_tab_2_2->setFont(font);
-        label_tab_2_2->setText(QApplication::translate("MyWidget", "Motor initialisation", 0));
+        //label_tab_2_2->setObjectName(QString::fromUtf8("label_10"));
+        //label_tab_2_2->setGeometry(QRect(85, 20, 170, 20));
+        //label_tab_2_2->setFont(font);
+        //label_tab_2_2->setText(QApplication::translate("MyWidget", "Motor initialisation", 0));
 
-        label_tab_2_2X->setObjectName(QString::fromUtf8("label_10"));
-        label_tab_2_2X->setGeometry(QRect(65, 50, 170, 20));
-        label_tab_2_2X->setFont(font);
-        label_tab_2_2X->setText(QApplication::translate("MyWidget", "X motor", 0));
+        //label_tab_2_2X->setObjectName(QString::fromUtf8("label_10"));
+        //label_tab_2_2X->setGeometry(QRect(65, 50, 170, 20));
+        //label_tab_2_2X->setFont(font);
+        //label_tab_2_2X->setText(QApplication::translate("MyWidget", "X motor", 0));
 
-        label_tab_2_2Y->setObjectName(QString::fromUtf8("label_10"));
-        label_tab_2_2Y->setGeometry(QRect(185, 50, 170, 20));
-        label_tab_2_2Y->setFont(font);
-        label_tab_2_2Y->setText(QApplication::translate("MyWidget", "Y motor", 0));
+        //label_tab_2_2Y->setObjectName(QString::fromUtf8("label_10"));
+        //label_tab_2_2Y->setGeometry(QRect(185, 50, 170, 20));
+        //label_tab_2_2Y->setFont(font);
+        //label_tab_2_2Y->setText(QApplication::translate("MyWidget", "Y motor", 0));
 
-        comboBox_XMotor->setGeometry(QRect(10, 120, 140, 30));
-        comboBox_YMotor->setGeometry(QRect(160, 120, 140, 30));
+        //comboBox_XMotor->setGeometry(QRect(10, 120, 140, 30));
+        //comboBox_YMotor->setGeometry(QRect(160, 120, 140, 30));
 
         pushButton_tab_2_2X->setObjectName(QString::fromUtf8("pushButton_8"));
         pushButton_tab_2_2X->setGeometry(QRect(55, 75, 90, 27));
@@ -2102,15 +1990,15 @@ void MainWindow::GUI_CREATOR()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        tabWidget2->addTab(tab2_1, QString());
-        tabWidget2->addTab(tab2_2, QString());
-        tabWidget2->addTab(tab2_3, QString());
-        tabWidget2->addTab(tab2_4, QString());
-        tabWidget2->setTabText(tabWidget2->indexOf(tab2_1), QApplication::translate("MyWidget", "TTY_XY", 0));
-        tabWidget2->setTabText(tabWidget2->indexOf(tab2_2), QApplication::translate("MyWidget", "Init", 0));
-        tabWidget2->setTabText(tabWidget2->indexOf(tab2_3), QApplication::translate("MyWidget", "Move_XY", 0));
-        tabWidget2->setTabText(tabWidget2->indexOf(tab2_4), QApplication::translate("MyWidget", "Scan", 0));
-        tabWidget2->setCurrentIndex(0);
+        //tabWidget2->addTab(tab2_1, QString());
+        //tabWidget2->addTab(tab2_2, QString());
+        //tabWidget2->addTab(tab2_3, QString());
+        //tabWidget2->addTab(tab2_4, QString());
+        //tabWidget2->setTabText(tabWidget2->indexOf(tab2_1), QApplication::translate("MyWidget", "TTY_XY", 0));
+        //tabWidget2->setTabText(tabWidget2->indexOf(tab2_2), QApplication::translate("MyWidget", "Init", 0));
+        //tabWidget2->setTabText(tabWidget2->indexOf(tab2_3), QApplication::translate("MyWidget", "Move_XY", 0));
+        //tabWidget2->setTabText(tabWidget2->indexOf(tab2_4), QApplication::translate("MyWidget", "Scan", 0));
+        //tabWidget2->setCurrentIndex(0);
 
 ////////////////////////// AREA BELOW TABWIDGET2
 
@@ -2194,7 +2082,7 @@ void MainWindow::GUI_CREATOR()
         connect(Digitizer_Button, SIGNAL(clicked()), this, SLOT(Digitiser2()));
         connect(Detector_Button, SIGNAL(clicked()), this, SLOT(Detector()));
         connect(LASER_Button, SIGNAL(clicked()), this, SLOT(Laser_interface()));
-        connect(HELIUM_Button, SIGNAL(clicked()), this, SLOT(Helium_interface()));
+        //connect(HELIUM_Button, SIGNAL(clicked()), this, SLOT(Helium_interface()));
         connect(VLC_Button, SIGNAL(clicked()), this, SLOT(VLC_interface()));
 
         connect(Export_Button, SIGNAL(clicked()), this, SLOT(Image_Export()));
@@ -2203,8 +2091,8 @@ void MainWindow::GUI_CREATOR()
 
 /////////////////////////////// OBJECTs CONNECTION //////////////////////////////////
 
-        QObject::connect(horizontalSlider, SIGNAL(valueChanged(int)), lcdNumber, SLOT(display(int)));
-        QObject::connect(AUTOFOCUS_ON_pushButton, SIGNAL(released()), AUTOFOCUS_STATUS_checkBox, SLOT(toggle()));
+        //QObject::connect(horizontalSlider, SIGNAL(valueChanged(int)), lcdNumber, SLOT(display(int)));
+        //QObject::connect(AUTOFOCUS_ON_pushButton, SIGNAL(released()), AUTOFOCUS_STATUS_checkBox, SLOT(toggle()));
 
 
 /////////////////////////////// USB CONNECTION //////////////////////////////////
@@ -2213,9 +2101,9 @@ void MainWindow::GUI_CREATOR()
 
 /////////////////////////////// USB COMBO_BOX //////////////////////////////////
 
-     connect(comboBox_XMotor, SIGNAL(activated(int)), this, SLOT(X_Motor_selection(int)));
-     connect(comboBox_YMotor, SIGNAL(activated(int)), this, SLOT(Y_Motor_selection(int)));
-     connect(comboBox_ZMotor, SIGNAL(activated(int)), this, SLOT(Z_Motor_selection(int)));
+     //connect(comboBox_XMotor, SIGNAL(activated(int)), this, SLOT(X_Motor_selection(int)));
+     //connect(comboBox_YMotor, SIGNAL(activated(int)), this, SLOT(Y_Motor_selection(int)));
+     //connect(comboBox_ZMotor, SIGNAL(activated(int)), this, SLOT(Z_Motor_selection(int)));
 }
 
 

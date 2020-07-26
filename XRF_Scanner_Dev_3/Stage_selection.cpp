@@ -13,6 +13,7 @@ extern int motor_selectedX;
 extern int motor_selectedY;
 extern int motor_selectedZ;
 
+/*
 void MainWindow::X_Motor_selection(int Xmotortype)
 {
       switch (Xmotortype)
@@ -55,4 +56,4 @@ void MainWindow::Z_Motor_selection(int Zmotortype)
        }
 }
 
-
+*/

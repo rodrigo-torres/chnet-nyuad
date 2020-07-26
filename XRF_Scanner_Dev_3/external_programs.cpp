@@ -27,6 +27,7 @@ if(*(shared_memory_cmd+70)==0) //INSERTED
        system("./ADCXRF_Optical_Link &");
        *(shared_memory2+9)=1;//tells ADCXRF that it should run on point acquisition mode
        *(shared_memory_cmd+70)=1; //INSERTED
+	printf("measuring_time:%d\n", measuring_time);
        QTimer::singleShot(measuring_time*1000, this, SLOT(Stop_Vme()));     ///////////misura con una durata definita
       }
  else qDebug()<<"Acquisizione già partita!!\n";
@@ -41,13 +42,7 @@ if(*(shared_memory_cmd+70)==1)
 	*(shared_memory2+9)=0;
        //sprintf(process_daq, "kill -s TERM %i &", pidVme);
        //system(process_daq);
-      
-
-       ////Salva in automatico Spettro.txt///
-       for(int c=0;c<=16384;c++)
-           {      
-            *(shared_memory+100+c)=0;                              //Azzero le celle di memoria in cui viene scritto lo spettro
-            }
+     
 
        QString percorso = QFileDialog::getSaveFileName(this,tr("Save as"), QDir::currentPath());
        int eventi=*(shared_memory2+5);
@@ -60,7 +55,7 @@ if(*(shared_memory_cmd+70)==1)
        file2.open(QIODevice::ReadWrite);
        QTextStream out2(&file2);
 
-       for(int u=0;u<eventi;u++)
+     /*  for(int u=0;u<eventi;u++)
           {
 	    if (*(shared_memory2+11+u)<16384)
 	      {
@@ -68,17 +63,20 @@ if(*(shared_memory_cmd+70)==1)
                *(shared_memory+100+h)= *(shared_memory+100+h)+1;
                //qDebug()<<"evento numero="<<u<<"energia="<<h<<"\n";
                }
-	   }
+	   }*/
+
+		
               for(int i=1;i<=16384;i++)
               {      
-               out2<<*(shared_memory+100+i)<<'\n';
+               out2<<*(shared_memory+100+i)<<"	"<<*(shared_memory+20000+i)<<'\n';
               //if (*(shared_memory+100+i)!=0) {qDebug()<<"canale"<<i<<"conteggio"<<*(shared_memory+100+i)<<"\n";}
               *(shared_memory+100+i)=0;
+		 *(shared_memory+20000+i)=0;
               }
 
        file2.close();
        qDebug()<<"Spettro.txt pronto!\n"; 
-      } 
+	}
 
  else qDebug()<<"Vme gia' spento!!\n";
 
@@ -112,10 +110,10 @@ void MainWindow::XrayTable()
 {  
   if(*(shared_memory_cmd+74)==0)
       {
-     system("./XrayTable & ");
+     system("./XRayTable & ");
      *(shared_memory_cmd+74)=1;
       }
-  else qDebug()<<"XrayTable already started...!!!\n";
+  else qDebug()<<"[!] X-Ray table window already opened";
 }
 //////////////////////////////////////////////////////////////////// HELIUM INTERFACE
 void MainWindow::Helium_interface()                                  
