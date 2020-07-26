@@ -437,8 +437,6 @@ CurrentActionACM->setText(commentoACM);
 AUTOFOCUS_ON_pushButton->setEnabled(true);
 } 
 
-readKeyence();
-qDebug()<<"Function readKeyence() exited succesfully";
 }
 }
 

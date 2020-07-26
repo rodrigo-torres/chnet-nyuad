@@ -40,10 +40,6 @@ int *shared_memory_rate;
 int DAQ_TYPE=1;
 bool NewFileLoaded=false;
 ///////////////////////////////// VARIABLES MOTORS 
-// port:      TTY_motors.cpp, mainwindow.cpp, SHM_creator.cpp
-// Ini:       TTY_motors.cpp, mainwindow.cpp, move_motors.cpp, SHM_creator.cpp
-// IniReady:  TTY_motors.cpp, mainwindow.cpp, move_motors.cpp, SHM_creator.cpp
-// Serial:    TT_motors.cpp, mainwindow.cpp, XY_Z_Init.cpp (serialK not into the last)
 
 int portX=0, IniX=0, IniXready=0, serialX;
 int portY=1, IniY=0, IniYready=0, serialY;
@@ -53,16 +49,7 @@ int portACM, serialK;
 int SerialiStatus=0;
 
 //////////////////////////////// VARIABLES SCANNER & MAPS
-// Pixel(X,Y);mainwindow.cpp, mainwindow_showMap.cpp, mainwindow_DefinePixels.cpp, mainwindow_mouse.cpp, mainwindow_online.cpp 
-// Passo(X,Y):mainwindow.cpp, mainwindow_showMap.cpp, mainwindow_DefinePixels.cpp, mainwindow_load_SHM.cpp, Connection_Creator.cpp 
-// P(X,Y):    
-// Integral;
-// (X,Y)map:
-// (X[],Y[]):    
-// Xminvero:  mainwindow.cpp, mainwindow_showMap.cpp, mainwindow_DefinePixels.cpp, mainwindow_mouse.cpp 
-// MaxX_ori:  mainwindow.cpp, mainwindow_showMap.cpp, mainwindow_DefinePixels.cpp 
 
-//int Resolution_mode;
 
 int PixelX=395; int PixelY=395; int pixel_Xstep=1000, pixel_Ystep=1000, PassoZ=1000; double Px=1000; double Py=1000;
 
@@ -94,13 +81,6 @@ double numpixelforaccel;
 double posXforacceleration;
 double accelerationtime;
 int accelerationtimesleep;
-
-///////////////Variables for the composed map visualization (sum of three different elements)///////////
-
-//int ChMin1=0, ChMax1=0, ChMin2=0, ChMax2=0, ChMin3=0, ChMax3=0;
-//int ChMinBa, ChMaxBa, ChMinCa, ChMaxCa, ChMinK, ChMaxK, ChMinCo, ChMaxCo, ChMinAg, ChMaxAg, ChMinCr, ChMaxCr, ChMinCu, ChMaxCu, ChMinPbL, ChMaxPbL, ChMinAu, ChMaxAu, ChMinHg, ChMaxHg, ChMinSi, ChMaxSi, ChMinTi, ChMaxTi, ChMinSn, ChMaxSn, ChMinFe, ChMaxFe, ChMinZn, ChMaxZn, ChMinPbM, ChMaxPbM;
-
-////Variables for the multidetector expansion////
 
 
 

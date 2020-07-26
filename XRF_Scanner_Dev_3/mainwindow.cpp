@@ -20,9 +20,7 @@
 // - MAIN COMMAND CYCLE:
 //                  timerEvent();
 // - MOTORS: COMMAND and ANSWERS HANDSHAKE
-//                  int invia_comando_X(int chan,const char *comando, const char *parametri);
-//                  int invia_comando_Y(int chan,const char *comando, const char *parametri);
-//                  int invia_comando_Z(int chan,const char *comando, const char *parametri);
+//                  int send_command(int chan,const char *comando, const char *parametri, int port);
 //                  char *read_Xanswer(), char *read_Yanswer(), char *read_Zanswer();
 //                  string read_Xanswer2(), string read_Yanswer2(), string read_Zanswer2();
 // - MOTORS: CHECK_ON_TARGET
@@ -95,7 +93,7 @@ int casenumber=4;            int interval=100;        int NscanX=0;             
 int eventionline=0;          int m=1;
 
 double positionX=100;        double valueY;           double ZPosition=25.0;    double tempoPos=1000;     double V=1;
-double positionY=100;        double valueX;           double ChMin=3;           double ChMax=16384;       double Vz=1;
+double positionY=100;        double valueX;           double ChMin=0;           double ChMax=16384;       double Vz=1;
 double tempoPosZ=1000;       double valueZ;           double positionZ;         double Pz=250;            double x_image;
 double y_image;              double x_image2;         double y_image2; 
 
@@ -153,7 +151,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     }
 
      SHM_CREATOR();                 /// CREATING SHARED MEMORY SEGMENT
-     qDebug()<<"... Succesfully attached all memory segments";
      createActions();
      builder_Menu();            	    /// CREATING MENU from Menu.cpp
      GUI_CREATOR();
@@ -215,7 +212,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
 
     timerAutofocus =new QTimer(this);                                        // TIMER for RECORDING Z DISTANCE FROM TARGET
-    connect(timerAutofocus, SIGNAL(timeout()), this, SLOT(Focustimer()));
+    connect(timerAutofocus, SIGNAL(timeout()), this, SLOT(readKeyence()));
 
     ///Red channel intervals///
     char element[3];
@@ -240,7 +237,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     fclose(filech);
 
     readmultidetcalpar();
-    printf("%d %d %d\n",*(shared_memory_cmd+101), *(shared_memory_cmd+102), *(shared_memory_cmd+103));
+    //printf("%d %d %d\n",*(shared_memory_cmd+101), *(shared_memory_cmd+102), *(shared_memory_cmd+103));
 }
 
 
@@ -274,22 +271,25 @@ fclose(filecalpar);
 
 }
 
-void MainWindow::readmultidetcalpar() //reads the file with the calibration parameters for the multidetector in sum mode
-{
-int calpar1=0;
-int calpar2=0;
-int scalefactor=1;
+void MainWindow::readmultidetcalpar() {
+    int calpar1=0;
+    int calpar2=0;
+    int scalefactor=1;
 
-FILE *filecalpar; //name of the file where the channel intervals are specified
-filecalpar = fopen ("../multidetector_calibrationparameters.txt", "r");
-fscanf(filecalpar, "%d", &calpar1);
-fscanf(filecalpar, "%d",&calpar2);
-fscanf(filecalpar, "%d",&scalefactor);
-fclose(filecalpar);
+    FILE *filecalpar;
+    filecalpar = fopen ("../multidetector_calibrationparameters.txt", "r");
+    fscanf(filecalpar, "%d",&calpar1);
+    fscanf(filecalpar, "%d",&calpar2);
+    fscanf(filecalpar, "%d",&scalefactor);
+    fclose(filecalpar);
 
-*(shared_memory_cmd+101)=calpar1;
-*(shared_memory_cmd+102)=calpar2;
-*(shared_memory_cmd+103)=scalefactor;
+    *(shared_memory_cmd+101)=calpar1;
+    *(shared_memory_cmd+102)=calpar2;
+    *(shared_memory_cmd+103)=scalefactor;
+
+    if ( ( calpar1 != 0 || calpar2 != 0 ) && scalefactor !=0 ) {
+        qDebug()<<"... Multidetector parameters found";
+    }
 
 }
 
@@ -382,24 +382,6 @@ string read_answer(int port)                                                    
 }
 
 
-/*
-string read_Xanswer2()                                                     // X MOTOR: READ ANSWER STRING
-{
-  char c[100];
-  int n=0;
-  string rest;
-  string Xread;
-  while((n=read(serialX, &c, sizeof(c)))>0)      
-    {
-      c[n]=0;
-      rest=rest+c;      
-      if(c[n-1]=='\n')
-	break;        
-    }
-  Xread =rest;
-  return Xread;  
-}
-*/
 
 string read_Yanswer2()                                                     // Y MOTOR: READ ANSWER STRING
 {
@@ -572,24 +554,11 @@ void MainWindow::Velocity(double number)                       // MOTOR SETTINGS
    send_command(1,"VEL",v,serialY);
   }
 
-/* Function VelocityZ has been deprecated, as the Z motor velocity is entirely controlled by
-   the initialization function, and by the laser feedback loop.
-void MainWindow::VelocityZ(double numberZ)                       // MOTOR SETTINGS Z VELOCITY
-  {
-   char vz[10];
-   sprintf(vz,"%f",numberZ);
-   send_command(1,"VEL",vz,serialZ);
-}
-*/
-
-
 void MainWindow::PassoX_Func(double number1)                     // MOTOR SETTINGS STEP
   {Px=number1*1000; *(shared_memory_cmd+60)=Px; pixel_Xstep=number1;} 
 void MainWindow::PassoY_Func(double number5)
   {Py=number5*1000; *(shared_memory_cmd+61)=Py; pixel_Ystep=number5;} 
-/*void MainWindow::PassoZ_Func(double number1)
-  {Pz=number1*1000; *(shared_memory_cmd+62)=Pz;}
-*/
+
 
 void MainWindow::Xminimo(double number2)                         // MOTOR SETTINGS MINIMUM POSITION
   {Xmin1=number2*1000;  positionX=Xmin1; *(shared_memory_cmd+50)=Xmin1;}
@@ -1168,10 +1137,9 @@ void MainWindow::LoadTxt()  //carica Position.txt in memoria
   {
    int i=0;
    int numero=0;	
-   QString text = QFileDialog::getOpenFileName(this,
-                             tr("Open File"), QDir::currentPath());
-   if (!text.isEmpty())
-    {
+   QString directory = "/home/rtorres/Desktop/XRFData";
+   QString text = QFileDialog::getOpenFileName(this, tr("Open File"), directory/*QDir::currentPath()*/);
+   if (!text.isEmpty()) {
      QFile file(text);
      if(file.exists())
       {
@@ -1319,35 +1287,30 @@ void MainWindow::Abort() {
 
 
 
-void MainWindow::AbortZ()
-  {
-   send_command(1,"HLT",NULL,serialZ);
-   send_command(1,"ERR?",NULL,serialZ);
-   checkZ = read_Zanswer2();
-  }
+void MainWindow::AbortZ() {
+    send_command(1,"HLT",NULL,serialZ);
+    send_command(1,"ERR?",NULL,serialZ);
+    checkZ = read_Zanswer2();
+}
 
 
-void MainWindow::Exit()
-  {
-   if(Xmoving==false && Ymoving==false && XYscanning==false)
-    {
-     qApp->quit();
+void MainWindow::Exit() {
+
+    if(Xmoving==false && Ymoving==false && XYscanning==false) {
+        qApp->quit();
     }
-   else
-    {
-     Abort();
-     qApp->quit();
+    else {
+        Abort();
+        qApp->quit();
     }
-   if(Zmoving==false)
-    {
-     qApp->quit();
+    if(Zmoving==false) {
+        qApp->quit();
     }
-   else
-    {
-     AbortZ();
-     qApp->quit();
+    else {
+        AbortZ();
+        qApp->quit();
     }
-  }
+}
 
 
 MainWindow::~MainWindow() {
@@ -1431,26 +1394,15 @@ MainWindow::~MainWindow() {
     shmctl(shmid_cmd, IPC_RMID, 0);
 }
 
+void MainWindow::Info1_1() {
+    system("evince manual/Info_software_general.pdf &");
+}
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//                                HOWTO
-//                                
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MainWindow::Info1_2() {
+    system("evince manual/Info_shared_memory.pdf &");
+}
 
- 
-void MainWindow::Info1_1()
-  {
-   system("evince manual/Info_software_general.pdf &");
-  }
-
-void MainWindow::Info1_2()
-  {
-   system("evince manual/Info_shared_memory.pdf &");
-  }
-
-void MainWindow::Info2_1()
-  {
-   system("evince manual/Info_kernel_modules.pdf &");
-  }
+void MainWindow::Info2_1() {
+    system("evince manual/Info_kernel_modules.pdf &");
+}
 

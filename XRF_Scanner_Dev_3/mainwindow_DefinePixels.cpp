@@ -23,39 +23,35 @@ extern struct Pixel_BIG *Pointer;
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
-struct Pixel_BIG *Crea_PX(int dim, int x, int y)
-{
-  struct Pixel_BIG *px;
-  px=(struct Pixel_BIG *)calloc(1,sizeof(struct Pixel_BIG));  //zona di memoria per pixel_BIG
-  px->centro[0]=x; 
-  px->centro[1]=y; 
-  px->dimensione=dim; 
+// A function which returns a pointer of type 'struct Pixel_BIG'
+struct Pixel_BIG *Crea_PX(int dim, int x, int y) {
+    struct Pixel_BIG *px;
+    px=(struct Pixel_BIG *)calloc(1,sizeof(struct Pixel_BIG));  //zona di memoria per pixel_BIG
+    px->centro[0]=x;
+    px->centro[1]=y;
+    px->dimensione=dim;
 
-   int contour=((dim*dim));  ///numero di pixel tot
-   px->total=(struct punto *)calloc(contour,sizeof(struct punto));  //(dimensione*dimensione) punti
-   int k=(int)(dim/2);      
-   int i=0,j=0;
-   int col=1; ////è la colonna
+    int contour=((dim*dim));  ///numero di pixel tot
+    px->total=(struct punto *)calloc(contour,sizeof(struct punto));  //(dimensione*dimensione) punti
+    int k=(int)(dim/2);
+    int i=0,j=0;
+    int col=1; ////è la colonna
 
-   for(i=0;i<contour;i++)
-    {
-       if(i==(col*dim))
-        {
-         col++;
-         j=0;
-         k=k-1;
+    for (i=0;i<contour;i++) {
+        if (i==(col*dim)) {
+            col++;
+            j=0;
+            k=k-1;
         }
+        px->total[i].point_x =px->centro[0]-k;
+        px->total[i].point_y =px->centro[1]+j-(int)(dim/2);
+        j++;
 
-          px->total[i].point_x =px->centro[0]-k;
-          px->total[i].point_y =px->centro[1]+j-(int)(dim/2);
-          j++;
-
-   // printf("Punto total %d\n",i);
+    // printf("Punto total %d\n",i);
     //printf("Coordinate interne x %d   y %d\n",px->total[i].point_x,px->total[i].point_y);
     }
-   
-  return px;
 
+    return px;
 }
 
 bool Appartiene(int x,int y, struct Pixel_BIG *px) /////da true se x,y appartiene al pixel 

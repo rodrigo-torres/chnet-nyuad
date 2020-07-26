@@ -1,6 +1,6 @@
 // METHODS
 //
-// 
+//
 // MainWindow::displayImage_SHM()
 //
 //
@@ -191,7 +191,7 @@ void MainWindow::displayImage_SHM() {
                 else {
 
                     double intensity=(Integral[current]/MaxIntegral);
-		       
+
                     if(itemLabel=="Colors") {
 
                         if ( intensity < frac ) {
@@ -263,69 +263,69 @@ QStringList items;
 QString itemLabel;
 items << tr("Colors") << tr("Gray Scale");
 QString item = QInputDialog::getItem(this, tr("QInputDialog::getItem()"),tr("Using:"), items, 0, false, &ok);
-if (ok && !item.isEmpty()) 
+if (ok && !item.isEmpty())
 {
  itemLabel=item;
  int data_number=0;
 printf("MaxIntegral1:%d, MaxIntegral2:%d, MaxIntegral3:%d\n", MaxIntegral1, MaxIntegral2, MaxIntegral3);
- while(*(shared_memory3+histopos)!=-2)  // "-2" is written at the end of the file 
+ while(*(shared_memory3+histopos)!=-2)  // "-2" is written at the end of the file
     { //qDebug()<<*(shared_memory3+histopos); sleep(1);
-      data_number++;      
+      data_number++;
       if(k<5)
-	{ 
-	  X[point]=*(shared_memory3+histopos);
-		
-         
-	  k++;
-	  histopos++;
-	  if(X[point]>MaxX) MaxX=X[point];
-	  if(X[point]<MinX) MinX=X[point];
-      
-     
-	  Y[point]=*(shared_memory3+histopos);
-        
-	  k++;
-	  histopos++;
-	  if(Y[point]>MaxY) MaxY=Y[point];
-	  if(Y[point]<MinY) MinY=Y[point];
-	  
-	  Integral1[point]=*(shared_memory3+histopos);
-	  k++;
-	  histopos++;
-	  Integral2[point]=*(shared_memory3+histopos);
-	  k++;
-	  histopos++;
-	  Integral3[point]=*(shared_memory3+histopos);
-	  k++;
-	  histopos++;
-	  if(Integral1[point]>MaxIntegral1) {MaxIntegral1=Integral1[point];}//printf("Integral1:%f\n", Integral1[point]);
-	  if(Integral2[point]>MaxIntegral2) {MaxIntegral2=Integral2[point];}//printf("Integral2:%f\n", Integral2[point]);
-	  if(Integral3[point]>MaxIntegral3) {MaxIntegral3=Integral3[point];}//printf("Integral3:%f\n", Integral3[point]);
+    {
+      X[point]=*(shared_memory3+histopos);
+
+
+      k++;
+      histopos++;
+      if(X[point]>MaxX) MaxX=X[point];
+      if(X[point]<MinX) MinX=X[point];
+
+
+      Y[point]=*(shared_memory3+histopos);
+
+      k++;
+      histopos++;
+      if(Y[point]>MaxY) MaxY=Y[point];
+      if(Y[point]<MinY) MinY=Y[point];
+
+      Integral1[point]=*(shared_memory3+histopos);
+      k++;
+      histopos++;
+      Integral2[point]=*(shared_memory3+histopos);
+      k++;
+      histopos++;
+      Integral3[point]=*(shared_memory3+histopos);
+      k++;
+      histopos++;
+      if(Integral1[point]>MaxIntegral1) {MaxIntegral1=Integral1[point];}//printf("Integral1:%f\n", Integral1[point]);
+      if(Integral2[point]>MaxIntegral2) {MaxIntegral2=Integral2[point];}//printf("Integral2:%f\n", Integral2[point]);
+      if(Integral3[point]>MaxIntegral3) {MaxIntegral3=Integral3[point];}//printf("Integral3:%f\n", Integral3[point]);
 
 //	  qDebug()<<"X[point]="<<X[point]<<"Y[point]="<<Y[point]<<"Integral="<<Integral[point]<<"\n";
-	}
-     
+    }
+
       else
-	{
-	   histopos++;
-	}
+    {
+       histopos++;
+    }
 
       if(*(shared_memory3+histopos)==-1)
-	{
-	  point++;
-	  k=0;
-	  histopos++;
-	
-	  
-	}
+    {
+      point++;
+      k=0;
+      histopos++;
+
+
+    }
      //qDebug()<<data_number;
     }
 printf("MaxIntegral1:%d, MaxIntegral2:%d, MaxIntegral3:%d\n", MaxIntegral1, MaxIntegral2, MaxIntegral3);
 for (s=0; s<point; s++)
-	{
+    {
         Xmap[s]=(X[s]-MinX)/pixel_Xstep;
         Ymap[s]=(Y[s]-MinY)/pixel_Ystep;
-	}
+    }
  Xmaxvero=MaxX; //memorizes the X max in micrometers
  MaxX=(MaxX-MinX)/pixel_Xstep;
  Xminvero=MinX;
@@ -335,7 +335,7 @@ for (s=0; s<point; s++)
  Yminvero=MinY;
  MinY=0;
 
- 
+
 
 
 
@@ -349,9 +349,9 @@ for (s=0; s<point; s++)
 qDebug()<<"MaxX_ori:"<<MaxX_ori<<"MinX_ori:"<<MinX_ori<<"MaxY_ori:"<<MaxY_ori<<"MinY_ori:"<<MinY_ori<<"\n";
 
  Define_Pixels(); //definisce quelli che dovranno essere colorati in base a Pixeldim...ci si accede con Pointer
-                 
+
  if(Pixeldim>1)
- { 
+ {
    MinX=MinX-int(Pixeldim/2);
    MaxX=MaxX+int(Pixeldim/2);
    MinY=MinY-int(Pixeldim/2);
@@ -379,7 +379,7 @@ qDebug()<<"MaxX_ori:"<<MaxX_ori<<"MinX_ori:"<<MinX_ori<<"MaxY_ori:"<<MaxY_ori<<"
 
          for(int current=0; current<point; current++)
             {
-                i=Xmap[current]; j=Ymap[current]; 
+                i=Xmap[current]; j=Ymap[current];
 
                 if(CutBorders)
                 {
@@ -395,51 +395,51 @@ qDebug()<<"MaxX_ori:"<<MaxX_ori<<"MinX_ori:"<<MinX_ori<<"MaxY_ori:"<<MaxY_ori<<"
                  if ((Ymap[current]>MinY_ori+1)&& (Ymap[current]<MaxY_ori-1)&& (Xmap[current]>MinX_ori+1) && (Xmap[current]<MaxX_ori-1))
                   {
                     double intensity1=(Integral1[current]/MaxIntegral1)*255;
-		    double intensity2=(Integral2[current]/MaxIntegral2)*255;
-		    double intensity3=(Integral3[current]/MaxIntegral3)*255;
+            double intensity2=(Integral2[current]/MaxIntegral2)*255;
+            double intensity3=(Integral3[current]/MaxIntegral3)*255;
 
                    if(itemLabel=="Colors")
                      {
-                     myColor.setRgb(int(intensity1),int(intensity2),int(intensity3),255);        
+                     myColor.setRgb(int(intensity1),int(intensity2),int(intensity3),255);
                      //qDebug()<<"Metto nel pixel x y"<<(PixelX-i-OffsetX)<<(PixelY-j-OffsetY)<<"La coppia "<<X[current]<<Y[current]<<'\n';
-                     } 
+                     }
                    else
-                   if(itemLabel=="Gray Scale") 
+                   if(itemLabel=="Gray Scale")
                      {
-                      
+
                       myColor.setRgb(0,0,0,255);
                      }
                    //qDebug()<<"coordinate X Y "<<X[current]<<Y[current]<<'\n';
                   // qDebug()<<"centro "<<Pointer[current].centro[0]<<Pointer[current].centro[1]<<'\n';
                    for(int c=0;c<(Pixeldim*Pixeldim);c++)
                    MyImage->setPixel(PixelX-Pointer[current].total[c].point_x-OffsetX,PixelY-Pointer[current].total[c].point_y-OffsetY, myColor.rgb());
-                    
+
                   }
-                 }///chiude if cutborders 
+                 }///chiude if cutborders
 
                 else
                   {
-                    double intensity1=(Integral1[current]/MaxIntegral1)*255;if(MaxIntegral1==0)intensity1=0; 
-		    double intensity2=(Integral2[current]/MaxIntegral2)*255;if(MaxIntegral2==0)intensity2=0;
-		    double intensity3=(Integral3[current]/MaxIntegral3)*255;if(MaxIntegral3==0)intensity3=0;
-       
+                    double intensity1=(Integral1[current]/MaxIntegral1)*255;if(MaxIntegral1==0)intensity1=0;
+            double intensity2=(Integral2[current]/MaxIntegral2)*255;if(MaxIntegral2==0)intensity2=0;
+            double intensity3=(Integral3[current]/MaxIntegral3)*255;if(MaxIntegral3==0)intensity3=0;
+
                     if(itemLabel=="Colors")
                       {
                        myColor.setRgb(int(intensity1),int(intensity2),int(intensity3),255);
-                       
+
                       }
                     else
-                     if(itemLabel=="Gray Scale") 
+                     if(itemLabel=="Gray Scale")
                       {
                        //intensity=intensity*255;
                        myColor.setRgb(0,0,0,255);
                        }
-                  
+
                    for(int c=0;c<(Pixeldim*Pixeldim);c++)
                    MyImage->setPixel(PixelX-Pointer[current].total[c].point_x-OffsetX,PixelY-Pointer[current].total[c].point_y-OffsetY, myColor.rgb());
                    //qDebug()<<" coloro x"<<PixelX-Pointer[current].total[c].point_x-OffsetX<<"coloro y"<<PixelY-Pointer[current].total[c].point_y-OffsetY<<'\n';}
 
-                   //MyImage->setPixel(PixelX-i-OffsetX,PixelY-j-OffsetY, myColor.rgb()); 
+                   //MyImage->setPixel(PixelX-i-OffsetX,PixelY-j-OffsetY, myColor.rgb());
                    //qDebug()<<"Metto nel pixel x y"<<(PixelX-i-OffsetX)<<(PixelY-j-OffsetY)<<"La coppia "<<X[current]<<Y[current]<<'\n';
                    }
 
@@ -454,7 +454,7 @@ qDebug()<<"MaxX_ori:"<<MaxX_ori<<"MinX_ori:"<<MinX_ori<<"MaxY_ori:"<<MaxY_ori<<"
           Cursor->setShape(Qt::PointingHandCursor);
           imageLabel->setCursor(*Cursor);
 
- 
+
         QBuffer buffer(&MapImage);
         buffer.open(QIODevice::WriteOnly);
         MyImage->save(&buffer, "PNG"); // writes image into QByteArray MapImage in PNG format

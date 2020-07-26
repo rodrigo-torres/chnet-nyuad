@@ -1,0 +1,29 @@
+[Buildset]
+BuildItems=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x00\x01\x00\x00\x00"\x00X\x00R\x00F\x00_\x00S\x00c\x00a\x00n\x00n\x00e\x00r\x00_\x00D\x00e\x00v\x00_\x003)
+
+[Launch]
+Launch Configurations=Launch Configuration 0
+
+[Launch][Launch Configuration 0]
+Configured Launch Modes=execute
+Configured Launchers=nativeAppLauncher
+Name=XRF_Scanner_Dev_3
+Type=Native Application
+
+[Launch][Launch Configuration 0][Data]
+Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x00\x02\x00\x00\x00"\x00X\x00R\x00F\x00_\x00S\x00c\x00a\x00n\x00n\x00e\x00r\x00_\x00D\x00e\x00v\x00_\x003\x00\x00\x00"\x00X\x00R\x00F\x00_\x00S\x00c\x00a\x00n\x00n\x00e\x00r\x00_\x00D\x00e\x00v\x00_\x003)
+Dependency Action=Build
+Project Target=XRF_Scanner_Dev_3,XRF_Scanner_Dev_3
+
+[QMake_Builder]
+Build_Folder=/home/rtorres/Desktop/XRFMultidet_v10.3/XRF_Scanner_Dev_3/build
+Build_Type=0
+Extra_Arguments=
+Install_Prefix=
+QMake_Binary=/usr/lib64/qt5/bin/qmake-qt5
+
+[QMake_Builder][/home/rtorres/Desktop/XRFMultidet_v10.3/XRF_Scanner_Dev_3/build]
+Build_Type=0
+Extra_Arguments=
+Install_Prefix=
+QMake_Binary=/usr/lib64/qt5/bin/qmake-qt5

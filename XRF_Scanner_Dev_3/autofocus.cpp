@@ -37,24 +37,6 @@ void MainWindow::Autofocus2() {
     }
 }
 
-
-/* This function is never called in the main or external programs
-char *read_Kanswer()
-{
-  char c[100];
-  int n=0;
-  string rest;
-  while((n=read(serialK, &c, sizeof(c)))>0) {
-      c[n]=0;
-      rest=rest+c;
-      if ( c[n-1] == '\n' ) {
-          break;
-      }
-  }
-  return c;  
-}
-*/
-
 string read_Kanswer2() {
   char c[12];
   int n=0;
@@ -72,6 +54,10 @@ string read_Kanswer2() {
 
 
 void MainWindow::readKeyence() {
+
+    if ( noKeyence_init ) {
+            Init_KeyenceLaser();
+    }
 
     int counter_readKeyence = 0;
     while ( counter_readKeyence < 1) {
@@ -93,60 +79,12 @@ void MainWindow::readKeyence() {
         }
     }
 
-    //double sum = 0 ;
-
-    /*
-    for ( int i=0; i < 3; ++i) {
-        qDebug()<<i;
-        qDebug()<<AutofocusBuffer[i];
-        sum += AutofocusBuffer[i];
-    }
-
-    qDebug()<<Autofocus_average_value;
-    Autofocus_average_value = sum / (double) 3;
-    qDebug()<<Autofocus_average_value;
-    */
-
-    //Here we have to modify the code to account for the new geometry.
-
-    //qDebug()<<"... Uncalibrated autofocus value is: "<< Autofocus_value;
-    //The values for this formula come from a calibration of the instrument specific to the geometry of the detector head
-
-
-
-
    if ( (Autofocus_average_value <= (15.0)) && ( Autofocus_average_value > (-15.0)) ) {
-       qDebug()<<Autofocus_average_value;
+       //qDebug()<<Autofocus_average_value;
        ValueInRange=true;
+       AutoFocusRunning();
        QString valueAsString = QString::number(Autofocus_average_value);
        lineEdit_2_tab_4->setText(valueAsString);
-
-       /*
-       switch (AutofocusIndex) {
-       case 0:
-           AutofocusBuffer[0]=Autofocus_value;
-           AutofocusIndex++;
-           break;
-       case 1:
-           AutofocusBuffer[1]=Autofocus_value;
-           AutofocusIndex++;
-           break;
-       case 2:
-           AutofocusIndex=0;
-           Autofocus_average_value=(AutofocusBuffer[0]+AutofocusBuffer[1])/2;
-           QString valueAsString = QString::number(Autofocus_average_value);
-           lineEdit_2_tab_4->setText(valueAsString);
-           break;
-       break;
-       }
-       */
-
-       /* Protocol for AutofocusIndex >= 2 move inside the switch statement
-       if(AutofocusIndex>=2) {
-           AutofocusIndex=0;
-       }
-       // fine controllo sui dati contenuti in +/- 15mm dallo zero del sensore
-       */
    }
 
    else {
@@ -154,14 +92,6 @@ void MainWindow::readKeyence() {
        ValueInRange=false;
        lineEdit_2_tab_4->setText("[!] Out of range");
    }
-   /* The boolean ReadyForTracking is set to true by default, and there's no function or declaration which changes its value.
-    * The if statement below has no use.
-   if(ReadyForTracking) {
-           Autofocus_average_value=(AutofocusBuffer[0]+AutofocusBuffer[1])/2;
-           QString valueAsString = QString::number(Autofocus_average_value);
-           lineEdit_2_tab_4->setText(valueAsString);
-   }
-   */
    return;
 }
 
@@ -223,28 +153,18 @@ void MainWindow::TrackingON() {
     }
 }
 
-//int counter_FocusTimer = 0;
 
 void MainWindow::Focustimer() {
 
-    if ( noKeyence_init ) {
+    /*if ( noKeyence_init ) {
         Init_KeyenceLaser();
     }
-
-    readKeyence();
-    AutoFocusRunning();
-
-    /*
-    if ( counter_FocusTimer == 0 || counter_FocusTimer == 1) {
-        readKeyence();
-        counter_FocusTimer++;
-    }
-
-    if ( counter_FocusTimer == 2) {
-        AutoFocusRunning();
-        counter_FocusTimer=0;
-    }
     */
+
+    //readKeyence();
+    //AutoFocusRunning();
+
+
 }
 
 

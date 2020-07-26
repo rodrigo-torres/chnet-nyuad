@@ -29,58 +29,56 @@ void MainWindow::SHM_CREATOR()
     key_cmd = 6900;
     shmid_cmd = shmget (6900, SHMSZ_CMD_STATUS, IPC_CREAT | 0666);
     if (shmid_cmd == -1) {
-        qDebug()<<"[!] Shared memory allocation error"<<strerror(errno)<<'\n';
+        qDebug()<<"[!] Shared memory allocation error for 'shmid_cmd': "<<strerror(errno)<<'\n';
     }
     shared_memory_cmd =(int *) shmat(shmid_cmd, NULL, 0);
-    cout << "Data Memory attached at :" << (int *)shared_memory_cmd<< endl << " with ID: " << shmid_cmd << endl;
+    //cout << "... Shared memory 'shmid_cmd' attached with ID: " << shmid_cmd << endl;
 
     key = 7000;
     shmid = shmget (7000, SHMSZ, IPC_CREAT | 0666);
     if (shmid == -1) {
-       qDebug()<<"[!] Shared memory allocation error"<<strerror(errno)<<'\n';
+       qDebug()<<"[!] Shared memory allocation error for 'shmid': "<<strerror(errno)<<'\n';
     }
     shared_memory =(int *) shmat(shmid, NULL, 0);
-    cout << "Data Memory attached at :" << (int *)shared_memory<< endl << " with ID: " << shmid << endl;
+    //cout << "... Shared memory 'shmid' attached with ID: " << shmid << endl;
 
     key2 = 7200;
     shmid2 = shmget (7200, SHMSZBIG, IPC_CREAT | 0666);
     if (shmid2 == -1) {
-       qDebug()<<"[!] Shared memory allocation error"<<strerror(errno)<<'\n';
+       qDebug()<<"[!] Shared memory allocation error for 'shmid2': "<<strerror(errno)<<'\n';
     }
     shared_memory2 =(int *) shmat(shmid2, NULL, 0);
-    cout << "Data Memory attached at :" << (int *)shared_memory2<< endl << " with ID: " << shmid2 << endl;
-
+    //cout << "... Shared memory 'shmid2' attached with ID: " << shmid2 << endl;
 
     ///////////////////////////////// FOR AUTOFOCUS ///////////////////////////
 
     key3 = 7300;
     shmid3 = shmget (7300, SHMSZHISTO, IPC_CREAT | 0666);
     if (shmid3 == -1) {
-       qDebug()<<"[!] Shared memory allocation error"<<strerror(errno)<<'\n';
+       qDebug()<<"[!] Shared memory allocation error for 'shmid3': "<<strerror(errno)<<'\n';
     }
     shared_memory3 =(int *) shmat(shmid3, NULL, 0);
-    cout << "Data Memory attached at :" << (int *)shared_memory3<< endl << " with ID: " << shmid3 << endl;
+    //cout << "... Shared memory 'shmid3' attached with ID: " << shmid3 << endl;
 
     /////////////////////////////// FOR DIGITISER /////////////////////////////
 
     key4 = 7400;
     shmid4 = shmget (7400, SHMSZDIGI, IPC_CREAT | 0666);
     if (shmid4  == -1) {
-       qDebug()<<"[!] Shared memory allocation error"<<strerror(errno)<<'\n';
+       qDebug()<<"[!] Shared memory allocation error for 'shmid4': "<<strerror(errno)<<'\n';
     }
     shared_memory4 =(int *) shmat(shmid4, NULL, 0);
-    cout << "Data Memory attached at :" << (int *)shared_memory4<< endl << " with ID: " << shmid4 << endl;
+    //cout << "... Shared memory 'shmid4' attached with ID: " << shmid4 << endl;
 
     /////////////////////////////// FOR RATE METER /////////////////////////////
 
     key_rate = 7500;
     shmid_rate = shmget (7500, SHMSZRATE, IPC_CREAT | 0666);
     if (shmid_rate == -1) {
-        qDebug()<<"[!] Shared memory allocation error"<<strerror(errno)<<'\n';
+        qDebug()<<"[!] Shared memory allocation error for 'shmid_rate': "<<strerror(errno)<<'\n';
     }
     shared_memory_rate =(int *) shmat(shmid_rate, NULL, 0);
-    cout << "Data Memory attached at :" << (int *)shared_memory_rate<< endl << " with ID: " << shmid_rate << endl;
-
+    //cout << "... Shared memory 'shmid_rate' attached with ID: " << shmid_rate << endl;
 
     ////////////////   SHARED MEMORY STARTING CONFIGURATION   ///////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////
