@@ -1,6 +1,6 @@
 ########################################################################
 #
-##              --- CAEN SpA - Computing Division ---
+##	 --- CAEN SpA - Computing Division ---
 #
 ##   CAENDigitizer Software Project
 #
@@ -9,49 +9,35 @@
 ##   Auth: A. Lucchesi
 #
 #########################################################################
-ARCH	=	`uname -m`
-
-#OUTDIR  =    	./bin/$(ARCH)/Release/
-#OUTNAME =    	ReadoutTest_DPP_PHA_x724.bin
 OUTDIR  =    	.
+OUTNAME =    	daq_protocol
 OUT     =    	$(OUTDIR)/$(OUTNAME)
-OUTNAME =    	ADCXRF_Optical_Link
 
-CC	=	gcc
+CC	= gcc
+CXX = g++
 
-COPTS	=	-fPIC -DLINUX -O2
-
-#FLAGS	=	-soname -s
-#FLAGS	=       -Wall,-soname -s
-#FLAGS	=	-Wall,-soname -nostartfiles -s
-#FLAGS	=	-Wall,-soname
-
-DEPLIBS	=	-lCAENDigitizer -lCAENDPPLib -lm -lc -lrt -lpthread
-
-LIBS	=	-L.. -L/usr/lib
-
-INCLUDEDIR =	-I./include -I/usr/include
-
-OBJS	=	src/ADCXRF.o src/keyb.o src/Functions.o 
-
-INCLUDES = /usr/include/CAENDPPLib.h /usr/include/CAENDPPLibTypes.h ./include/*
+OPTS	= -fPIC -DLINUX -O2
+OBJS	= daq_protocol.o
+LIBS	= -lCAENDigitizer -lCAENDPPLib
+INCLUDE	= -I/usr/include -I./
+INCLUDES = ./daq_protocol.h
 
 #########################################################################
 
-all	:	$(OUT)
+all : $(OUT)
 
-clean	:
-		/bin/rm -f $(OBJS) $(OUT)
+clean :
+	/bin/rm -f $(OBJS) $(OUT)
 
-$(OUT)	:	$(OBJS)
-		/bin/rm -f $(OUT)
-		if [ ! -d $(OUTDIR) ]; then mkdir -p $(OUTDIR); fi
-		$(CC) $(FLAGS) -o $(OUT) $(OBJS) $(DEPLIBS)
+$(OUT) : $(OBJS)
+	/bin/rm -f $(OUT)
+	$(CXX) $(FLAGS) -g -o $(OUT) $(OBJS) $(LIBS)
 
-$(OBJS)	:	$(INCLUDES) Makefile
+$(OBJS) : $(INCLUDES) Makefile
 
-%.o	:	%.c
-		$(CC) $(COPTS) $(INCLUDEDIR) -c -o $@ $<
-
+%.o	: %.cpp
+	$(CXX) $(OPTS) $(INCLUDE) -pthread -c -g -o $@ $<
 
 
+#daq_protocol.o : daq_protocol.h daq_protocol.cpp
+#	$(CXX) -g -c -pthread $(INCLUDE) $(LIBS) daq_protocol.cpp
