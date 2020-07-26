@@ -285,53 +285,53 @@ void MainWindow::GUI_CREATOR()
 
     groupBox->setGeometry(QRect(0, 0, 200, 200));
     layout->addWidget(groupBox, 2, 0 );
-    radio_Co->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+    radio_Co->setText(QApplication::translate("MainWindow", "", 0));
     radio_Co->setGeometry(QRect(10, 0, 60, 40));
     //radio_Co->setChecked(true);
-    radio_K->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+    radio_K->setText(QApplication::translate("MainWindow", "", 0));
     radio_K->setGeometry(QRect(60, 0, 60, 40));
-    radio_Ba->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+    radio_Ba->setText(QApplication::translate("MainWindow", "", 0));
     radio_Ba->setGeometry(QRect(110, 0, 60, 40));
-    radio_Ca->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+    radio_Ca->setText(QApplication::translate("MainWindow", "", 0));
     radio_Ca->setGeometry(QRect(160, 0, 60, 40));
 
     groupBox1->setGeometry(QRect(0, 0, 200, 200));
     layout->addWidget(groupBox1, 2, 1 );
-    radio_Ag->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+    radio_Ag->setText(QApplication::translate("MainWindow", "", 0));
     radio_Ag->setGeometry(QRect(10, 0, 60, 40));
     //radio_Co->setChecked(true);
-    radio_Cr->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+    radio_Cr->setText(QApplication::translate("MainWindow", "", 0));
     radio_Cr->setGeometry(QRect(60, 0, 60, 40));
-    radio_Cu->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+    radio_Cu->setText(QApplication::translate("MainWindow", "", 0));
     radio_Cu->setGeometry(QRect(110, 0, 60, 40));
-    radio_PbL->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+    radio_PbL->setText(QApplication::translate("MainWindow", "", 0));
     radio_PbL->setGeometry(QRect(160, 0, 60, 40));
 
 
     groupBox2->setGeometry(QRect(0, 0, 200, 200));
     layout->addWidget(groupBox2, 2, 2 );
-    radio_Au->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+    radio_Au->setText(QApplication::translate("MainWindow", "", 0));
     radio_Au->setGeometry(QRect(10, 0, 60, 40));
     //radio_Hg->setChecked(true);
-    radio_Hg->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+    radio_Hg->setText(QApplication::translate("MainWindow", "", 0));
     radio_Hg->setGeometry(QRect(60, 0, 60, 40));
-    radio_Si->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+    radio_Si->setText(QApplication::translate("MainWindow", "", 0));
     radio_Si->setGeometry(QRect(110, 0, 60, 40));
-    radio_Ti->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+    radio_Ti->setText(QApplication::translate("MainWindow", "", 0));
     radio_Ti->setGeometry(QRect(160, 0, 60, 40));
 
 
 
     groupBox3->setGeometry(QRect(0, 0, 200, 200));
     layout->addWidget(groupBox3, 2, 3 );
-    radio_Sn->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+    radio_Sn->setText(QApplication::translate("MainWindow", "", 0));
     radio_Sn->setGeometry(QRect(10, 0, 60, 40));
     //radio_Sn->setChecked(true);
-    radio_Zn->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+    radio_Zn->setText(QApplication::translate("MainWindow", "", 0));
     radio_Zn->setGeometry(QRect(60, 0, 60, 40));
-    radio_PbM->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+    radio_PbM->setText(QApplication::translate("MainWindow", "", 0));
     radio_PbM->setGeometry(QRect(110, 0, 60, 40));
-    radio_Fe->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+    radio_Fe->setText(QApplication::translate("MainWindow", "", 0));
     radio_Fe->setGeometry(QRect(160, 0, 60, 40));	
 
     break;
@@ -384,54 +384,54 @@ void MainWindow::GUI_CREATOR()
 
         groupBox->setGeometry(QRect(0, 0, 100, 100));
         layout->addWidget(groupBox, 2, 0 );
-        radio_Co->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+        radio_Co->setText(QApplication::translate("MainWindow", "", 0));
         radio_Co->setGeometry(QRect(0, 0, 30, 20));
-	radio_K->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+    radio_K->setText(QApplication::translate("MainWindow", "", 0));
         radio_K->setGeometry(QRect(25, 0, 30, 20));
         //radio_Ag->setChecked(true);
-        radio_Ba->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+        radio_Ba->setText(QApplication::translate("MainWindow", "", 0));
         radio_Ba->setGeometry(QRect(50, 0, 30, 20));
-        radio_Ca->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+        radio_Ca->setText(QApplication::translate("MainWindow", "", 0));
         radio_Ca->setGeometry(QRect(75, 0, 30, 20));
 
         groupBox1->setGeometry(QRect(0, 0, 100, 100));
         layout->addWidget(groupBox1, 2, 1 );
         //radio_Co->setChecked(true);
-	radio_Ag->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+    radio_Ag->setText(QApplication::translate("MainWindow", "", 0));
         radio_Ag->setGeometry(QRect(0, 0, 30, 20));
-        radio_Cr->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+        radio_Cr->setText(QApplication::translate("MainWindow", "", 0));
         radio_Cr->setGeometry(QRect(25, 0, 30, 20));
-        radio_Cu->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+        radio_Cu->setText(QApplication::translate("MainWindow", "", 0));
         radio_Cu->setGeometry(QRect(50, 0, 30, 20));
-	radio_PbL->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+    radio_PbL->setText(QApplication::translate("MainWindow", "", 0));
         radio_PbL->setGeometry(QRect(75, 0, 30, 20));
         
 
 
         groupBox2->setGeometry(QRect(0, 0, 100, 100));
         layout->addWidget(groupBox2, 2, 2 );
-        radio_Au->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+        radio_Au->setText(QApplication::translate("MainWindow", "", 0));
         radio_Au->setGeometry(QRect(0, 0, 30, 20));
-        radio_Hg->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+        radio_Hg->setText(QApplication::translate("MainWindow", "", 0));
         radio_Hg->setGeometry(QRect(25, 0, 30, 20));
         //radio_Hg->setChecked(true);
-        radio_Si->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+        radio_Si->setText(QApplication::translate("MainWindow", "", 0));
         radio_Si->setGeometry(QRect(50, 0, 30, 20));
-	radio_Ti->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+    radio_Ti->setText(QApplication::translate("MainWindow", "", 0));
         radio_Ti->setGeometry(QRect(75, 0, 30, 20));
 	
 
 
         groupBox3->setGeometry(QRect(0, 0, 100, 100));
         layout->addWidget(groupBox3, 2, 3 );
-        radio_Sn->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+        radio_Sn->setText(QApplication::translate("MainWindow", "", 0));
         radio_Sn->setGeometry(QRect(0, 0, 30, 20));
         //radio_Sn->setChecked(true);        
-        radio_Zn->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+        radio_Zn->setText(QApplication::translate("MainWindow", "", 0));
         radio_Zn->setGeometry(QRect(25, 0, 30, 20));
-        radio_PbM->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+        radio_PbM->setText(QApplication::translate("MainWindow", "", 0));
         radio_PbM->setGeometry(QRect(50, 0, 30, 20));
-	radio_Fe->setText(QApplication::translate("MainWindow", "", 0, QApplication::UnicodeUTF8));
+    radio_Fe->setText(QApplication::translate("MainWindow", "", 0));
         radio_Fe->setGeometry(QRect(75, 0, 30, 20));
 
 

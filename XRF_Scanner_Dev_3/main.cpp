@@ -84,11 +84,11 @@ int Resolution_mode;    // 0 if          WIDTH >  2400px
 
 int authentification()
 {
-    // Please do replace rtorres with your computer's username
+    // Please do replace frao with your computer's username
     /*switch (module) , calling for insmod has no effect in Fedora, the appropriate modules are automatically loaded if the digitizer is detected and the appropriate drivers are installed.
        {
-        case(0): {system("su -c 'sysctl -w kernel.shmmax=2000000000;sysctl -w kernel.shmall=720000000; chmod 777 /dev/ttyUSB*;  chmod 777 /dev/ttyACM*; chown rtorres:rtorres /dev/ttyACM*; chown rtorres:rtorres /dev/ttyUSB*; insmod Program_Data_Files/CAENUSBdrvB.ko.xz;'"); break;}
-        case(1): {system("su -c 'sysctl -w kernel.shmmax=2000000000;sysctl -w kernel.shmall=720000000; chmod 777 /dev/ttyUSB*;  chmod 777 /dev/ttyACM*; chown rtorres:rtorres /dev/ttyACM*; chown rtorres:rtorres /dev/ttyUSB*;'"); break;}
+        case(0): {system("su -c 'sysctl -w kernel.shmmax=2000000000;sysctl -w kernel.shmall=720000000; chmod 777 /dev/ttyUSB*;  chmod 777 /dev/ttyACM*; chown frao:frao /dev/ttyACM*; chown frao:frao /dev/ttyUSB*; insmod Program_Data_Files/CAENUSBdrvB.ko.xz;'"); break;}
+        case(1): {system("su -c 'sysctl -w kernel.shmmax=2000000000;sysctl -w kernel.shmall=720000000; chmod 777 /dev/ttyUSB*;  chmod 777 /dev/ttyACM*; chown frao:frao /dev/ttyACM*; chown frao:frao /dev/ttyUSB*;'"); break;}
        }
      */
 
@@ -96,8 +96,8 @@ int authentification()
                        "sysctl -w kernel.shmall=720000000;"
                        "chmod +rw /dev/ttyUSB*;"
                        "chmod +rw /dev/ttyACM*;"
-                       "chown rtorres:rtorres /dev/ttyACM*;"
-                       "chown rtorres:rtorres /dev/ttyUSB*;'");
+                       "chown frao:frao /dev/ttyACM*;"
+                       "chown frao:frao /dev/ttyUSB*;'");
     return error_auth;
 }
 

@@ -4,10 +4,14 @@
 
 ////////////////////// uic-qt4 file.ui > file.h
 
-#include <QtGui/QMainWindow>
+#include <QtGui>
 #include <QMainWindow>
 #include <QLabel>
 #include <QSpinBox> 
+#include <QGroupBox>
+#include <QRadioButton>
+#include <QDockWidget>
+#include <QScrollArea>
 #include <QCheckBox>
 #include <../Shm.h>
 

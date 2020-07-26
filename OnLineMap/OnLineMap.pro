@@ -3,9 +3,16 @@
 ######################################################################
 
 TEMPLATE = app
-TARGET = 
-DEPENDPATH += .
+TARGET = OnLineMap 
 INCLUDEPATH += .
+QT += widgets\
+      opengl \
+      sql \
+      xml \
+      gui
+CONFIG += c++11
+CONFIG += qt warn_on thread
+CONFIG += console
 
 # Input
 HEADERS += mainwindow.h ../Shm.h ../Header.h ../variables.h ../QT_variables.h
