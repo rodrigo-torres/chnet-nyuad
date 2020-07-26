@@ -1,5 +1,0 @@
-Plot_ci.o: Plot_ci.c /usr/include/stdc-predef.h ../inc/dppswitch.h
-
-/usr/include/stdc-predef.h:
-
-../inc/dppswitch.h:

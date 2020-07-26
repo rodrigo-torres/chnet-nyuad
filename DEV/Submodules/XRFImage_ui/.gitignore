@@ -1,7 +1,0 @@
-# This file tells github which files and directories to ignore
-# Ignore the bin directory with the compiled binary files
-bin/
-# Ignore the build directory with the temporary files
-build/
-# Ignore the extern directory with uncompiled, external libraries
-extern/

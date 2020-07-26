@@ -1,7 +1,0 @@
-lsusb > Usb_device_Ini;
-#lsusb > file2;
-diff Usb_device_Ini Usb_recorded_device > Usb_dev_diff;
-stat -c "%s" Usb_dev_diff > difference;
-mv Usb_device_Ini Usb_recorded_device;
-ls -altr /dev/ttyU* > tty;
-ls -altr /dev/ttyAC* > ttyACM;

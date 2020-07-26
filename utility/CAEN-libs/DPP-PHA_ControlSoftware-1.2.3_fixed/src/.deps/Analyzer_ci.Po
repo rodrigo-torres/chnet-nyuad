@@ -1,6 +1,0 @@
-Analyzer_ci.o: Analyzer_ci.c /usr/include/stdc-predef.h \
- ../inc/dppswitch.h
-
-/usr/include/stdc-predef.h:
-
-../inc/dppswitch.h:

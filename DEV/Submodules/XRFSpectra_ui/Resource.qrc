@@ -1,5 +1,0 @@
-<RCC>
-  <qresource prefix="Image">
-    <file>xpm/play.png</file>
-  </qresource>
-</RCC>

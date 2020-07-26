@@ -1,9 +1,0 @@
-{
-OBJECT_ID = generic-id
-OBJECT_Description = whatever this is no one cares
-DAQ_Timestamp = Mon Feb 10 18:31:16 2020
-TUBE_target = Molybdenum
-TUBE_voltage = 30.000000
-TUBE_current = 20.000000
-CAL_constant = 0.000000
-CAL_linear = 1.000000

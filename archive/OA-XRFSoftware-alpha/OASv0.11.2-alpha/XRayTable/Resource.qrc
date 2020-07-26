@@ -1,7 +1,0 @@
-<RCC>
-  <qresource prefix="File">
-    <file>Data/Energy_data</file>
-    <file>Data/Energy_element</file>
-    <file>Data/Energy_level</file>
-  </qresource>
-</RCC>
