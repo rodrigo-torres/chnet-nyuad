@@ -55,8 +55,8 @@ long codePosX = 50000000, codePosY = 60000000, codeDetA = 20000000, codeDetB = 3
 
 void MainWindow::LoadNewFileWithNoCorrection_SHM() {
     bool firstData = true;
-    long dataread;
-    double vectorMap[20000] = {0}, jlo = 0, jhi = 0;
+    int dataread, vectorMap[20000] = {0};
+    double jlo = 0, jhi = 0;
 
     double const_a=1, const_b=0;
     double calGrad = static_cast<double>(*(shared_memory_cmd+101)) / static_cast<double>(*(shared_memory_cmd+103));
@@ -90,8 +90,9 @@ void MainWindow::LoadNewFileWithNoCorrection_SHM() {
         dataread =*(shared_memory2+11+j);
 
         if ( dataread >= 50000000 && firstData )  casenumber=0;     // First 'X' position
-        if ( dataread >= 50000000 && !firstData ) casenumber=1;     // Other positions -> writes the preceding vector
-        if ( dataread < 50000000 ) casenumber=2;                    // Energy
+        else if ( dataread >= 50000000 && !firstData ) casenumber=1;     // Other positions -> writes the preceding vector
+        else if ( dataread < 50000000 ) casenumber=2;                    // Energy
+        else casenumber = 10;
 
         switch (casenumber) {
         case 0:
@@ -153,7 +154,7 @@ void MainWindow::LoadNewFileWithNoCorrection_SHM() {
 
                     jlo = static_cast<double>(dataread - 1) * calGrad + calOffs;
                     jhi = jlo + calGrad;
-                    dataread = ranqd1(idum,jlo,jhi);
+                    dataread = static_cast<int>(ranqd1(idum,jlo,jhi));
                 }
                 else dataread -= codeDetB;
             }
@@ -177,10 +178,10 @@ void MainWindow::LoadNewFileWithNoCorrection_SHM() {
             numdati++;
         }
         else if(vectorMap[entry] != 0) {
-                *(shared_memory3+numdati) = vectorMap[entry];
-                numdati++;
-                *(shared_memory3+numdati) = entry - 3;
-                numdati++;
+            *(shared_memory3+numdati) = vectorMap[entry];
+            numdati++;
+            *(shared_memory3+numdati) = entry - 3;
+            numdati++;
         }
         vectorMap[entry]=0;
     }
@@ -190,199 +191,132 @@ void MainWindow::LoadNewFileWithNoCorrection_SHM() {
     printf("... Map correctly loaded\n... No pixel correction applied\n");
 }
 
-void MainWindow::LoadNewFileWithCorrection_SHM() {
-    // This function can no longer be called from anywhere in the code (as the PixelCorrection boolean is always false)
-}
+//void MainWindow::LoadNewFileWithCorrection_SHM() {
+//    // This function can no longer be called from anywhere in the code (as the PixelCorrection boolean is always false)
+//}
 
 void MainWindow::LoadSHM_SumMap() {
 
     double jlo = 0, jhi = 0;
+    double calGrad = static_cast<double>(*(shared_memory_cmd+101)) / static_cast<double>(*(shared_memory_cmd+103));
+    double calOffs = static_cast<double>(*(shared_memory_cmd+102)) / static_cast<double>(*(shared_memory_cmd+103));
 
-    int j=0, casenumber=10;
-    int Ntot=*(shared_memory2+4);    //// Numero dati in memoria
-    int mempos=0;
-    int dataread=0, numdati=0;
-    bool firstData=true;
-    int vectorMap[20000]={0};
-    int riga_mappa=1, colonna_mappa=1; int Xprecedente,Yprecedente;
+    bool firstData = true;
+    int dataread = 0, vectorMap[20000]= { 0 };
+    int numdati = 0;
 
-    if(MapIsOpened==true) {
-        hideImage();
-    }
+    if (MapIsOpened == true) hideImage();
 
-    while ( j < Ntot ) {
+    int j = 0, casenumber = 10;
+    while (j < *(shared_memory2+4)) {
+        dataread = *(shared_memory2+11+j);
 
-        dataread=*(shared_memory2+11+j);
-
-        if ( dataread >= 50000000 && firstData ) casenumber=0;           //prima x letta --> mette da parte x e y
-        if ( dataread >= 50000000 && !firstData ) casenumber=1;          //altre posizioni --> scrive tutto il vettore precedente, compreso l'integrale
-        if ( dataread < 50000000 ) casenumber=2;
-
-        qDebug()<<"... To call switch in LoadSHM_SumMap()";
+        if ( dataread >= 50000000 && firstData )        casenumber = 0; // First position, writes coordinates
+        else if ( dataread >= 50000000 && !firstData )  casenumber = 1; // Writes the preceding vector
+        else if ( dataread < 50000000 )                 casenumber = 2;
+        else casenumber = 10;
 
         switch (casenumber) {
-
         case 0:
-
-            firstData=false;
-            dataread=dataread-50000000;
-            if ( dataread < 0 ) {
-                dataread=0;
-            }
-
-            vectorMap[j]=dataread;
-            Xprecedente=dataread;   ///serve per fare bene lo shift Y
+            dataread -= codePosX;
+            vectorMap[j] = dataread;
             j++;
 
-            dataread=*(shared_memory2+11+j);
-            dataread=dataread-60000000;
-            if ( dataread < 0 ) {
-                dataread=0;
-            }
-
-            Yprecedente=dataread;   ///serve per fare bene lo shift X
-            vectorMap[j]=dataread;
+            dataread = *(shared_memory2+11+j);
+            dataread -= codePosY;
+            vectorMap[j] = dataread ;
             j++;
+
+            firstData = false;
             break;
-
         case 1:
-
-            for ( int vectorSize=0; vectorSize<20000; vectorSize++) {
-                if(vectorSize<5) {
-                    //x, y, I
-                    *(shared_memory3+vectorSize+mempos)=vectorMap[vectorSize];
+            for (int vectorSize = 0; vectorSize < 20000; vectorSize++) { // Writes the preceding vector to shared memory
+                if (vectorSize < 5) {
+                    *(shared_memory3+numdati) = vectorMap[vectorSize];
                     numdati++;
                 }
-                else {
-                    if ( vectorMap[vectorSize] != 0 ) {
-                        *(shared_memory3+numdati+mempos)=vectorMap[vectorSize];
-                        numdati++;
-                        *(shared_memory3+numdati+mempos)=vectorSize-5;
-                        numdati++;
-                    }
+                else if (vectorMap[vectorSize] != 0) {
+                    *(shared_memory3+numdati) = vectorMap[vectorSize];
+                    numdati++;
+                    *(shared_memory3+numdati) = vectorSize-5;
+                    numdati++;
                 }
-
-                vectorMap[vectorSize]=0;
+                vectorMap[vectorSize] = 0;
             }
 
-            *(shared_memory3+numdati+mempos)=-1;
+            *(shared_memory3+numdati) = -1;
             numdati++;
 
-            mempos=mempos+numdati;
-            numdati=0;
-
-            dataread=dataread-50000000;
-            if (dataread < 0 ) {
-                dataread=0;
-            }
-
-            vectorMap[0]=dataread;
-            if ( dataread > Xprecedente ) {
-                //si passa a una nuova colonna della mappa se scan YX
-                colonna_mappa++;
-            }
-            Xprecedente=dataread;
+            dataread -= codePosX;
+            vectorMap[0] = dataread;
             j++;
 
-            dataread=*(shared_memory2+11+j);
-            dataread=dataread-60000000;
-
-            if ( dataread < 0 ) {
-                dataread=0;
-            }
-//            if ( colonna_mappa%2==0 && dataread > NshiftY) {
-//                vectorMap[1]=dataread-NshiftY;
-//                //shift solo alle colonne pari
-//            }
-            else vectorMap[1]=dataread;
-
-            if ( dataread > Yprecedente ) {
-                riga_mappa++;
-                //si passa a una nuova riga della mappa se scan XY
-            }
-
-//            if (riga_mappa%2==0 && vectorMap[0] > NshiftX ) {
-//                vectorMap[0]=vectorMap[0]-NshiftX;
-//                //shift solo alle righe pari
-//            }
-
-            Yprecedente=dataread;
+            dataread = *(shared_memory2+11+j);
+            dataread -= codePosY;
+            vectorMap[1] = dataread;
             j++;
             break;
-
         case 2:
-            if ( dataread > 19999999 && dataread < 30000000) {
-                if ( *(shared_memory_cmd+100) == 1 ) {
+            if (dataread >= codeDetA && dataread < codeDetB) {
+                if (*(shared_memory_cmd+100) == 1) {
                     j++;
                     break;
                 }
-                else {
-                    dataread = dataread -20000000;
-                }
+                else dataread -= codeDetA;
             }
 
-            if( dataread > 30000000 ) {
-                if ( *(shared_memory_cmd+100) == 0 ) {
+            if (dataread >= codeDetB) {
+                if (*(shared_memory_cmd+100) == 0) {
                     j++;
                     break;
                 }
-                else if ( *(shared_memory_cmd+100) == 2 ) {
-                    if ( callstorandom > 50000 ) {
-                        setseed();
-                        callstorandom=0;
-                    }
+                else if (*(shared_memory_cmd+100) == 2) {
+                    dataread -= codeDetB;
 
-                    dataread = dataread - 30000000;
-
-                    jlo = (((dataread-1)*(*(shared_memory_cmd+101)))+(*(shared_memory_cmd+102)))/(*(shared_memory_cmd+103));
-                    jhi = ((dataread*(*(shared_memory_cmd+101)))+(*(shared_memory_cmd+102)))/(*(shared_memory_cmd+103));
-                    dataread = ranqd1(idum,jlo,jhi);
-
+                    jlo = static_cast<double>(dataread - 1) * calGrad + calOffs;
+                    jhi = jlo + calGrad;
+                    dataread = static_cast<int>(ranqd1(idum,jlo,jhi));
                 }
-                else {
-                    dataread =dataread -30000000;
-                }
+                else dataread -= codeDetB;
             }
 
-            vectorMap[dataread+5]=vectorMap[dataread+5]+1;
-            if ( dataread > ChMin1 && dataread < ChMax1 ) {
-                vectorMap[2]=vectorMap[2]+1;
-            }
-            if ( dataread > ChMin2 && dataread < ChMax2 ) {
-                vectorMap[3]=vectorMap[3]+1;
-            }
-            if ( dataread > ChMin3 && dataread < ChMax3 ) {
-                vectorMap[4]=vectorMap[4]+1;
-            }
+            if (dataread >= ChMin && dataread <= ChMax) vectorMap[dataread+5] += 1;
+
+            if (dataread >= ChMin1 && dataread <= ChMax1 )      vectorMap[2] += 1;
+            else if (dataread >= ChMin2 && dataread <= ChMax2 ) vectorMap[3] += 1;
+            else if (dataread >= ChMin3 && dataread <= ChMax3 ) vectorMap[4] += 1;
 
             j++;
+            break;
+        default:
+            printf("[!] No valid data found");
             break;
         }
     }
 
+    qDebug()<<ChMin1;
+    qDebug()<<ChMin2;
+    qDebug()<<ChMin3;
+    qDebug()<<ChMax1;
+    qDebug()<<ChMax2;
+    qDebug()<<ChMax3;
 
-    for ( int vectorSize=0; vectorSize<20000; vectorSize++ ) {
-
-        if(vectorSize<5) {
-            *(shared_memory3+vectorSize+mempos)=vectorMap[vectorSize];
+    for (int vectorSize = 0; vectorSize < 20000; vectorSize++) {
+        if (vectorSize < 5) {
+            *(shared_memory3+numdati) = vectorMap[vectorSize];
             numdati++;
         }
-        else {
-            if(vectorMap[vectorSize]!=0) {
-                *(shared_memory3+numdati+mempos)=vectorMap[vectorSize];
-                numdati++;
-                *(shared_memory3+numdati+mempos)=vectorSize-5;
-                numdati++;
-            }
+        else if (vectorMap[vectorSize] != 0) {
+            *(shared_memory3+numdati) = vectorMap[vectorSize];
+            numdati++;
+            *(shared_memory3+numdati) = vectorSize - 5;
+            numdati++;
         }
-
         vectorMap[vectorSize]=0;
     }
-
-    *(shared_memory3+numdati+mempos)=-1;
+    *(shared_memory3+numdati) = -1;
     numdati++;
-
-    qDebug()<<"... Composed element map loaded";
-    *(shared_memory3+numdati+mempos)=-2;
+    *(shared_memory3+numdati) = -2;
+    printf("... Composed element map correctly loaded\n");
     displaySumImage_SHM();
 }

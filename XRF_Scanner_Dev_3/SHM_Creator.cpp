@@ -3,7 +3,7 @@
 #include <../Shm.h>
 
 int shmid[8] = { 0 };
-key_t key, key2, key3, key4, key5, key_cmd, key_rate, key_laser;
+//key_t key, key2, key3, key4, key5, key_cmd, key_rate, key_laser;
 int *shared_memory, *shared_memory2, *shared_memory3, *shared_memory4;
 char*shared_memory5;
 int *shared_memory_cmd, *shared_memory_rate, *shared_memory_laser;
@@ -24,8 +24,8 @@ template <typename T> T* assignSHM(key_t key, size_t size, int id) {
 
 void MainWindow::SHM_CREATOR() {
 
-    key_cmd = 6900, key = 7000, key2 = 7200, key3 = 7300, key4 = 7400, key5 = 8000;
-    key_rate = 7500, key_laser = 7600;
+    key_t key_cmd = 6900, key = 7000, key2 = 7200, key3 = 7300, key4 = 7400, key5 = 8000;
+    key_t key_rate = 7500, key_laser = 7600;
 
     shared_memory_cmd = assignSHM<int>(key_cmd, SHMSZ_CMD_STATUS, 0);
     shared_memory = assignSHM<int>(key, SHMSZ, 1);

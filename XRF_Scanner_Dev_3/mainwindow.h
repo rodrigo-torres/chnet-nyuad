@@ -113,7 +113,7 @@ public:
     void SetCurrentAction(QString);
 
     QVector2D map(int pixX, int pixY);
-    void LoadNewFileWithCorrection_SHM();
+    //void LoadNewFileWithCorrection_SHM();
     void LoadNewFileWithNoCorrection_SHM();
 
 

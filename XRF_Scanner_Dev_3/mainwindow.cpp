@@ -753,11 +753,12 @@ void MainWindow::Treshold()                                         // SPECTRUM:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void MainWindow::LoadNewFile_SHM()                               // LOAD FILE IN MEMORY
-{
-    qDebug()<<"entering LoadNewFile_SHM";
-    if(PixelCorrection)  {qDebug()<<"....enabling correction...";LoadNewFileWithCorrection_SHM(); displayImage_SHM();}
-    if(!PixelCorrection) {qDebug()<<"...no file correction active...";LoadNewFileWithNoCorrection_SHM();displayImage_SHM();}
+void MainWindow::LoadNewFile_SHM() { // Loads a new file in memory
+    //qDebug()<<"entering LoadNewFile_SHM";
+    //if(PixelCorrection)  {qDebug()<<"....enabling correction...";LoadNewFileWithCorrection_SHM(); displayImage_SHM();}
+    //if(!PixelCorrection) {qDebug()<<"...no file correction active...";LoadNewFileWithNoCorrection_SHM();displayImage_SHM();}
+    LoadNewFileWithNoCorrection_SHM();
+    displayImage_SHM();
 }
 
 void MainWindow::LoadElementsMapSum() {
@@ -768,23 +769,23 @@ void MainWindow::LoadElementsMapSum() {
     QLabel *element1label = new QLabel( "First Element (red)" );
     QComboBox *element1comboBox = new QComboBox;
     element1comboBox->insertItems(0, QStringList()
-                                  << QApplication::translate("Element 1", "None", 0)
-                                  << QApplication::translate("Element 1", "Ba", 0)
-                                  << QApplication::translate("Element 1", "Ca", 0)
-                                  << QApplication::translate("Element 1", "K", 0)
-                                  << QApplication::translate("Element 1", "Co", 0)
-                                  << QApplication::translate("Element 1", "Ag", 0)
-                                  << QApplication::translate("Element 1", "Cr", 0)
-                                  << QApplication::translate("Element 1", "Cu", 0)
-                                  << QApplication::translate("Element 1", "PbL", 0)
-                                  << QApplication::translate("Element 1", "Au", 0)
-                                  << QApplication::translate("Element 1", "Hg", 0)
-                                  << QApplication::translate("Element 1", "Si", 0)
-                                  << QApplication::translate("Element 1", "Ti", 0)
-                                  << QApplication::translate("Element 1", "Sn", 0)
-                                  << QApplication::translate("Element 1", "Fe", 0)
-                                  << QApplication::translate("Element 1", "Zn", 0)
-                                  << QApplication::translate("Element 1", "PbM", 0)
+                                  << QApplication::translate("Element 1", "None", nullptr)
+                                  << QApplication::translate("Element 1", "Ba", nullptr)
+                                  << QApplication::translate("Element 1", "Ca", nullptr)
+                                  << QApplication::translate("Element 1", "K", nullptr)
+                                  << QApplication::translate("Element 1", "Co", nullptr)
+                                  << QApplication::translate("Element 1", "Ag", nullptr)
+                                  << QApplication::translate("Element 1", "Mn", nullptr)
+                                  << QApplication::translate("Element 1", "Cu", nullptr)
+                                  << QApplication::translate("Element 1", "PbL", nullptr)
+                                  << QApplication::translate("Element 1", "Au", nullptr)
+                                  << QApplication::translate("Element 1", "Hg", nullptr)
+                                  << QApplication::translate("Element 1", "Si", nullptr)
+                                  << QApplication::translate("Element 1", "Ti", nullptr)
+                                  << QApplication::translate("Element 1", "Sn", nullptr)
+                                  << QApplication::translate("Element 1", "Fe", nullptr)
+                                  << QApplication::translate("Element 1", "Zn", nullptr)
+                                  << QApplication::translate("Element 1", "PbM", nullptr)
                                   );
     connect(element1comboBox, SIGNAL(activated(int)),this, SLOT(SelectionElement1(int)));
 
@@ -792,48 +793,48 @@ void MainWindow::LoadElementsMapSum() {
     QLabel *element2label = new QLabel( "Second Element (green)" );
     QComboBox *element2comboBox = new QComboBox;
     element2comboBox->insertItems(0, QStringList()
-                                  << QApplication::translate("Element 2", "None", 0)
-                                  << QApplication::translate("Element 2", "Ba", 0)
-                                  << QApplication::translate("Element 2", "Ca", 0)
-                                  << QApplication::translate("Element 2", "K", 0)
-                                  << QApplication::translate("Element 2", "Co", 0)
-                                  << QApplication::translate("Element 2", "Ag", 0)
-                                  << QApplication::translate("Element 2", "Cr", 0)
-                                  << QApplication::translate("Element 2", "Cu", 0)
-                                  << QApplication::translate("Element 2", "PbL", 0)
-                                  << QApplication::translate("Element 2", "Au", 0)
-                                  << QApplication::translate("Element 2", "Hg", 0)
-                                  << QApplication::translate("Element 2", "Si", 0)
-                                  << QApplication::translate("Element 2", "Ti", 0)
-                                  << QApplication::translate("Element 2", "Sn", 0)
-                                  << QApplication::translate("Element 2", "Fe", 0)
-                                  << QApplication::translate("Element 2", "Zn", 0)
-                                  << QApplication::translate("Element 2", "PbM", 0)
+                                  << QApplication::translate("Element 2", "None", nullptr)
+                                  << QApplication::translate("Element 2", "Ba", nullptr)
+                                  << QApplication::translate("Element 2", "Ca", nullptr)
+                                  << QApplication::translate("Element 2", "K", nullptr)
+                                  << QApplication::translate("Element 2", "Co", nullptr)
+                                  << QApplication::translate("Element 2", "Ag", nullptr)
+                                  << QApplication::translate("Element 2", "Mn", nullptr)
+                                  << QApplication::translate("Element 2", "Cu", nullptr)
+                                  << QApplication::translate("Element 2", "PbL", nullptr)
+                                  << QApplication::translate("Element 2", "Au", nullptr)
+                                  << QApplication::translate("Element 2", "Hg", nullptr)
+                                  << QApplication::translate("Element 2", "Si", nullptr)
+                                  << QApplication::translate("Element 2", "Ti", nullptr)
+                                  << QApplication::translate("Element 2", "Sn", nullptr)
+                                  << QApplication::translate("Element 2", "Fe", nullptr)
+                                  << QApplication::translate("Element 2", "Zn", nullptr)
+                                  << QApplication::translate("Element 2", "PbM", nullptr)
                                   );
     connect(element2comboBox, SIGNAL(activated(int)),this, SLOT(SelectionElement2(int)));
 
     QLabel *element3label = new QLabel( "Third Element (blue)" );
     QComboBox *element3comboBox = new QComboBox;
     element3comboBox->insertItems(0, QStringList()
-                                  << QApplication::translate("Element 3", "None", 0)
-                                  << QApplication::translate("Element 3", "Ba", 0)
-                                  << QApplication::translate("Element 3", "Ca", 0)
-                                  << QApplication::translate("Element 3", "K", 0)
-                                  << QApplication::translate("Element 3", "Co", 0)
-                                  << QApplication::translate("Element 3", "Ag", 0)
-                                  << QApplication::translate("Element 3", "Cr", 0)
-                                  << QApplication::translate("Element 3", "Cu", 0)
-                                  << QApplication::translate("Element 3", "PbL", 0)
-                                  << QApplication::translate("Element 3", "Au", 0)
-                                  << QApplication::translate("Element 3", "Hg", 0)
-                                  << QApplication::translate("Element 3", "Si", 0)
-                                  << QApplication::translate("Element 3", "Ti", 0)
-                                  << QApplication::translate("Element 3", "Sn", 0)
-                                  << QApplication::translate("Element 3", "Fe", 0)
-                                  << QApplication::translate("Element 3", "Zn", 0)
-                                  << QApplication::translate("Element 3", "PbM", 0)
+                                  << QApplication::translate("Element 3", "None", nullptr)
+                                  << QApplication::translate("Element 3", "Ba", nullptr)
+                                  << QApplication::translate("Element 3", "Ca", nullptr)
+                                  << QApplication::translate("Element 3", "K", nullptr)
+                                  << QApplication::translate("Element 3", "Co", nullptr)
+                                  << QApplication::translate("Element 3", "Ag", nullptr)
+                                  << QApplication::translate("Element 3", "Mn", nullptr)
+                                  << QApplication::translate("Element 3", "Cu", nullptr)
+                                  << QApplication::translate("Element 3", "PbL", nullptr)
+                                  << QApplication::translate("Element 3", "Au", nullptr)
+                                  << QApplication::translate("Element 3", "Hg", nullptr)
+                                  << QApplication::translate("Element 3", "Si", nullptr)
+                                  << QApplication::translate("Element 3", "Ti", nullptr)
+                                  << QApplication::translate("Element 3", "Sn", nullptr)
+                                  << QApplication::translate("Element 3", "Fe", nullptr)
+                                  << QApplication::translate("Element 3", "Zn", nullptr)
+                                  << QApplication::translate("Element 3", "PbM", nullptr)
                                   );
-    connect(element3comboBox, SIGNAL(activated(int)),this, SLOT(SelectionElement3(int)));
+    connect(element3comboBox, SIGNAL(currentIndexChanged(int)),this, SLOT(SelectionElement3(int)));
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox( Qt::Horizontal );
     OKbutton = new QPushButton( "Ok" );
@@ -868,8 +869,12 @@ void MainWindow::LoadElementsMapSum() {
 }
 
 
-void MainWindow::SelectionElement1(int element1)
-{
+void MainWindow::SelectionElement1(int element1) {
+    //QSignalMapper *tmp = new static_cast<QSignalMapper*>(this->sender());
+
+
+
+
     if(element1==0){ChMin1=0; ChMax1=0;}
     else
         if(element1==1){ChMin1=ChMinBa; ChMax1=ChMaxBa;}
@@ -905,15 +910,11 @@ void MainWindow::SelectionElement1(int element1)
                                                                     if(element1==16){ChMin1=ChMinPbM; ChMax1=ChMaxPbM;}
 }
 
-void MainWindow::SelectionElement2(int element2)
-{
-    if(element2==0){ChMin2=0; ChMax2=0;}
-    else
-        if(element2==1){ChMin2=ChMinBa; ChMax2=ChMaxBa;}
-        else
-            if(element2==2){ChMin2=ChMinCa; ChMax2=ChMaxCa;}
-            else
-                if(element2==3){ChMin2=ChMinK; ChMax2=ChMaxK;}
+void MainWindow::SelectionElement2(int element2) {
+    if (element2 == 0) { ChMin2 = 0; ChMax2 = 0; }
+    else if(element2==1){ChMin2=ChMinBa; ChMax2=ChMaxBa;}
+    else if(element2==2){ChMin2=ChMinCa; ChMax2=ChMaxCa;}
+    else if(element2==3){ChMin2=ChMinK; ChMax2=ChMaxK;}
                 else
                     if(element2==4){ChMin2=ChMinCo; ChMax2=ChMaxCo;}
                     else
@@ -977,6 +978,7 @@ void MainWindow::SelectionElement3(int element3)
                                                                 if(element3==15){ChMin3=ChMinZn; ChMax3=ChMaxZn;}
                                                                 else
                                                                     if(element3==16){ChMin3=ChMinPbM; ChMax3=ChMaxPbM;}
+
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
