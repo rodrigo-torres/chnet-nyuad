@@ -1,6 +1,0 @@
-Digitizer_ng.o: Digitizer_ng.c /usr/include/stdc-predef.h \
- ../inc/dppswitch.h
-
-/usr/include/stdc-predef.h:
-
-../inc/dppswitch.h:

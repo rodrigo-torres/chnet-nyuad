@@ -1,4 +1,0 @@
-#### Version 0.0.1 released on 15.06.20 ####
-
-Quick Summary:
-  - First private release for testing purposes

@@ -1,9 +1,0 @@
-#!/usr/bin/gnuplot -persist
-
-set term pngcairo color font "Helvetica,18" fontscale 1.5 size 60cm,45cm
-set output Filename.'.png'
-replot
-set output
-
-set term qt
-

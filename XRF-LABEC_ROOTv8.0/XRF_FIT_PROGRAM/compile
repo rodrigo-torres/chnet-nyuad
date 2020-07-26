@@ -1,7 +1,0 @@
-cd Periodic_Table_Program;
-make;
-cp -p Periodic_Table ../Periodic_Table;
-cd ..
-cd XRF_Fit;
-make;
-cp -p XRF_Fit ../XRF_Fit;

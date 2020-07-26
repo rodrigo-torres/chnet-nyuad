@@ -1,7 +1,0 @@
-#!/usr/bin/gnuplot -persist
-
-m = 0.0334128
-c = 0.015964
-
-FileArray = "20180722.1030_SampleSpot1#3_SC.500s.500v.20x12y_Spectrum"
-uppercount = 4116

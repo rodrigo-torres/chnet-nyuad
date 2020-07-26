@@ -1,3 +1,0 @@
-QColor myColor;
-QRect selectionRect;
-
