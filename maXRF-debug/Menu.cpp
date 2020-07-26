@@ -17,8 +17,6 @@
 #include <mainwindow.h>
 
 
-extern int Resolution_mode;
-
 //QT_BEGIN_NAMESPACE
 
 
@@ -33,7 +31,7 @@ void MainWindow::createActions()
 
     MergeTxtAct = new QAction(tr("MergeMaps"), this);
     MergeTxtAct->setStatusTip(tr("Merge maps with same area"));
-    connect(MergeTxtAct, SIGNAL(triggered()), this, SLOT(MergeTxt()));
+    //connect(MergeTxtAct, SIGNAL(triggered()), this, SLOT(MergeTxt()));
 
     SaveTxtAct = new QAction(tr("SaveMap"), this);
     SaveTxtAct->setStatusTip(tr("Save map"));

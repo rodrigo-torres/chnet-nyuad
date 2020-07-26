@@ -1,30 +1,17 @@
 ﻿#include "../Header.h"
 #include "mainwindow.h"
 
-
-extern double ZPosition;
- QString KeyenceValue;
-extern int serialK,serialZ;
+extern void tty_read(int port, char *ans, unsigned long wait = 0);
 extern int tty_send(int chan,const char *comando, const char *parametri, int port);
 
-extern bool AutofocusOn, ZOnTarget;
- string checkK;
+extern bool AutofocusOn, RunTracking;
+extern double ZPosition, Autofocus_value;
+extern int serialK, serialZ, servo_thresh;
 
-double Autofocus_value=0;  double Autofocus_average_value=0;
-
-extern char process[30];
-
-double NewPositionValue;
-
-int AutofocusIndex=0;             int AutofocusStore=0;      int DistanceLevel;           int NewPosInt=1000;    
-
-bool ValueInRange=false; bool RunTracking=false;
-
-bool condition2=false;
-
+int servo_thresh = 200;
+bool RunTracking = false;
+double Autofocus_value = 0;
 extern QString stylesheet3;
-
-
 
 void MainWindow::Autofocus2() {
     if (AutofocusOn) {
@@ -85,6 +72,7 @@ string read_ACMport() { // The serial print of the Arduino is set to return 6 ch
     }
 
 void MainWindow::readKeyence() {
+    string checkK;
     try {
         checkK = read_ACMport();
     } catch (const std::invalid_argument& e) {
@@ -95,61 +83,56 @@ void MainWindow::readKeyence() {
         return;
     }
 
-    KeyenceValue = "";
+    QString KeyenceValue = "";
     KeyenceValue.append(checkK.data());
     KeyenceValue.truncate(6);
-    Autofocus_value=KeyenceValue.toDouble();
+    Autofocus_value = KeyenceValue.toDouble();
+    Autofocus_value = (-1) * Autofocus_value;
 
-    Autofocus_average_value=-Autofocus_value;
-
-    //if (abs(floor(Autofocus_average_value)) > 7) stop_motorXY();
-
-    if ( (Autofocus_average_value <= (15.0)) && ( Autofocus_average_value > (-15.0)) ) {
+    bool in_range = false;
+    if ( (Autofocus_value <= (15.0)) && ( Autofocus_value > (-15.0)) ) {
         //qDebug()<<Autofocus_average_value;
-        ValueInRange=true;
-        QString valueAsString = QString::number(Autofocus_average_value, 'f', 3);
+        in_range=true;
+        QString valueAsString = QString::number(Autofocus_value, 'f', 3);
         valueAsString.prepend("Target distance: ");
         valueAsString.append(" mm");
         lineEdit_2_tab_4->setText(valueAsString);
     }
 
     else {
-        qDebug()<<"[!] Laser out of range, autofocus value: "<<Autofocus_average_value;
-        ValueInRange=false;
+        qDebug()<<"[!] Laser out of range, autofocus value: "<<Autofocus_value;
         lineEdit_2_tab_4->setText("[!] Out of range");
     }
 
-    if (RunTracking && ValueInRange) AutoFocusRunning();
+    if (RunTracking && in_range) AutoFocusRunning();
+    in_range = false;
 }
 
 
 
 void MainWindow::AutoFocusRunning() {
-            NewPositionValue = (ZPosition + Autofocus_average_value);
-            DistanceLevel = abs(qRound(Autofocus_average_value * 1000));
+    int DistanceLevel = abs(qRound(Autofocus_value * 1000));
+    double NewPositionValue = (ZPosition + Autofocus_value);
+    double vel = static_cast<double>(DistanceLevel / 2000);
 
-            char v[10];
+    char buff[50];
+    if (DistanceLevel < servo_thresh) {
+        tty_send(1, "HLT", nullptr, serialZ);
+        tty_send(1, "ERR?", nullptr, serialZ);
 
-            /* [Doc.]   The following modifies the velocity of the Z-motor accordint to the difference between the current Z-motor position,
-             *          and the desired Z-motor position. Then issues a command to the Z-motor to move with the specified velocity to the calculated
-             *          position.
-             */
-            if (DistanceLevel>=5000)                         { sprintf(v, "%f", 2.50); tty_send(1, "VEL", v,serialZ); }
-            if ((DistanceLevel>=3000)&&(DistanceLevel<5000)) { sprintf(v, "%f", 1.50); tty_send(1, "VEL", v,serialZ); }
-            if ((DistanceLevel>=1000)&&(DistanceLevel<3000)) { sprintf(v, "%f", 1.00); tty_send(1, "VEL", v,serialZ); }
-            if ((DistanceLevel>=500)&&(DistanceLevel<1000))  { sprintf(v, "%f", 0.50); tty_send(1, "VEL", v,serialZ); }
-            if ((DistanceLevel>=200)&&(DistanceLevel<500))   { sprintf(v, "%f", 0.25); tty_send(1, "VEL", v,serialZ); }
-            if (DistanceLevel < 200)	                     { tty_send(1,"HLT",NULL,serialZ); return; }
+        tty_read(serialZ, buff);
+        int ret = strncmp(buff, "0", sizeof ("0"));
+        if (ret != 0) qDebug()<<"[!] Stage Z motor stopped through servo with error: "<<buff;
+        return;
+    }
+    else {
+        char v[10];
+        sprintf(v, "%f", vel);
+        tty_send(1, "VEL", v, serialZ);
 
-            //NewPosInt=qRound(NewPositionValue*1000);
-            //if (ZOnTarget) return;
-            if (DistanceLevel > 500) {
-                //AutofocusStore=NewPosInt;
-                char sx[100];
-                sprintf(sx,"%f",NewPositionValue);
-                tty_send(1,"MOV",sx,serialZ);
-            }
-            ValueInRange=false;
+        sprintf(buff, "%f", NewPositionValue);
+        tty_send(1, "MOV", buff, serialZ);
+    }
 }
 
 
@@ -180,20 +163,21 @@ void MainWindow::TrackingON() {
 
 
 void MainWindow::Focustimer() {
-    //if (noKeyence_init) Init_KeyenceLaser();
-//    if (AutofocusOn) {
-//        send_command(1,"POS?",NULL,serialZ);
-//        QString store = QString::fromStdString(read_answer(serialZ));
-//        store.remove(0,2);
-//        ZPosition = store.toDouble();
+    if (AutofocusOn) {
+        tty_send(1, "POS?", nullptr, serialZ);
+
+        char ans[30];
+        tty_read(serialZ, ans);
+        QString store(ans);
+        ZPosition = store.toDouble();
 
 
-//        QString posLabelZ = "Stage Z: ";
-//        posLabelZ.append(store);
-//        posLabelZ.append(" mm");
-//        CurrentActionZ->setText(posLabelZ);
-//        CurrentActionZ->setStyleSheet(stylesheet3);
-//    }
+        QString posLabelZ = "Stage Z: ";
+        posLabelZ.append(store);
+        posLabelZ.append(" mm");
+        CurrentActionZ->setText(posLabelZ);
+        CurrentActionZ->setStyleSheet(stylesheet3);
+    }
 
     readKeyence();
 }

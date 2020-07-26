@@ -5,7 +5,7 @@
 extern double X_goto, Y_goto, Z_goto, Px, Py, Pz;
 extern int IniXready, IniYready;
 extern int *shared_memory, *shared_memory_cmd;
-extern bool XYscanning, XOnTarget, YOnTarget, ZOnTarget;
+extern bool XYscanning, stage_on_target[3];
 
 extern int serialX, serialY, serialZ;
 extern int tty_send(int chan,const char *comando, const char *parametri,int port);
@@ -16,19 +16,19 @@ void MainWindow::moveStage(double pos, int serial) {
     sprintf(stemp, "%f", pos / 1000);
     tty_send(1, "MOV", stemp, serial);
 
-    if (serial == serialX)      XOnTarget = false;
-    else if (serial == serialY) YOnTarget = false;
-    else if (serial == serialZ) ZOnTarget = false;
+    if (serial == serialX)      stage_on_target[0] = false;
+    else if (serial == serialY) stage_on_target[1] = false;
+    else if (serial == serialZ) stage_on_target[2] = false;
     else printf("[!] Unknown device handler\n");
 }
 
 void MainWindow::slotMoveStage(int id) {
     if (id > 2) slotMoveFine(id);
 
-    if (id == 0 && XOnTarget)       moveStage(X_goto, serialX);
-    else if (id == 1 && YOnTarget)  moveStage(Y_goto, serialY);
-    else if (id == 2 && ZOnTarget)  moveStage(Z_goto, serialZ);
-    else if (!XOnTarget || !YOnTarget || !ZOnTarget) printf("[!] Stage not on target, please wait");
+    if (id == 0 && stage_on_target[0])       moveStage(X_goto, serialX);
+    else if (id == 1 && stage_on_target[1])  moveStage(Y_goto, serialY);
+    else if (id == 2 && stage_on_target[2])  moveStage(Z_goto, serialZ);
+    else if (!stage_on_target[0] || !stage_on_target[1] || !stage_on_target[2]) printf("[!] Stage not on target, please wait");
     else printf("[!] Unknown signal sender\n");
 }
 
@@ -55,18 +55,18 @@ double MainWindow::moveStep(double step, int serial, bool *condition, bool dir) 
 }
 
 void MainWindow::slotMoveFine(int id) {
-    if (id == 3)        moveStep(Px, serialX, &XOnTarget, true);
-    else if (id == 4)   moveStep(Px, serialX, &XOnTarget, false);
-    else if (id == 5)   moveStep(Py, serialY, &YOnTarget, true);
-    else if (id == 6)   moveStep(Py, serialY, &YOnTarget, false);
-    else if (id == 7)   moveStep(Pz, serialZ, &ZOnTarget, true);
-    else if (id == 8)   moveStep(Pz, serialZ, &ZOnTarget, false);
+    if (id == 3)        moveStep(Px, serialX, &stage_on_target[0], true);
+    else if (id == 4)   moveStep(Px, serialX, &stage_on_target[0], false);
+    else if (id == 5)   moveStep(Py, serialY, &stage_on_target[1], true);
+    else if (id == 6)   moveStep(Py, serialY, &stage_on_target[1], false);
+    else if (id == 7)   moveStep(Pz, serialZ, &stage_on_target[2], true);
+    else if (id == 8)   moveStep(Pz, serialZ, &stage_on_target[2], false);
 }
 
 
 void MainWindow::MoveDoubleClick() {
     if( *(shared_memory+19) == 1) {
-        if (XOnTarget==true && YOnTarget==true && XYscanning==false && IniXready==1 && IniYready==1) {
+        if (stage_on_target[0]==true && stage_on_target[1]==true && XYscanning==false && IniXready==1 && IniYready==1) {
             moveStage(*(shared_memory_cmd+64), serialX);
             moveStage(*(shared_memory_cmd+65), serialY);
             printf("[!] Moving motors to the position clicked\n");

@@ -2,16 +2,11 @@
 #include "../Header.h"
 #include <../Shm.h>
 
-extern bool TimerActive, FirstRun;
-extern bool XYscanning, XOnTarget, YOnTarget, YHasMoved;
-extern double positionX, positionY, V, Xmax, Xmin, Ymax, Ymin, tempoPos, Py;
+extern bool XYscanning, stage_on_target[3], YHasMoved;
+extern double positionX, positionY, scan_velocity, Xmax, Xmin, Ymax, Ymin, time_per_pixel, Py;
 extern double Xmin1, Xmax1, Ymin1, Ymax1;
 
-extern int interval;     extern int NscanX;             extern int  onlyOne;
 extern int DAQ_TYPE;
-
-
-extern float Yo,vy,Xo,vx,temp;
 
 extern int serialX, serialY;
 extern int tty_send(int chan,const char *comando, const char *parametri, int port);
@@ -31,7 +26,7 @@ bool MainWindow::StartXYScan() {
 
         // The acceleration of the motor is specified as 200 mm/s
         // The variable V is the desired motor velocity specified in the GUI
-        accelerationtime = (V / 200);
+        accelerationtime = (scan_velocity / 200);
         posXforacceleration = 100 * 1000 * (accelerationtime * accelerationtime); //in um
         accelerationtimesleep = round(accelerationtime * 1000) + 23;
         //printf("... Acquisition sleep to account for acceleration set at:%d ms\n", accelerationtimesleep);
@@ -52,7 +47,7 @@ bool MainWindow::StartXYScan() {
                 }
             }
         }
-        if (XOnTarget == true && YOnTarget == true) { // If motors are stationary, move to scan origin
+        if (stage_on_target[0] == true && stage_on_target[1] == true) { // If motors are stationary, move to scan origin
             tty_send(1,"VEL 1 10",NULL,serialX);
             tty_send(1,"VEL 1 10",NULL,serialY);
             positionX = Xmin - posXforacceleration;
@@ -77,10 +72,10 @@ bool MainWindow::StartXYScan() {
 
 
 void MainWindow::ScanXY() {
-    if (!XOnTarget || !YOnTarget) return;
+    if (!stage_on_target[0] || !stage_on_target[1]) return;
     if (positionY == Ymin1) { // Sets the velocity for the scan
         char v[10];
-        sprintf(v,"%f",V);
+        sprintf(v,"%f",scan_velocity);
         tty_send(1,"VEL",v,serialX);
         *(shared_memory_cmd+70) = 1;
     }
@@ -109,7 +104,7 @@ void MainWindow::ScanXY() {
             YHasMoved  = true;
             if (*(shared_memory_cmd+70) == 1) {
                 int counting = 0;
-                while (*(shared_memory2+8) != 1 && counting < 5) { Sleeper::msleep(tempoPos); counting++; }
+                while (*(shared_memory2+8) != 1 && counting < 5) { Sleeper::msleep(time_per_pixel); counting++; }
                 *(shared_memory2+8) = 0;
                 *(shared_memory_cmd+70) = 0;
                 SaveTxt();

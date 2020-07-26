@@ -5,53 +5,40 @@
 #include <../Shm.h>
 #include <unistd.h>
 #include <QThread>
+#include <all_tty.h>
 
 extern int shmid[];
-extern int Resolution_mode;
-extern double numpixelforaccel;
 extern double posXforacceleration;
 extern double accelerationtime;
 extern int accelerationtimesleep;
 extern double Px;
 
+extern controller *controller_ptr;
 
-bool PixelCorrection=false;  bool OnLine=false;         bool MapIsOpened=false;  bool CameraOn=false;
-bool okX=false;              bool okY=false;          bool energychanged=false;
-bool FirstRun=true;          bool opened=false;       bool XConnected=false;     bool YConnected=false;   bool TimerActive=false;
-bool XOnTarget=false;        bool YOnTarget=false;    bool XHasMoved=true;       bool Xmoving=false;      bool Ymoving=false;
-bool XYscanning=false;       bool YXscanning=false;   bool YHasMoved=true;       bool okZ=false;          bool TimerZActive=false;
-bool ZConnected=false;       bool ZOnTarget=false;    bool ZHasMoved=true;       bool Zmoving=false;
-bool InitY=false;        bool InitZ=false;          bool AutofocusOn=false;
+bool MapIsOpened = false;
+bool CameraOn = false;
+bool energychanged = false;
 
-int i=0;                     int j=0;                 int n=1;                   int MergePos=0;          int mempos=0; //memory position histo
-int Pixeldim=1;              int EventOffset=0;       int nz=1;                  int missing=1;           int measuring_time=300;
-int OffsetX;                 int OffsetY;             int NshiftY=0;             int onlyOne=0;           int NshiftX=0;/////o 1???
-int point;                   int Clock=0;             int Clock2=0;              int ClockMotore=0;       int ClockZ=0;
-int casenumber=4;            int interval = 250;        int NscanX=0;              int NscanY=0;            int StoredPoint=0;
-int eventionline=0;          int m=1;
+extern bool stage_on_target[3];
+bool stage_on_target[] = { false };
 
-double positionX=100;        double valueY;           double ZPosition=25.0;    double tempoPos=1000;     double V=1;
-double positionY=100;        double valueX;           double ChMin=3;           double ChMax=16384;       double Vz=1;
-double tempoPosZ=1000;       double valueZ;           double positionZ;         double Pz=250;            double x_image;
-double y_image;              double x_image2;         double y_image2; 
+bool XYscanning = false, YHasMoved = true;
 
-float Yo;                    float vy;                float Xo;                 float vx;                 float vz;
-float temp;                  
+bool AutofocusOn=false;
+
+int measuring_time = 300; // for single-spectrum DAQ
+int point, OffsetX, OffsetY, Pixeldim = 1; // for XRF map display
+
+double positionX = 100, positionY = 100, scan_velocity = 1, time_per_pixel = 1000; // for scan limits
+double ZPosition = 25.0;
+double ChMin = 3, ChMax = 16384; // for spectrum scale
+double Pz = 250;
+double x_image, y_image, x_image2, y_image2;
 
 char process[30];
 
-QString NowZ="Z= ";      QString current_posZ;     QString NowX="X= ";       QString NowY="Y= ";
-
 struct Pixel_BIG *Pointer; //puntatore da far puntare a PixelsMappa una volta creato
 
-//////////// ADDED VARIABLES FOR DEVELOP VERSION (Bart_PE)
-
-int selected_Xmotor = 3, selected_Ymotor = 3, selected_Zmotor = 1;
-
-bool InitPhaseY=false; bool InitPhaseZ=false;
-int nxInit=0, nyInit=0, nzInit=0; // used for motor initialisation
-
-///////////////Variables for the composed map visualization (sum of three different elements)///////////
 double ChMin1=0, ChMax1=0, ChMin2=0, ChMax2=0, ChMin3=0, ChMax3=0;
 
 
@@ -81,7 +68,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     scrollArea->setAlignment(Qt::AlignCenter);
 
     timer = new QTimer(this);                                                // TIMER for program control
-    connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
+    connect(timer, SIGNAL(timeout()), this, SLOT(tty_timer()));
 
     timerAutofocus =new QTimer(this);                                        // TIMER for RECORDING Z DISTANCE FROM TARGET
     connect(timerAutofocus, SIGNAL(timeout()), this, SLOT(Focustimer()));
@@ -154,11 +141,11 @@ void MainWindow::hideImage() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void MainWindow::timerEvent() {
+void MainWindow::tty_timer() {
 
-    if (InitZ && !AutofocusOn) stage_check_on_target(serialZ, 2);
+    if (IniZready && !AutofocusOn) stage_check_on_target(serialZ, 2);
     if (IniXready) stage_check_on_target(serialX, 0);
-    if (InitY) stage_check_on_target(serialY, 1);
+    if (IniYready) stage_check_on_target(serialY, 1);
     if (XYscanning)ScanXY();
     //if(AutofocusOn)AutoFocusRunning();
     MoveDoubleClick();
@@ -179,6 +166,8 @@ int tty_send(int channel,const char *command, const char *parameter, int port) {
 
     if (parameter == nullptr) cm = cm + '\n';
     else cm = cm + ' ' + chan + ' ' + parameter + '\n';
+
+    const char *temp =cm.c_str();
 
     long n = write(port, cm.data(), cm.size());
     tcdrain(port);
@@ -202,7 +191,7 @@ void tty_read(int port, char *ans, unsigned long wait = 0) {
         else size += n;
     }
     if (n < 0) throw std::runtime_error(strerror(errno));
-    strncpy(ans, buff, static_cast<unsigned long>(size));
+    strcpy(ans, buff);
     if (ans[size-1] == '\n') ans[size-1] = '\0';
 }
 
@@ -235,7 +224,7 @@ void MainWindow::stage_check_on_target(int serial, int id) {
     const char prefix[] = "Stage ";
     const char *axes[]  = { "X: ", "Y: ", "Z: "};
     QLineEdit *monitors[] = { CurrentActionX, CurrentActionY, CurrentActionZ };
-    bool *on_target[] = { &XOnTarget, &YOnTarget, &ZOnTarget };
+    bool *on_target[] = { &stage_on_target[0], &stage_on_target[1], &stage_on_target[2] };
 
     char ans[15] = { '\0' };
     tty_send(1, "ONT?", nullptr, serial); // Expected a response with format 1=%d with %d = 1,0
@@ -261,7 +250,6 @@ void MainWindow::stage_check_on_target(int serial, int id) {
     if (id == 2) {
         QString temp = &ans2[2];
         ZPosition = temp.toDouble();
-        qDebug()<<ZPosition;
     }
 
     char message[25] = { '\0' };
@@ -276,7 +264,7 @@ void MainWindow::stage_check_on_target(int serial, int id) {
 
 void MainWindow::Enable_TabWidget_3_4_XY()                                           // ENABLING XY MOVE WIDGET
 {
-    if(IniXready && InitY){tab2_3->setEnabled(true); tab2_4->setEnabled(true);}
+    if(IniXready && IniYready){tab2_3->setEnabled(true); tab2_4->setEnabled(true);}
 }
 
 
@@ -289,14 +277,14 @@ void MainWindow::Enable_TabWidget_3_4_XY()                                      
 
 void MainWindow::Velocity(double number)                       // MOTOR SETTINGS XY VELOCITY
 {
-    V=number;
-    int V_adc=V*1000;
+    scan_velocity=number;
+    int V_adc=scan_velocity*1000;
     printf("V_adc:%d\n", V_adc);
     *(shared_memory_cmd+67)=V_adc;
-    tempoPos=Px/V;
-    qDebug()<<"velocità "<<V<<"mm/s"<<"Scrittura posizione ogni "<<tempoPos<<" ms";
+    time_per_pixel=Px/scan_velocity;
+    qDebug()<<"velocità "<<scan_velocity<<"mm/s"<<"Scrittura posizione ogni "<<time_per_pixel<<" ms";
     char v[10];
-    sprintf(v,"%f",V);
+    sprintf(v,"%f",scan_velocity);
     tty_send(1,"VEL",v,serialX);
     tty_send(1,"VEL",v,serialY);
 }
@@ -311,16 +299,12 @@ void MainWindow::Xminimo(double number2)                         // MOTOR SETTIN
 {Xmin1=number2*1000;  positionX=Xmin1; *(shared_memory_cmd+50)=Xmin1;}
 void MainWindow::Yminimo(double number3) 
 {Ymin1=number3*1000;  positionY=Ymin1; *(shared_memory_cmd+52)=Ymin1;}
-void MainWindow::Zminimo(double number2) 
-{Zmin1=number2*1000;  positionZ=Zmin1; *(shared_memory_cmd+54)=Zmin1;}
 
 
 void MainWindow::Xmassimo(double number3)                         // MOTOR SETTINGS MAXIMUM POSITION
 {Xmax1=number3*1000; *(shared_memory_cmd+51)=Xmax1;}
 void MainWindow::Ymassimo(double number7) 
 {Ymax1=number7*1000; *(shared_memory_cmd+53)=Ymax1;}
-void MainWindow::Zmassimo(double number3) 
-{Zmax1=number3*1000; *(shared_memory_cmd+55)=Zmax1;}
 
 
 void MainWindow::X_to(double number9)                             // MOTOR SETTINGS GO_TO
@@ -336,52 +320,21 @@ void MainWindow::StartX() {
 }
 
 
-void MainWindow::StartY()                                          // MOTOR START Y
-{
-    if(!okY)
-    {
-        okY=true;
-        Init_Ymotor();
-        if(IniXready && InitY)
-        {
-            tab2_3->setEnabled(true);
-            tab2_4->setEnabled(true);
-        }
-    }
-    else
-    {
-        qDebug() <<"...Already initing...";
-    }
+void MainWindow::StartY() {
+    Init_Ymotor();
 }
 
 
-void MainWindow::StartZ()                                          // MOTOR START Z
-{
-    if(!okZ)
-    {
-        okZ=true;
+void MainWindow::StartZ() {
         Init_Zmotor();
-    }
-    else
-    {
-        qDebug() <<"Init already done...";
-    }
 }
 
 
-void MainWindow::stop_motorXY() {
-    int fds[] = { serialX, serialY, serialZ };
-    for (int i = 0; i < static_cast<int>(sizeof(fds)); i++) {
-        int t = isatty(fds[i]);
-        if (t == 0) continue;
-
-        char ans[15] = { '\0' };
-        tty_send(1, "HLT", nullptr, fds[i]);
-        tty_send(1, "ERR?", nullptr, fds[i]);
-        tty_read(fds[i], ans);
-
-        qDebug()<<"[!] Linear stage at FD "<<fds[i]<<"halted with error code: "<<ans;
-    }   // Error code should be 10: "Controller stopped on command"
+void MainWindow::set_abort_flag() { // raises a flag for abortion
+    QMutex m;
+    m.lock();
+    *(shared_memory_cmd+200) = 1;
+    m.unlock();
 }
 
 
@@ -458,10 +411,9 @@ void MainWindow::CheckSegFault()                           // DAQ: MEMORY CONTRO
             qDebug()<<"[!] Acquisition interrumpted because shared memory is full";
         }
 
-        if(XYscanning==true || YXscanning==true)
+        if(XYscanning==true)
         {
             XYscanning=false;
-            YXscanning=false;
             Abort();
             qDebug()<<"[!] Scan interrumpted because shared memory is full";
         }
@@ -746,17 +698,6 @@ void MainWindow::SaveTxt() { //scrive Position.txt leggendo i dati in memoria
     tcflush(serialK, TCIFLUSH);
 }
 
-void MainWindow::MergeTxt()  //carica File.txt in memoria
-{
-    MergePos=*(shared_memory+22);
-    if(MergePos==0)
-    {
-        system("./QT_Position  & ");
-        MergePos=1;
-        *(shared_memory+22)=MergePos;
-    }
-    else qDebug()<<"...program already running...\n";
-}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -792,7 +733,6 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     event->ignore();
 
     int processIDs[7][2] = { { 0 }, { 0 } };
-    int processLaser = *(shared_memory_laser+40) ;
 
     printf("\n... Terminating data acquisition session\n");
     if (*(shared_memory_cmd+70)) *(shared_memory_cmd+70) = 0;
@@ -810,14 +750,9 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     shmdt(shared_memory4);
     shmdt(shared_memory5);
     shmdt(shared_memory_rate);
-    shmdt(shared_memory_laser);
     shmdt(shared_memory_cmd);
 
     qDebug()<<"... Killing child processes";
-
-    sprintf(process, "kill -s TERM %i &", processLaser);
-    system(process);
-
     for (int i = 0; i < 7; i++) {
         if (processIDs[i][0] == 1) {
             qDebug()<<"... Killing process with ID: "<<processIDs[i][1];
@@ -825,6 +760,8 @@ void MainWindow::closeEvent(QCloseEvent *event) {
             system(process);
         }
     }
+
+    if (controller_ptr != nullptr) delete controller_ptr;
 
     event->accept();
 }

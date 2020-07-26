@@ -3,10 +3,9 @@
 #include <../Shm.h>
 
 int shmid[8] = { 0 };
-//key_t key, key2, key3, key4, key5, key_cmd, key_rate, key_laser;
 int *shared_memory, *shared_memory2, *shared_memory3, *shared_memory4;
 char*shared_memory5;
-int *shared_memory_cmd, *shared_memory_rate, *shared_memory_laser;
+int *shared_memory_cmd, *shared_memory_rate;
 
 extern int MotoreWindowStatus, CentralWindowStatus;
 extern int portX, portY, portZ, IniX, IniY, IniZ, IniXready, IniYready, SerialiStatus, pixel_Xstep, pixel_Ystep, PassoZ;
@@ -25,7 +24,7 @@ template <typename T> T* assignSHM(key_t key, size_t size, int id) {
 void MainWindow::SHM_CREATOR() {
 
     key_t key_cmd = 6900, key = 7000, key2 = 7200, key3 = 7300, key4 = 7400, key5 = 8000;
-    key_t key_rate = 7500, key_laser = 7600;
+    key_t key_rate = 7500;
 
     shared_memory_cmd = assignSHM<int>(key_cmd, SHMSZ_CMD_STATUS, 0);
     shared_memory = assignSHM<int>(key, SHMSZ, 1);
@@ -34,7 +33,6 @@ void MainWindow::SHM_CREATOR() {
     shared_memory4 = assignSHM<int>(key4, SHMSZDIGI, 4);
     shared_memory5 = assignSHM<char>(key5, 4096, 5);
     shared_memory_rate = assignSHM<int>(key_rate, SHMSZRATE, 6);
-    shared_memory_laser = assignSHM<int>(key_laser, 4096, 7);
 
 
     ////////////////   SHARED MEMORY STARTING CONFIGURATION   ///////////////////////////////////////
@@ -100,9 +98,9 @@ void MainWindow::SHM_CREATOR() {
                     *(shared_memory_cmd+102)=0;                  /// Multidetector linear (B) calibration parameter (for sum mode)
                     *(shared_memory_cmd+103)=1;                  /// Multidetector scale factor calibration parameter (number to which parameters A and B parameters must be divided since shared memory does not accept double values)
                     *(shared_memory_cmd+105)=0;
-                    *(shared_memory_laser+5)=0;
-                    *(shared_memory_laser+10)=20;
-                    *(shared_memory_laser+20)=0;
+
+        /* Variables for communication between threads, when modifying these always need to be locked */
+                    *(shared_memory_cmd+200) = 0;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

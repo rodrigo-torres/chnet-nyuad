@@ -2,135 +2,143 @@
 #include "../Header.h"
 #include <../Shm.h>
 #include <time.h>
+#include <fstream>
+#include <all_tty.h>
 
+controller *controller_ptr = nullptr;
+
+extern int* shared_memory_cmd;
+
+// Since qtimers cannot be started from a different thread, we're constricted to using QTHREAD
+mutex m_lock;
 // These are global variables used in the time stamp of the scan function.
-extern int interval;
-extern bool TimerActive;
+int interval = 250;
+bool TimerActive = false;
 
-// These are global variables that act as indicators of the state of the motors.
-extern bool okX,okY,okZ;
-extern bool InitY,InitZ;
-extern bool IniXready, IniYready, IniZready;
-extern bool InitPhaseY,InitPhaseZ;
-extern bool XConnected,Xmoving,YConnected,Ymoving,ZConnected, ZOnTarget;
-extern bool XOnTarget, YOnTarget, ZOnTarget;
+extern int IniXready, IniYready, IniZready;
+extern bool stage_on_target[3];
 
 // These are global variables that specify the file descriptors for the USB ports and the type of motors used.
 extern int serialX,serialY,serialZ;
-extern int selected_Xmotor,selected_Ymotor,selected_Zmotor;
 
 // These are global functions used to commmunicate to the motors through the file descriptors.
 extern int tty_send(int channel, const char *command, const char *parameter, int port);
-//extern string read_answer(int port);
+void tty_read(int port, char *ans, unsigned long wait = 0);
 
-void modSendCmd(int ch, const char* cmd, const char* val, int port) {
-    tty_send(ch, cmd, val, port);
-    Sleeper::msleep(100);
+all_tty::all_tty(MainWindow *ptr) : _ptr(ptr) {
+    int val  = -1;
+    val = ptr->spinBox_assignX->value();
+    qDebug()<<"pointer to class MainWindow succesfully passed, spinboxX value: "<<val;
 }
 
-int loadparam_M404_2pd(int port) {
-    qDebug()<<"... Loading initialization parameters for Physik Instrumente M-404.2PD\n";
-
-    modSendCmd(1,"SPA"," 60 M-404.2PD",port);
-    modSendCmd(1,"SPA"," 1 180",port);
-    modSendCmd(1,"SPA"," 2 45",port);
-    modSendCmd(1,"SPA"," 3 300",port);
-    modSendCmd(1,"SPA"," 4 2000",port);
-    modSendCmd(1,"SPA"," 14 4000",port);
-    modSendCmd(1,"SPA"," 15 1",port); ////0.064285257
-    modSendCmd(1,"SPA"," 19 0",port);
-    modSendCmd(1,"SPA"," 20 1",port);        //si usano i limit switches dell'hardware (top e bottom)
-    modSendCmd(1,"SPA"," 21 50.",port);       //Max spostamento in positivo da home (0)
-    modSendCmd(1,"SPA"," 22 25.",port);   //Value at Reference position
-    modSendCmd(1,"SPA"," 23 25.",port);  //Distanza tra Ref e Neg-lim
-    modSendCmd(1,"SPA"," 47 25",port);    //Distanza tra Ref e Pos-lim
-    modSendCmd(1,"SPA"," 24 0",port);          //0 i limit switches sono attivi alti...va come 49
-    modSendCmd(1,"SPA"," 48 0.000000",port);  //Max spostamento in negativo da home (0)
-    modSendCmd(1,"SPA"," 49 0",port);        //0 non si inverte il riferimento
-    modSendCmd(1,"SPA"," 50 0",port);      //0 Abiintervallita lo stop ai limit switches dell'hardware
-    modSendCmd(1,"SPA"," 8 0.5",port);    //8 10 e 11 per ultimi senno' li ricambia 0.035156
-    modSendCmd(1,"SPA"," 10 50",port);   // velocita'
-    modSendCmd(1,"SPA"," 11 30",port);  //Accelerazione
-    modSendCmd(1,"SPA"," 117442049 MM",port);  //Unita'
-
-    return 1;
-}
-
-int loadparam_M404_8pd(int port) {
-    qDebug()<<"... Loading initialization parameters for Physik Instrumente M-404.8PD\n";
-
-    modSendCmd(1,"SPA"," 60 M-404.8PD",port);
-    modSendCmd(1,"SPA"," 1 180",port); //primo numero canale SPA secondo numero valore
-    modSendCmd(1,"SPA"," 2 45",port);
-    modSendCmd(1,"SPA"," 3 300",port);
-    modSendCmd(1,"SPA"," 4 2000",port);
-    modSendCmd(1,"SPA"," 14 4000",port);
-    modSendCmd(1,"SPA"," 15 1",port); ////0.064285257
-    modSendCmd(1,"SPA"," 19 0",port);
-    modSendCmd(1,"SPA"," 20 1",port);        //si usano i limit switches dell'hardware (top e bottom)
-    modSendCmd(1,"SPA"," 21 200.",port);       //Max spostamento in positivo da home (0)
-    modSendCmd(1,"SPA"," 22 100.",port);   //Value at Reference position
-    modSendCmd(1,"SPA"," 23 100.",port);  //Distanza tra Ref e Neg-lim
-    modSendCmd(1,"SPA"," 47 100",port);    //Distanza tra Ref e Pos-lim
-    modSendCmd(1,"SPA"," 24 0",port);          //0 i limit switches sono attivi alti...va come 49
-    modSendCmd(1,"SPA"," 48 0.000000",port);  //Max spostamento in negativo da home (0)
-    modSendCmd(1,"SPA"," 49 0",port);        //0 non si inverte il riferimento
-    modSendCmd(1,"SPA"," 50 0",port);      //0 Abilita lo stop ai limit switches dell'hardware
-    modSendCmd(1,"SPA"," 8 0.5",port);    //8 10 e 11 per ultimi senno' li ricambia 0.035156
-    modSendCmd(1,"SPA"," 10 50",port);   // velocita'
-    modSendCmd(1,"SPA"," 11 200",port);  //Accelerazione
-    modSendCmd(1,"SPA"," 117442049 MM",port);  //Unita'
-
-    return 1;
-}
-
-
-void MainWindow::moveToRef(float refpos, int serial) {
+void all_tty::abort() {
     int fds[] = { serialX, serialY, serialZ };
-    int id = -1;
-    for (int i = 0; i < static_cast<int>(sizeof(fds)); i++) {
-        if (fds[i] == serial) id = i;
+    for (int i = 0; i < 3; i++) {
+        if (!isatty(fds[i])) continue ;
+
+        char ans[15] = { '\0' };
+        tty_send(1, "HLT", nullptr, fds[i]);
+        tty_send(1, "ERR?", nullptr, fds[i]);
+        tty_read(fds[i], ans);
+
+        qDebug()<<"[!] Linear stage at FD "<<fds[i]<<"halted with error code: "<<ans;
+    }   // Error code should be 10: "Controller stopped on command"
+}
+
+int all_tty::mod_tty_send(int fd, string line) {
+    char buff[100];
+    strncpy(buff, line.c_str(), sizeof (buff));
+
+    char delim[] = " ";
+    char *params[5] = { strtok(buff, delim), nullptr };
+
+    int i = 0;
+    while (params[i] != nullptr) {
+        params[++i] = strtok(nullptr, delim);
+        if (i == sizeof (params) - 1) break; // Preventing segmentation fault errors
     }
 
+    int chan = *params[1] - '0'; char args[50];
+    strncpy(args, params[2], sizeof (args));
+    strcat(args, delim);
+    strcat(args, params[3]);
 
-    char stemp[100];
-    sprintf(stemp, "%f", refpos);
-    tty_send(1, "MOV", stemp, serial);
+    tty_send(chan, params[0], args, fd);
+    tty_send(chan, "SPA?", params[2], fd);
 
-    stage_check_on_target(serial, id);
+    char ans[30];
+    tty_read(fd, ans);
+
+    char *ptr = strtok(ans, "=\n");
+    ptr = strtok(nullptr, "=\n");
+
+    int ret = strncmp(params[3], ptr, strlen(params[3]));
+    if (ret != 0) qDebug()<<"[!] Parameter not set correctly, identifier"<<params[2];
+
+    return abs(ret);
 }
 
+void all_tty::stage_load_param(int fd, const char *file_name) {
+    QString file_path_q = QDir::currentPath();
+    QByteArray temp = file_path_q.toUtf8();
 
-void MainWindow::stage_init(int serial) {
+    char file_path[100];
+    strncpy(file_path, temp.data(), sizeof (file_path));
+    strcat(file_path, "/conf");
+    strcat(file_path, file_name);
+
+    ifstream file;
+    file.open(file_path);
+
+    int ret = 0;
+    if (file.is_open()) {
+        string line;
+        char buff[100];
+        while (true) {
+            getline(file, line, '\n');
+            if (file.eof()) break;
+            strncpy(buff, line.c_str(), sizeof (buff));
+            if (buff[0] == '#') continue;
+            else ret |= mod_tty_send(fd, line);
+        }
+        if (ret != 0) qDebug()<<"[!] There were errors in setting the stage parameters"
+                                "[!] Please check your configuration file: "<<file_name;
+        else qDebug()<<"[!] All stage parameters loaded succesfully";
+    }
+    else qDebug()<<"[!] Configuration file not found";
+}
+
+void all_tty::stage_init(int serial) {
     /* Identifying linear stage */
     int fds[] = { serialX, serialY, serialZ };
     int id = -1;
-    for (int i = 0; i < static_cast<int>(sizeof(fds)); i++) {
+    for (int i = 0; i < 3; i++) {
         if (fds[i] == serial) id = i;
     }
 
-    bool *on_target[] = { &XOnTarget, &YOnTarget, &ZOnTarget};
+    bool *on_target[] = { &stage_on_target[0], &stage_on_target[1], &stage_on_target[2]};
 
     /* Disabling all stage initialization pushbuttons to prevent conflicts */
-    pushButton_tab_2_2X->setEnabled(false);
-    pushButton_tab_2_2Y->setEnabled(false);
-    INIT_Z_pushButton->setEnabled(false);
+    _ptr->pushButton_tab_2_2X->setEnabled(false);
+    _ptr->pushButton_tab_2_2Y->setEnabled(false);
+    _ptr->INIT_Z_pushButton->setEnabled(false);
+    _ptr->timer->blockSignals(true);
 
 
-    char message[25];
-    const char *model[] = { "M404.2PD", "M404.8PD" };
-    strncpy(message, "Initializing: ", sizeof(message));
-    if (id == 2) strcat(message, model[0]);
-    else strcat(message, model[1]);
+    char message[100];
+    const char *model[] = { "/M404_8PD.txt", "/M404_8PD.txt",  "/M404_2PD.txt" };
+    strncpy(message, "Loading configuration file: ", sizeof(message));
+    strcat(message, model[id]);
 
-    status->showMessage(message, 60);
+    //_ptr->status->showMessage(message, 60);
 
-    bool ret;
-    id == 2 ? ret = loadparam_M404_2pd(serial) : ret = loadparam_M404_8pd(serial);
+    bool ret = 1;
+    stage_load_param(serial, model[id]);
 
     if (ret) {
         qDebug()<<"... Changing selected stage velocity";
-        tty_send(1, "VEL 1 15", nullptr, serial);
+        const char *vel_param[] = { "VEL 1 15", "VEL 1 10", "VEL 1 5"};
+        tty_send(1, vel_param[id], nullptr, serial);
 
         qDebug()<<"... Enabling position servo";
         tty_send(1, "SVO 1 1", nullptr, serial);
@@ -140,7 +148,11 @@ void MainWindow::stage_init(int serial) {
 
         do {
             Sleeper::msleep(100);
-            stage_check_on_target(serial, id);
+            if (*(shared_memory_cmd+200) ==  1) {
+                abort();
+                return;
+            }
+            _ptr->stage_check_on_target(serial, id);
         } while (!(*on_target[id]));
 
         qDebug()<<"... Defining reference position";
@@ -157,179 +169,65 @@ void MainWindow::stage_init(int serial) {
 
         do {
             Sleeper::msleep(100);
-            stage_check_on_target(serial, 0);
+            if (*(shared_memory_cmd+200) ==  1) {
+                abort();
+                return;
+            }
+            _ptr->stage_check_on_target(serial, id);
         } while (!(*on_target[id]));
 
-        id == 2 ? tab_3->setEnabled(true) : Enable_TabWidget_3_4_XY();
+        id == 2 ? _ptr->tab_3->setEnabled(true) : _ptr->Enable_TabWidget_3_4_XY();
 
         if (TimerActive == false) {
-            timer->start(interval);
+            _ptr->timer->blockSignals(false);
+            emit this->stage_timer_start(interval);
             TimerActive=true;
         }
 
-        bool *inited[] = { &IniXready, &IniYready, &IniZready};
-        *inited[id] = true;
+        int *inited[] = { &IniXready, &IniYready, &IniZready};
+        *inited[id] = 1;
     }
 
     else {
         qDebug()<<"Invalid motor selection";
     }
     /* Renabling all stage initialization pushbuttons */
-    pushButton_tab_2_2X->setEnabled(true);
-    pushButton_tab_2_2Y->setEnabled(true);
-    INIT_Z_pushButton->setEnabled(true);
+    _ptr->timer->blockSignals(false);
+    _ptr->pushButton_tab_2_2X->setEnabled(true);
+    _ptr->pushButton_tab_2_2Y->setEnabled(true);
+    _ptr->INIT_Z_pushButton->setEnabled(true);
+}
 
+void MainWindow::stage_init(int serial) {
 }
 
 void MainWindow::Init_Xmotor() {
-    stage_init(serialX);
+    if (!isatty(serialX)) {
+        qDebug()<<"[!] Communication with this port has not yet been initialized";
+        return;
+    }
+    if (controller_ptr == nullptr) controller_ptr = new controller(this);
+    emit controller_ptr->stage_init(serialX);
+    //all_tty tty_o(this);
+    //tty_o.stage_init(serialX);
 }
 
-void MainWindow::Init_Ymotor()
-{
-    // Disabling X and Z motor initialization push buttons to avoid conflicts.
-    pushButton_tab_2_2X->setEnabled(false);
-    INIT_Z_pushButton->setEnabled(false);
-
-    bool valid_Ymotor=false;
-    switch (selected_Ymotor) {
-    case 3:
-        //CurrentAction->setText("Initializing: M-404.8PD - 200mm");
-        status->showMessage("Initializing: M-404.8PD - 200mm", 60);
-        valid_Ymotor = loadparam_M404_8pd(serialY);
-        break;
-    default:
-        //CurrentAction->setText("Initializing: M-404.8PD - 200mm");
-        status->showMessage("Initializing: M-404.8PD - 200mm", 60);
-        valid_Ymotor = loadparam_M404_8pd(serialY);
-        break;
-    }
-
-    if (valid_Ymotor)
-    {
-        qDebug()<<"... Changing Y velocity";
-        tty_send(1,"VEL 1 10",NULL,serialY);
-        Sleeper::msleep(300);
-
-        qDebug()<<"... Enabling position servo";
-        tty_send(1,"SVO 1 1",NULL,serialY);
-        Sleeper::msleep(300);
-
-        qDebug()<<"... Moving to Y negative limit";
-        tty_send(1,"FNL 1",NULL,serialY);
-
-        do {
-            Sleeper::msleep(100);
-            stage_check_on_target(serialY, 1);
-        } while (!YOnTarget);
-
-        qDebug()<<"... Defining reference position";
-        tty_send(1,"DEF 1",NULL,serialY);
-        Sleeper::msleep(300);
-
-        qDebug()<<"... Going to reference position";
-        qDebug()<<"... Please wait";
-
-
-        moveToRef(100.0000, serialY);
-
-
-        Enable_TabWidget_3_4_XY();
-
-        InitPhaseY=true;
-
-        if(TimerActive==false)
-        {
-            timer->start(interval);
-            TimerActive=true;
-        }
-        okY=false;
-        InitY=true;
-        //tty_send(1,"ERR?",NULL,serialY);
-        //read_answer(serialY);
-    }
-    else
-    {
-        qDebug()<<"... Motor selection not valid or driver missing";
-        valid_Ymotor=false;
-        okY=false;
-    }
-
-    pushButton_tab_2_2X->setEnabled(true);
-    INIT_Z_pushButton->setEnabled(true);
+void MainWindow::Init_Ymotor() {
+    if (!isatty(serialY)) {
+        qDebug()<<"[!] Communication with this port has not yet been initialized";
+        return;
+    }  
+    if (controller_ptr == nullptr) controller_ptr = new controller(this);
+    emit controller_ptr->stage_init(serialY);
 }
 
-void MainWindow::Init_Zmotor()
-{
-    // Disabling X and Y initialization push buttons to avoid conflicts.
-    pushButton_tab_2_2X->setEnabled(false);
-    pushButton_tab_2_2Y->setEnabled(false);
-
-    bool valid_Zmotor=false;
-    switch (selected_Zmotor) {
-    case 1:
-        //CurrentAction->setText("Initializing: M-404.2PD - 200mm");
-        status->showMessage("Initializing: M-404.2PD - 200mm", 60);
-        valid_Zmotor = loadparam_M404_2pd(serialZ);
-        break;
-    default:
-        //CurrentAction->setText("Initializing: M-404.2PD - 200mm");
-        status->showMessage("Initializing: M-404.2PD - 200mm", 60);
-        valid_Zmotor = loadparam_M404_2pd(serialZ);
-        break;
+void MainWindow::Init_Zmotor(){
+    if (!isatty(serialZ)) {
+        qDebug()<<"[!] Communication with this port has not yet been initialized";
+        return;
     }
-
-    if (valid_Zmotor)
-    {
-        qDebug()<<"... Changing Z velocity";
-        tty_send(1,"VEL 1 5",NULL,serialZ);
-        Sleeper::msleep(300);
-
-        qDebug()<<"... Enabling position servo";
-        tty_send(1,"SVO 1 1",NULL,serialZ);
-        Sleeper::msleep(300);
-
-        qDebug()<<"... Moving to Z negative limit";
-        tty_send(1,"FNL 1",NULL,serialZ);
-
-
-        do {
-            Sleeper::msleep(500);
-            stage_check_on_target(serialZ, 2);
-        } while (!ZOnTarget);
-
-
-        qDebug()<<"... Defining reference position";
-        tty_send(1,"DEF 1",nullptr,serialZ);
-        Sleeper::msleep(300);
-
-        qDebug()<<"... Going to reference position";
-        qDebug()<<"... Please wait";
-
-        moveToRef(25.00, serialZ);
-
-        tab_3->setEnabled(true);
-        InitZ=true;
-        //InitPhaseZ=true;
-        if (!TimerActive) {
-            timer->start(interval);
-            TimerActive = true;
-        }
-        okZ=false;
-    }
-
-    else {
-        okZ = false;
-        valid_Zmotor = false;
-        qDebug()<<"... Motor selection not valid or driver missing";
-    }
-
-    pushButton_tab_2_2X->setEnabled(true); // re-enabling X and Y init button
-    pushButton_tab_2_2Y->setEnabled(true);
-    //tab_2->setEnabled(true);
-    INIT_Z_pushButton->setEnabled(false);
-
-    printf("... Z-axis stage initialized\n");
+    if (controller_ptr == nullptr) controller_ptr = new controller(this);
+    emit controller_ptr->stage_init(serialZ);
 }
 
 
