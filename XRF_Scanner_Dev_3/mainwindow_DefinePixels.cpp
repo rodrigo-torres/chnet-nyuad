@@ -84,4 +84,3 @@ void MainWindow::Define_Pixels() {
     }
 }
 
-

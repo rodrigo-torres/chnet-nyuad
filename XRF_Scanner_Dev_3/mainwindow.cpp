@@ -68,25 +68,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     PixelY=595;
 
     SHM_CREATOR();                 /// CREATING SHARED MEMORY SEGMENT
+    qDebug()<<"1";
     createActions();
     builder_Menu();            	    /// CREATING MENU from Menu.cpp
     GUI_CREATOR();
     CONNECTIONS_CREATOR();
-
+printf("2");
     imageLabel = new ImgLabel;
 
     QImage image1("IMG/TT_CHNet_res1.png");
     imageLabel->setPixmap(QPixmap::fromImage(image1));
     imageLabel->setBackgroundRole(QPalette::Base);
-    //imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    //imageLabel->setScaledContents(true);
 
-    scrollArea = new QScrollArea(centralWidget);
-    scrollArea->setBackgroundRole(QPalette::Dark);
     scrollArea->setWidget(imageLabel);
-    //scrollArea->setAlignment(Qt::AlignVCenter);
-    //scrollArea->setAlignment(Qt::AlignHCenter);
-    scrollArea->setGeometry(QRect(18, 15, 600, 600));
+    scrollArea->setAlignment(Qt::AlignCenter);
 
     timer = new QTimer(this);                                                // TIMER for program control
     connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
@@ -130,36 +125,23 @@ void MainWindow::Changeparameters()
 }
 
 void MainWindow::readmultidetcalpar() {
-    int calpar1=0;
-    int calpar2=0;
-    int scalefactor=1;
+    int calpar1 = 0, calpar2 = 0, scalefactor=1;
 
     FILE *filecalpar;
     filecalpar = fopen ("../multidetector_calibrationparameters.txt", "r");
     if (filecalpar != nullptr) {
-        fscanf(filecalpar, "%d",&calpar1);
-        fscanf(filecalpar, "%d",&calpar2);
-        fscanf(filecalpar, "%d",&scalefactor);
+        fscanf(filecalpar, "%d", &calpar1);
+        fscanf(filecalpar, "%d", &calpar2);
+        fscanf(filecalpar, "%d", &scalefactor);
         fclose(filecalpar);
     }
 
-    *(shared_memory_cmd+101)=calpar1;
-    *(shared_memory_cmd+102)=calpar2;
-    *(shared_memory_cmd+103)=scalefactor;
+    *(shared_memory_cmd+101) = calpar1;
+    *(shared_memory_cmd+102) = calpar2;
+    *(shared_memory_cmd+103) = scalefactor;
 
-    if ( ( calpar1 != 0 || calpar2 != 0 ) && scalefactor !=0 ) {
-        printf("... Multidetector parameters found\n");
-    }
-
+    if ((calpar1 != 0 || calpar2 != 0) && scalefactor != 0) printf("... Multidetector parameters found\n");
 }
-
-
-
-void MainWindow::SetCurrentAction(QString text)  // SET INFO ON BAR
-{
-    //CurrentAction->setText(text);
-}
-
 
 void MainWindow::hideImage() {
     if (MapIsOpened) {
@@ -168,8 +150,6 @@ void MainWindow::hideImage() {
         MapIsOpened=false;
     }
 }
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //                                MAINWINDOW MAIN COMMAND CYCLE --> TIMER_EVENT
@@ -179,9 +159,6 @@ void MainWindow::hideImage() {
 
 void MainWindow::timerEvent() {
 
-    //QEventLoop loop;
-    //ClockMotore++;
-    //if(YXscanning)ScanYX();
     if (InitZ && !AutofocusOn)CheckZOnTarget();
     if (InitX)CheckXOnTarget();
     if (InitY)CheckYOnTarget();
@@ -438,31 +415,18 @@ void MainWindow::StartZ()                                          // MOTOR STAR
 
 void MainWindow::stop_motorXY() {
     send_command(1,"HLT",NULL,serialX);
+    send_command(1,"HLT",NULL,serialY);
+    send_command(1,"HLT",NULL,serialZ);
+
     send_command(1,"ERR?",NULL,serialX);
     checkX = read_answer(serialX);
 
-    send_command(1,"HLT",NULL,serialY);
     send_command(1,"ERR?",NULL,serialY);
     checkY = read_answer(serialY);
-}
 
-void MainWindow::StopZ()                                            // MOTOR STOP Z
-{
-    send_command(1,"HLT",NULL,serialZ);
     send_command(1,"ERR?",NULL,serialZ);
     checkZ = read_answer(serialZ);
 }
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//                                SCAN SETTINGS
-//                                
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -586,13 +550,11 @@ void MainWindow::SelectChannels()                             // MAP: CHANNEL SE
         if (ok2)
         {qDebug()<<"New upper channel "<<chan2<<'\n'; ChMax=chan2;}
     }
-    else
-        if(*(shared_memory+24)==1)
-        {
-            double chan1 = QInputDialog::getDouble(this, tr("Lower Energy"), tr("ELow:"), 0, 0, 60, 1, &ok1);
+    else if (*(shared_memory+24) == 1) {
+            double chan1 = QInputDialog::getDouble(this, tr("Lower Energy"), tr("ELow:"), 0, 0, 60, 2, &ok1);
             if (ok1)
             {qDebug()<<"New lower energy "<<chan1<<'\n'; ChMin=int(chan1*1000);energychanged=true;}
-            double chan2 = QInputDialog::getDouble(this, tr("Upper Energy"), tr("EHigh:"), 60, 0, 60, 1, &ok2);
+            double chan2 = QInputDialog::getDouble(this, tr("Upper Energy"), tr("EHigh:"), 60, 0, 60, 2, &ok2);
             if (ok2)
             {qDebug()<<"New upper energy "<<chan2<<'\n'; ChMax=int(chan2*1000);energychanged=true;}
         }
@@ -601,53 +563,18 @@ void MainWindow::SelectChannels()                             // MAP: CHANNEL SE
 
 
 
-void MainWindow::Pixels()                                         // PIXEL: SET DIMENSION
-{
+void MainWindow::Pixels() { // Change pixel dimension
     bool ok1;
-    bool ok2=false;
-    while(ok2==false)
-    {
-        int px = QInputDialog::getInt(this, tr("Pixel Size"),
-                                      tr("pixels(only odd numbers!):"), 1, 1, 30, 2, &ok1);
-        if((px%2)!=0) ok2=true;
-        if (ok1 && ok2)
-        {
-            Pixeldim=px;
-            int MaxNumberX=qRound((float)PixelX/px);
-            int MaxNumberY=qRound((float)PixelY/px);
-            int MaxNumber=qRound((float)(PixelX/px)*(PixelY/px));
-            qDebug()<<"New pixel dimension "<<px<<"---->"<<"Max number of points (X,Y)"<<MaxNumber<<'\n';
-            qDebug()<<"Max number of points X"<<MaxNumberX<<'\n';
-            qDebug()<<"Max number of points Y"<<MaxNumberY<<'\n';
-        }
+    int px = QInputDialog::getInt(this, "Set Pixel Size", "Pixel side dimension:", 1, 1, 30, 1, &ok1);
+
+    if (ok1) {
+        Pixeldim = px;
+        printf("[!] New pixel dimension: %d", px);
     }
+    else printf("[!] Couldn't obtain new pixel dimensions\n");
 }
 
-
-//void MainWindow::Treshold() { // Spectrum threshold selection
-//    bool ok3;
-//    int low_treshold = QInputDialog::getInt(this, tr("Low Treshold Level (ch)"),
-//                                        tr("Low Ch:"),0, 0, 400, 1, &ok3);
-//    if(ok3)
-//    {
-//        qDebug()<<"Low Channel set to ="<<low_treshold<<'\n';
-//        *(shared_memory+40)=low_treshold;
-//    }
-//}
-
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//                                MAP LOAD IN MEMORY
-//                                
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 void MainWindow::LoadNewFile_SHM() { // Loads a new file in memory
-    //qDebug()<<"entering LoadNewFile_SHM";
-    //if(PixelCorrection)  {qDebug()<<"....enabling correction...";LoadNewFileWithCorrection_SHM(); displayImage_SHM();}
-    //if(!PixelCorrection) {qDebug()<<"...no file correction active...";LoadNewFileWithNoCorrection_SHM();displayImage_SHM();}
     LoadNewFileWithNoCorrection_SHM();
     displayImage_SHM();
 }
@@ -779,6 +706,7 @@ void MainWindow::writeCompMapLimits(int id) {
 void MainWindow::LoadTxt()  { // Writes values of binary file into shared memory
     QString loadDir = "/home/frao/Desktop/XRFData";
     QString text = QFileDialog::getOpenFileName(this, "Open file..", loadDir);
+
     if (!text.isEmpty()) {
         QFile file(text);
         if (file.exists()) {
@@ -836,7 +764,6 @@ void MainWindow::SaveTxt() { //scrive Position.txt leggendo i dati in memoria
     QString saveDir = "/home/frao/Desktop/XRFData";
     QString percorso = QFileDialog::getSaveFileName(this,tr("Save as"), saveDir);
     QFile file2(percorso);
-    qDebug()<<"Inizio creazione di" <<percorso<<"\n";
     file2.open(QIODevice::ReadWrite);
     QTextStream out2(&file2);
     int Ntot = *(shared_memory2+4);
@@ -852,7 +779,11 @@ void MainWindow::SaveTxt() { //scrive Position.txt leggendo i dati in memoria
         out2<<*(shared_memory2+10+i)<<'\n';
     }
     file2.close();
-    qDebug()<<" ....file saved in: "<<percorso;
+
+
+    string str = percorso.toStdString();
+    char *cstr = &str[0u];
+    printf("[!] File saved in: %s", cstr);
 
     timer->blockSignals(false);
     timerAutofocus->blockSignals(false);
@@ -882,32 +813,24 @@ void MainWindow::MergeTxt()  //carica File.txt in memoria
 void MainWindow::Abort() {
     if (*(shared_memory_cmd+70) == 1) *(shared_memory_cmd+70) = 0;
 
-
-
     if ( XYscanning==true ) {
         send_command(1,"HLT",NULL,serialX);
         send_command(1,"ERR?",NULL,serialX);
-        checkX = read_answer(serialX);
+
+        char *cstr1 = &(read_answer(serialX))[0u];
+        printf("[!] X-axis stage stopped with exit value: %s", cstr1);
 
         send_command(1,"HLT",NULL,serialY);
         send_command(1,"ERR?",NULL,serialY);
-        checkY = read_answer(serialY);
 
-        onlyOne=0;
-        XYscanning=false;
+        char *cstr2 = &(read_answer(serialY))[0u];
+        printf("[!] Y-axis stage stopped with exit value: %s", cstr2);
+
+        XYscanning = false;
+        YHasMoved  = true;
         SaveTxt();
     }
 }
-
-
-
-void MainWindow::AbortZ() {
-    send_command(1,"HLT",NULL,serialZ);
-    send_command(1,"ERR?",NULL,serialZ);
-    checkZ = read_answer(serialZ);
-}
-
-
 
 void MainWindow::closeEvent(QCloseEvent *event) {
     event->ignore();

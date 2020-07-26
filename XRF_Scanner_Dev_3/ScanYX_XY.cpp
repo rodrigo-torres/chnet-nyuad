@@ -57,8 +57,8 @@ bool MainWindow::StartXYScan() {
             send_command(1,"VEL 1 10",NULL,serialY);
             positionX = Xmin - posXforacceleration;
 
-            MoveX(positionX);
-            MoveY(positionY);
+            moveStage(positionX, serialX);
+            moveStage(positionY, serialY);
         }
 
         //Plan here is to add a synchronization signal between the ADCXRF_USB and the scan
@@ -90,7 +90,7 @@ void MainWindow::ScanXY() {
         if (positionX == Xmin - posXforacceleration) positionX = Xmax + posXforacceleration;
         else if (positionX == Xmax + posXforacceleration) positionX = Xmin - posXforacceleration;
 
-        MoveX(positionX);
+        moveStage(positionX, serialX);
         YHasMoved = false;
         Sleeper::msleep(accelerationtimesleep);
     }
@@ -99,13 +99,14 @@ void MainWindow::ScanXY() {
         if (positionY < Ymax) { // Changes line
             positionY += Py;
             while (*(shared_memory2+8) != 1) Sleeper::msleep(100);
-            MoveY(positionY);
+            moveStage(positionY, serialY);
 
             YHasMoved = true;
             *(shared_memory2+8) = 0;
         }
         else { // The scan is done
-            XYscanning=false;
+            XYscanning = false;
+            YHasMoved  = true;
             if (*(shared_memory_cmd+70) == 1) {
                 int counting = 0;
                 while (*(shared_memory2+8) != 1 && counting < 5) { Sleeper::msleep(tempoPos); counting++; }

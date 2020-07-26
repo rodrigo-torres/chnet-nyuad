@@ -306,4 +306,3 @@ void MainWindow::displaySumImage_SHM() { // Displays a composed map (sum of up t
 
 }
 
-

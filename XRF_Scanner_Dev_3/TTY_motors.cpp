@@ -52,7 +52,6 @@ int i_Y2=0, i_Z2=0;
 
 void MainWindow::NameX(int numberx) {
     Sx = numberx;
-    qDebug()<<"";
 }
 void MainWindow::NameY(int numbery)     //////// CALLED FROM --> spinBox_assignY (in mainwindow.cpp)
 {Sy=numbery;}
@@ -315,7 +314,8 @@ QString MainWindow::SetSerialZName(int number)
         if (retval==0)   RispPortZ=0;
         else RispPortZ=1;
 
-        INIT_Z_pushButton->setEnabled(true); STOP_Z_INIT_pushButton->setEnabled(true);
+        //INIT_Z_pushButton->setEnabled(true);
+        //STOP_Z_INIT_pushButton->setEnabled(true);
     }
 
     ///////////////////////////////////////////// RETURNING Z-PORT CONNECTION RESULT AND WRITING COMMENTS
@@ -339,7 +339,10 @@ QString MainWindow::SetSerialZName(int number)
 
 void MainWindow::Enabling_Tabwidget() {
     if (IniXready || IniYready) {tab2_3 ->setEnabled(true); tab2_4 ->setEnabled(true); }
-    if (ZConnected) {INIT_Z_pushButton->setEnabled(true); STOP_Z_INIT_pushButton->setEnabled(true);}
+    if (ZConnected) {
+        INIT_Z_pushButton->setEnabled(true);
+        //STOP_Z_INIT_pushButton->setEnabled(true);
+    }
 }
 
 

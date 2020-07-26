@@ -253,4 +253,3 @@ void ImgLabel::mouseReleaseEvent(QMouseEvent *event) { // Click and release in d
 
 
 
-

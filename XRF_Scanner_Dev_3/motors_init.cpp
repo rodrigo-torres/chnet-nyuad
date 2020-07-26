@@ -21,229 +21,89 @@ extern int selected_Xmotor,selected_Ymotor,selected_Zmotor;
 extern int send_command(int channel, const char *command, const char *parameter, int port);
 extern string read_answer(int port);
 
-int loadparam_M404_2pd(int port)
-{
-    qDebug()<<"... Loading initialization parameters for Physik Instrumente M404-2PD\n"
-            "... If your motor is different please change the source code in Z_Init.cpp";
-
-    send_command(1,"SPA"," 60 M-404.2PD",port);
-    Sleeper::msleep(500);
-    send_command(1,"SPA"," 1 180",port);
+void modSendCmd(int ch, const char* cmd, const char* val, int port) {
+    send_command(ch, cmd, val, port);
     Sleeper::msleep(100);
-    send_command(1,"SPA"," 2 45",port);
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 3 300",port);
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 4 2000",port);
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 14 4000",port);
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 15 1",port); ////0.064285257
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 19 0",port);
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 20 1",port);        //si usano i limit switches dell'hardware (top e bottom)
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 21 50.",port);       //Max spostamento in positivo da home (0)
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 22 25.",port);   //Value at Reference position
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 23 25.",port);  //Distanza tra Ref e Neg-lim
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 47 25",port);    //Distanza tra Ref e Pos-lim
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 24 0",port);          //0 i limit switches sono attivi alti...va come 49
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 48 0.000000",port);  //Max spostamento in negativo da home (0)
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 49 0",port);        //0 non si inverte il riferimento
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 50 0",port);      //0 Abiintervallita lo stop ai limit switches dell'hardware
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 8 0.5",port);    //8 10 e 11 per ultimi senno' li ricambia 0.035156
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 10 50",port);   // velocita'
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 11 30",port);  //Accelerazione
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 117442049 MM",port);  //Unita'
-    Sleeper::msleep(100);
-
-    send_command(1,"SPA? 1 1",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 2",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 3",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 4",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 8",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 10",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 11",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 14",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 15",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 19",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 20",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 21",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 22",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 23",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 24",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 48",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 49",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 50",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 60",NULL,port);
-    read_answer(port);
-
-    return 1;
 }
-int loadparam_M404_8pd(int port)
-{
-    qDebug()<<"... Loading initialization parameters for Physik Instrumente M404-8PD\n"
-              "... If your motor is different please change the source code in Y_Init.cpp";
 
-    send_command(1,"SPA"," 60 M-404.8PD",port);
-    Sleeper::msleep(500);
-    send_command(1,"SPA"," 1 180",port); //primo numero canale SPA secondo numero valore
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 2 45",port);
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 3 300",port);
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 4 2000",port);
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 14 4000",port);
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 15 1",port); ////0.064285257
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 19 0",port);
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 20 1",port);        //si usano i limit switches dell'hardware (top e bottom)
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 21 200.",port);       //Max spostamento in positivo da home (0)
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 22 100.",port);   //Value at Reference position
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 23 100.",port);  //Distanza tra Ref e Neg-lim
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 47 100",port);    //Distanza tra Ref e Pos-lim
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 24 0",port);          //0 i limit switches sono attivi alti...va come 49
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 48 0.000000",port);  //Max spostamento in negativo da home (0)
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 49 0",port);        //0 non si inverte il riferimento
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 50 0",port);      //0 Abilita lo stop ai limit switches dell'hardware
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 8 0.5",port);    //8 10 e 11 per ultimi senno' li ricambia 0.035156
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 10 50",port);   // velocita'
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 11 200",port);  //Accelerazione
-    Sleeper::msleep(100);
-    send_command(1,"SPA"," 117442049 MM",port);  //Unita'
-    Sleeper::msleep(100);
+int loadparam_M404_2pd(int port) {
+    qDebug()<<"... Loading initialization parameters for Physik Instrumente M-404.2PD\n";
 
-    send_command(1,"SPA? 1 1",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 2",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 3",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 4",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 8",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 10",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 11",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 14",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 15",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 19",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 20",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 21",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 22",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 23",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 24",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 48",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 49",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 50",NULL,port);
-    read_answer(port);
-    send_command(1,"SPA? 1 60",NULL,port);
-    read_answer(port);
+    modSendCmd(1,"SPA"," 60 M-404.2PD",port);
+    modSendCmd(1,"SPA"," 1 180",port);
+    modSendCmd(1,"SPA"," 2 45",port);
+    modSendCmd(1,"SPA"," 3 300",port);
+    modSendCmd(1,"SPA"," 4 2000",port);
+    modSendCmd(1,"SPA"," 14 4000",port);
+    modSendCmd(1,"SPA"," 15 1",port); ////0.064285257
+    modSendCmd(1,"SPA"," 19 0",port);
+    modSendCmd(1,"SPA"," 20 1",port);        //si usano i limit switches dell'hardware (top e bottom)
+    modSendCmd(1,"SPA"," 21 50.",port);       //Max spostamento in positivo da home (0)
+    modSendCmd(1,"SPA"," 22 25.",port);   //Value at Reference position
+    modSendCmd(1,"SPA"," 23 25.",port);  //Distanza tra Ref e Neg-lim
+    modSendCmd(1,"SPA"," 47 25",port);    //Distanza tra Ref e Pos-lim
+    modSendCmd(1,"SPA"," 24 0",port);          //0 i limit switches sono attivi alti...va come 49
+    modSendCmd(1,"SPA"," 48 0.000000",port);  //Max spostamento in negativo da home (0)
+    modSendCmd(1,"SPA"," 49 0",port);        //0 non si inverte il riferimento
+    modSendCmd(1,"SPA"," 50 0",port);      //0 Abiintervallita lo stop ai limit switches dell'hardware
+    modSendCmd(1,"SPA"," 8 0.5",port);    //8 10 e 11 per ultimi senno' li ricambia 0.035156
+    modSendCmd(1,"SPA"," 10 50",port);   // velocita'
+    modSendCmd(1,"SPA"," 11 30",port);  //Accelerazione
+    modSendCmd(1,"SPA"," 117442049 MM",port);  //Unita'
 
     return 1;
 }
 
-void MainWindow::movetoref_Xmotor(float refpositionX)
-{
-    char sx[100];
-    sprintf(sx,"%f",refpositionX);
-    send_command(1,"MOV",sx,serialX);
+int loadparam_M404_8pd(int port) {
+    qDebug()<<"... Loading initialization parameters for Physik Instrumente M-404.8PD\n";
 
-    CheckXOnTarget();
-    Sleeper::msleep(100);
-    while(Xmoving)
-    {
+    modSendCmd(1,"SPA"," 60 M-404.8PD",port);
+    modSendCmd(1,"SPA"," 1 180",port); //primo numero canale SPA secondo numero valore
+    modSendCmd(1,"SPA"," 2 45",port);
+    modSendCmd(1,"SPA"," 3 300",port);
+    modSendCmd(1,"SPA"," 4 2000",port);
+    modSendCmd(1,"SPA"," 14 4000",port);
+    modSendCmd(1,"SPA"," 15 1",port); ////0.064285257
+    modSendCmd(1,"SPA"," 19 0",port);
+    modSendCmd(1,"SPA"," 20 1",port);        //si usano i limit switches dell'hardware (top e bottom)
+    modSendCmd(1,"SPA"," 21 200.",port);       //Max spostamento in positivo da home (0)
+    modSendCmd(1,"SPA"," 22 100.",port);   //Value at Reference position
+    modSendCmd(1,"SPA"," 23 100.",port);  //Distanza tra Ref e Neg-lim
+    modSendCmd(1,"SPA"," 47 100",port);    //Distanza tra Ref e Pos-lim
+    modSendCmd(1,"SPA"," 24 0",port);          //0 i limit switches sono attivi alti...va come 49
+    modSendCmd(1,"SPA"," 48 0.000000",port);  //Max spostamento in negativo da home (0)
+    modSendCmd(1,"SPA"," 49 0",port);        //0 non si inverte il riferimento
+    modSendCmd(1,"SPA"," 50 0",port);      //0 Abilita lo stop ai limit switches dell'hardware
+    modSendCmd(1,"SPA"," 8 0.5",port);    //8 10 e 11 per ultimi senno' li ricambia 0.035156
+    modSendCmd(1,"SPA"," 10 50",port);   // velocita'
+    modSendCmd(1,"SPA"," 11 200",port);  //Accelerazione
+    modSendCmd(1,"SPA"," 117442049 MM",port);  //Unita'
+
+    return 1;
+}
+
+
+void MainWindow::moveToRef(float refpos, int serial) {
+    char stemp[100];
+    sprintf(stemp, "%f", refpos);
+    send_command(1, "MOV", stemp, serial);
+
+    if (serial == serialX) do {
         CheckXOnTarget();
         Sleeper::msleep(100);
-    }
-    return;
-}
-
-void MainWindow::movetoref_Ymotor(float refpositionY)
-{
-    char sy[100];
-    sprintf(sy,"%f",refpositionY);
-    send_command(1,"MOV",sy,serialY);
-
-    CheckYOnTarget();
-    Sleeper::msleep(100);
-    while(Ymoving)
-    {
+    } while (Xmoving);
+    else if (serial == serialY) do {
         CheckYOnTarget();
         Sleeper::msleep(100);
-    }
-    return;
-}
-
-void MainWindow::movetoref_Zmotor(float refpositionZ) {
-    char sz[100];
-    sprintf(sz,"%f",refpositionZ);
-    send_command(1,"MOV",sz,serialZ);
-    Sleeper::msleep(100);
-
-    do  {
+    } while (Ymoving);
+    else if (serial == serialZ) do {
         CheckZOnTarget();
         Sleeper::msleep(100);
     } while (!ZOnTarget);
-    return;
+    else printf("[!] Unknown device handler\n");
 }
+
+
 
 void MainWindow::Init_Xmotor()
 {
@@ -300,45 +160,16 @@ void MainWindow::Init_Xmotor()
 
     switch (selected_Xmotor) {
     case 1:
-        movetoref_Xmotor(25.0000);
+        moveToRef(25.0000, serialX);
         break;
     case 3:
-        movetoref_Xmotor(100.0000);
+        moveToRef(100.0000, serialX);
         break;
     default:
-        movetoref_Xmotor(100.0000);
+        moveToRef(100.0000, serialX);
         break;
     }
 
-    switch (selected_Xmotor) {
-    case 1:
-        //"M404-2PD" 50mm
-        MOVE_TO_X_doubleSpinBox->setMaximum(50);
-        MOVE_TO_X_doubleSpinBox->setValue(25);
-        SET_SCAN_X_MIN_doubleSpinBox->setMaximum(50);
-        SET_SCAN_X_MIN_doubleSpinBox->setValue(25);
-        SET_SCAN_X_MAX_doubleSpinBox->setMaximum(50);
-        SET_SCAN_X_MAX_doubleSpinBox->setValue(25);
-        break;
-    case 3 :
-        //"M404-8PD" 200mm code:
-        MOVE_TO_X_doubleSpinBox->setMaximum(200);
-        MOVE_TO_X_doubleSpinBox->setValue(100);
-        SET_SCAN_X_MIN_doubleSpinBox->setMaximum(200);
-        SET_SCAN_X_MIN_doubleSpinBox->setValue(100);
-        SET_SCAN_X_MAX_doubleSpinBox->setMaximum(200);
-        SET_SCAN_X_MAX_doubleSpinBox->setValue(100);
-        break;
-    default:
-        //"M404-8PD" 200mm code:
-        MOVE_TO_X_doubleSpinBox->setMaximum(200);
-        MOVE_TO_X_doubleSpinBox->setValue(100);
-        SET_SCAN_X_MIN_doubleSpinBox->setMaximum(200);
-        SET_SCAN_X_MIN_doubleSpinBox->setValue(100);
-        SET_SCAN_X_MAX_doubleSpinBox->setMaximum(200);
-        SET_SCAN_X_MAX_doubleSpinBox->setValue(100);
-        break;
-    }
 
     Enable_TabWidget_3_4_XY();
 
@@ -418,49 +249,20 @@ void MainWindow::Init_Ymotor()
 
         switch (selected_Ymotor) {
         case 1:
-            movetoref_Ymotor(25.0000);
+            moveToRef(25.0000, serialY);
             break;
         case 2:
-            movetoref_Ymotor(50.0000);
+            moveToRef(50.0000, serialY);
             break;
         case 3:
-            movetoref_Ymotor(100.0000);
+            moveToRef(100.0000, serialY);
             break;
         default:
-            movetoref_Ymotor(100.0000);
+            moveToRef(100.0000, serialY);
             break;
         }
 
-        switch (selected_Ymotor) {
-        case 1:
-            //"M404-2PD" 50mm
-            MOVE_TO_Y_doubleSpinBox->setMaximum(50);
-            MOVE_TO_Y_doubleSpinBox->setValue(25);
-            SET_SCAN_Y_MIN_doubleSpinBox->setMaximum(50);
-            SET_SCAN_Y_MIN_doubleSpinBox->setValue(25);
-            SET_SCAN_Y_MAX_doubleSpinBox->setMaximum(50);
-            SET_SCAN_Y_MAX_doubleSpinBox->setValue(25);
-            break;
 
-        case 3 :
-            //"M404-8PD" 200mm code:
-            MOVE_TO_Y_doubleSpinBox->setMaximum(200);
-            MOVE_TO_Y_doubleSpinBox->setValue(100);
-            SET_SCAN_Y_MIN_doubleSpinBox->setMaximum(200);
-            SET_SCAN_Y_MIN_doubleSpinBox->setValue(100);
-            SET_SCAN_Y_MAX_doubleSpinBox->setMaximum(200);
-            SET_SCAN_Y_MAX_doubleSpinBox->setValue(100);
-            break;
-        default:
-            //"M404-8PD" 200mm code:
-            MOVE_TO_Y_doubleSpinBox->setMaximum(200);
-            MOVE_TO_Y_doubleSpinBox->setValue(100);
-            SET_SCAN_Y_MIN_doubleSpinBox->setMaximum(200);
-            SET_SCAN_Y_MIN_doubleSpinBox->setValue(100);
-            SET_SCAN_Y_MAX_doubleSpinBox->setMaximum(200);
-            SET_SCAN_Y_MAX_doubleSpinBox->setValue(100);
-            break;
-        }
 
         Enable_TabWidget_3_4_XY();
 
@@ -535,24 +337,6 @@ void MainWindow::Init_Zmotor()
         qDebug()<<"... Going to reference position";
         qDebug()<<"... Please wait";
 
-        switch (selected_Zmotor) {
-        case 1:
-            movetoref_Zmotor(25.0000);
-            MOVE_Z_To_doubleSpinBox->setMaximum(50);
-            MOVE_Z_To_doubleSpinBox->setValue(25);
-            break;
-        case 3:
-            movetoref_Zmotor(100.0000);
-            MOVE_Z_To_doubleSpinBox->setMaximum(200);
-            MOVE_Z_To_doubleSpinBox->setValue(100);
-            break;
-        default:
-            movetoref_Zmotor(25.0000);
-            MOVE_Z_To_doubleSpinBox->setMaximum(50);
-            MOVE_Z_To_doubleSpinBox->setValue(25);
-            break;
-        }
-
 
         tab_3->setEnabled(true);
         InitZ=true;
@@ -572,7 +356,7 @@ void MainWindow::Init_Zmotor()
 
     pushButton_tab_2_2X->setEnabled(true); // re-enabling X and Y init button
     pushButton_tab_2_2Y->setEnabled(true);
-    tab_2->setEnabled(true);
+    //tab_2->setEnabled(true);
     INIT_Z_pushButton->setEnabled(false);
 
     printf("... Z-axis stage initialized\n");

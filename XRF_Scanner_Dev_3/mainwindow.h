@@ -112,7 +112,7 @@ public:
     void builder_Menu();
 
 
-    void SetCurrentAction(QString);
+    //void SetCurrentAction(QString);
 
     QVector2D map(int pixX, int pixY);
     //void LoadNewFileWithCorrection_SHM();
@@ -196,11 +196,12 @@ private slots:
     void Y_to(double);
 
     // Found in XY_Init.cpp
-    void movetoref_Xmotor(float refpositionX);
+    void moveToRef(float refpos, int serial);
+    //void movetoref_Xmotor(float refpositionX);
     void Init_Xmotor();
-    void movetoref_Ymotor(float refpositionY);
+    //void movetoref_Ymotor(float refpositionY);
     void Init_Ymotor();
-    void movetoref_Zmotor(float refpositionZ);
+    //void movetoref_Zmotor(float refpositionZ);
 
     //
     void StartX();
@@ -209,14 +210,14 @@ private slots:
     //bool StartYXScan();
     void ScanXY();
     //void ScanYX();
-    void MoveX(double);
-    void MoveY(double);
-    void Move_up();
-    void MoveX_To();
-    void MoveY_To();
-    void Move_down();
-    void Move_right();
-    void Move_left();
+    //void MoveX(double);
+    //void MoveY(double);
+    //void Move_up();
+    //void MoveX_To();
+    //void MoveY_To();
+    //void Move_down();
+    //void Move_right();
+    //void Move_left();
     void MoveDoubleClick();
     void Abort();
     void stop_motorXY();
@@ -238,6 +239,10 @@ private slots:
     void XrayTable();
 
 
+    void slotMoveFine(int id);
+    void slotMoveStage(int id);
+    void moveStage(double pos, int serial);
+    double moveStep(double step, int serial, bool *condition, bool dir);
 
 public:
 
@@ -502,12 +507,12 @@ public slots:
 
     void Init_KeyenceLaser();
 
-    void MoveZ(double);
-    void MoveZ_To();
-    void Move_forward();
-    void Move_backward();
-    void AbortZ();
-    void StopZ();
+    //void MoveZ(double);
+    //void MoveZ_To();
+    //void Move_forward();
+    //void Move_backward();
+    //void AbortZ();
+    //void StopZ();
     void CheckZOnTarget();
     void Focustimer();
     void readKeyence();

@@ -31,27 +31,21 @@ void MainWindow::CONNECTIONS_CREATOR()
 
      connect(pushButton_tab_2_2ABORT, SIGNAL(clicked()), this, SLOT(stop_motorXY()));
 
-     connect(MOVEUP_pushButton, SIGNAL(released()),
-            this, SLOT(Move_down()));
+     //connect(MOVEUP_pushButton, SIGNAL(released()), this, SLOT(Move_down()));
 
-     connect(MOVELEFT_pushButton, SIGNAL(released()),   
-            this, SLOT(Move_right()));
+     //connect(MOVELEFT_pushButton, SIGNAL(released()), this, SLOT(Move_right()));
      ///inversione hardware
 
-     connect(MOVERIGHT_pushButton, SIGNAL(released()),
-            this, SLOT(Move_left()));
+     //connect(MOVERIGHT_pushButton, SIGNAL(released()), this, SLOT(Move_left()));
      ///inversione hardware
 
-     connect(MOVEDOWN_pushButton, SIGNAL(released()),
-            this, SLOT(Move_up()));
+     //connect(MOVEDOWN_pushButton, SIGNAL(released()), this, SLOT(Move_up()));
 
      connect(STOPMOVE_pushButton, SIGNAL(clicked()), this, SLOT(stop_motorXY()));
 
-     connect(MOVE_TO_X_pushButton, SIGNAL(released()),
-            this, SLOT(MoveX_To()));
+     //connect(MOVE_TO_X_pushButton, SIGNAL(released()), this, SLOT(MoveX_To()));
 
-     connect(MOVE_TO_Y_pushButton, SIGNAL(released()),
-            this, SLOT(MoveY_To()));
+     //connect(MOVE_TO_Y_pushButton, SIGNAL(released()), this, SLOT(MoveY_To()));
 
      connect(MOVE_TO_X_doubleSpinBox, SIGNAL(valueChanged(double)), 
           this, SLOT(X_to(double)));
@@ -96,21 +90,18 @@ void MainWindow::CONNECTIONS_CREATOR()
      connect(INIT_Z_pushButton, SIGNAL(released()),
             this, SLOT(StartZ()));
 
-     connect(STOP_Z_INIT_pushButton, SIGNAL(clicked()), this, SLOT(StopZ())); ////////// FARE CHECK SU SLOT STOP (STOPZ??)
+     //connect(STOP_Z_INIT_pushButton, SIGNAL(clicked()), this, SLOT(stop_motorXY())); ////////// FARE CHECK SU SLOT STOP (STOPZ??)
 
-     connect(MOVE_Z_To_pushButton, SIGNAL(released()),
-            this, SLOT(MoveZ_To()));
+     //connect(MOVE_Z_To_pushButton, SIGNAL(released()), this, SLOT(MoveZ_To()));
 
      connect(MOVE_Z_To_doubleSpinBox, SIGNAL(valueChanged(double)), 
           this, SLOT(Z_to(double)));
 
-     connect(MOVE_Z_FORWARD_pushButton, SIGNAL(released()),
-            this, SLOT(Move_forward())); 
+     //connect(MOVE_Z_FORWARD_pushButton, SIGNAL(released()), this, SLOT(Move_forward()));
 
-     connect(MOVE_Z_BACKWARD_pushButton, SIGNAL(released()),
-            this, SLOT(Move_backward()));
+     //connect(MOVE_Z_BACKWARD_pushButton, SIGNAL(released()), this, SLOT(Move_backward()));
 
-     connect(STOP_Z_MOVE_pushButton, SIGNAL(clicked()), this, SLOT(StopZ())); 
+     //connect(STOP_Z_MOVE_pushButton, SIGNAL(clicked()), this, SLOT(stop_motorXY()));
 
      connect(AUTOFOCUS_ON_pushButton, SIGNAL(clicked()), this, SLOT(Autofocus2()));
 
