@@ -1,0 +1,48 @@
+./src/shm.cpp:int *shared_memory;
+./src/shm.cpp:    shared_memory = assignSHM<int>(key, SHMSZ, 1);
+./src/shm.cpp:    *(shared_memory+24)=0;        //Spettro in canale o energia (0 canale) (1 energia)
+./src/shm.cpp:    *(shared_memory+99)=0;           //...News per show pixel histo
+./src/shm.cpp:    *(shared_memory+100)=0;          //Da questo punto inizia il vettore da plottare per mostrare lo spettro
+./src/mainwindow.cpp:extern int *shared_memory;
+./src/mainwindow.cpp:    shmdt(shared_memory);
+./src/mainwindow.cpp:    system("evince doc/Info_shared_memory.pdf &");
+./src/external_programs.cpp:extern int *shared_memory_cmd, *shared_memory;
+./src/external_programs.cpp:      out2<<*(shared_memory+100+i)<<"\t"<<*(shared_memory+20000+i)<<"\t"<<*(shared_memory+40000+i)<<"\t\n";
+./src/external_programs.cpp:      *(shared_memory+100+i)=0;
+./src/external_programs.cpp:      *(shared_memory+20000+i)=0;
+./src/external_programs.cpp:      *(shared_memory+40000+i)=0;
+./Submodules/OnLineMap/mainwindow.cpp:extern int *shared_memory;
+./Submodules/OnLineMap/mainwindow.cpp:   shared_memory =(int *) shmat(shmid, NULL, 0);
+./Submodules/OnLineMap/mainwindow.cpp:   cout<< "Data Memory attached at :" << (int *)shared_memory<< endl << " with shmid: " << shmid << endl;
+./Submodules/OnLineMap/mainwindow.cpp:  if (*(shared_memory+42)==1) //News
+./Submodules/OnLineMap/mainwindow.cpp:      *(shared_memory+42)=0;
+./Submodules/xrf_image/src/mouse_events_handle.cpp:      spectrum_display_ptr = &shared_memory.at(100);
+./Submodules/xrf_image/src/mouse_events_handle.cpp:      spectrum_display_ptr = &shared_memory.at(20000);
+./Submodules/xrf_image/src/mouse_events_handle.cpp:      spectrum_display_ptr = &shared_memory.at(40000);
+./Submodules/xrf_image/src/mouse_events_handle.cpp:    shared_memory.at(99)= 1;
+./Submodules/xrf_image/src/TODO.cpp://extern int *shared_memory;
+./Submodules/xrf_image/src/xrfimage_qlabel.cpp:  shared_memory.initialize(Segments::SHARED_MEMORY_1);
+./Submodules/spectrum/plot.cpp:extern int *shared_memory_cmd, *shared_memory;
+./Submodules/spectrum/plot.cpp:        *(shared_memory+24) = 0;
+./Submodules/spectrum/plot.cpp:        *(shared_memory+24) = 1;
+./Submodules/spectrum/plot.cpp:    if (*(shared_memory+99) == 1) { showPixelHisto(); *(shared_memory+99) = 0; }
+./Submodules/spectrum/plot.cpp:            *(shared_memory+100+h) = 0;
+./Submodules/spectrum/plot.cpp:            *(shared_memory+20000+h) = 0;
+./Submodules/spectrum/plot.cpp:            *(shared_memory+40000+h) = 0;
+./Submodules/spectrum/plot.cpp:                *(shared_memory+100+iLinedet1) = list1[0].toInt();
+./Submodules/spectrum/plot.cpp:                *(shared_memory+20000+iLinedet1) = list1[1].toInt();
+./Submodules/spectrum/plot.cpp:                *(shared_memory+40000+iLinedet1) = list1[2].toInt();
+./Submodules/spectrum/plot.cpp:        if ( *(shared_memory_cmd+100) == 0 )        counts[h] = static_cast<double>(*(shared_memory+100+h));
+./Submodules/spectrum/plot.cpp:        else if ( *(shared_memory_cmd+100) == 1 )   counts[h] = static_cast<double>(*(shared_memory+20000+h));
+./Submodules/spectrum/plot.cpp:        else if ( *(shared_memory_cmd+100) == 2 )   counts[h] = static_cast<double>(*(shared_memory+40000+h));
+./Submodules/spectrum/main.cpp:int *shared_memory_cmd, *shared_memory;
+./Submodules/spectrum/main.cpp:    shared_memory = assignSHM(key, SHMSZ);
+./Submodules/spectrum/main.cpp:    *(shared_memory+24) = 0;
+./Submodules/spectrum/mainwindow.cpp:extern int *shared_memory_cmd, *shared_memory;
+./Submodules/spectrum/mainwindow.cpp:        *(shared_memory+24) = 1;
+./Submodules/spectrum/mainwindow.cpp:        *(shared_memory+24) = 0;
+./Submodules/spectrum/mainwindow.cpp:        out<<*(shared_memory+100+i)<<"\t"<<*(shared_memory+20000+i)<<"\t"<<*(shared_memory+40000+i)<<"\t\n";
+./Submodules/spectrum/mainwindow.cpp:        *(shared_memory+100+i) = 0;
+./Submodules/spectrum/mainwindow.cpp:        *(shared_memory+20000+i) = 0;
+./Submodules/spectrum/mainwindow.cpp:        *(shared_memory+40000+i) = 0;
+./Submodules/shared_memory/src/shared_memory.cpp:#include "MAXRF/shared_memory.h"

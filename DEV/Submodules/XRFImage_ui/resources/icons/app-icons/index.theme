@@ -1,0 +1,8 @@
+[Icon Theme]
+Name=app-icons
+Comment=Icons used in menus and QToolButtons
+
+[actions/64]
+Size=64
+Type=Fixed
+Context=Actions

@@ -1,0 +1,34 @@
+#### Version a.b.c released on dd.mm.yy ####
+
+Quick Summary:
+  -
+
+Added major features:
+  -
+
+Added major features after beta:
+  -
+
+Added minor features:
+  -
+
+Added minor features after beta:
+  -
+
+Bugfixes [Also backported to a.b.c]:
+  -
+
+Bugfixes [Not in a.b.c]:
+  -
+
+Bugfixes after beta:
+  -
+
+Sumary of backwards incompatible changes:
+  -
+
+Other:
+  -
+
+Other after beta:
+  -

@@ -1,0 +1,5 @@
+
+Incorporate Optical Link DAQ functionalities to the digitizer daq protocol
+Incorporate the digitizer module into the main program
+
+Modify protocol to output directly onto the HardDrive;

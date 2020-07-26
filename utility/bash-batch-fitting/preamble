@@ -1,0 +1,25 @@
+#!/usr/bin/gnuplot -persist
+
+load 'Script/variables.dat'
+#load 'Script/fitvariables.dat'
+load 'Script/functions.dat'
+
+set xrange[0:30]
+set yrange[0:uppercount+0.2*uppercount]
+
+set style line 7 lc rgb "#FF0000" lw 5
+set key right
+
+set xlabel "Energy (keV)"
+set ylabel "Event Counts"
+
+set xtics 5
+set mxtics 5
+
+set grid xtics mxtics
+set title Filename noenhanced
+
+set samples 10000
+
+plot Filename u ($0*m+c):1 title "30kV,60uA" lt 7 w steps
+
