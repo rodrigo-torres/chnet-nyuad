@@ -24,60 +24,60 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-
-
-//#define INDIVIDUAL_TRIGGER_INPUTS
-// The following define must be set to the actual number of connected boards
-#define MAXNB   1
-// NB: the following define MUST specify the ACTUAL max allowed number of board's channels
-// it is needed for consistency inside the CAENDigitizer's functions used to allocate the memory
-#define MaxNChannels 2
-
-#define MAXNBITS 14
-
 #include "Functions.h"
-
-
 #include <../../Shm.h>
 #include <../../variables.h>
 
-
-// Included for the random distribution of events for the histogram sum.
-
+#define MAXNB   1
+#define MAXNBITS 14
+#define MaxNChannels 2
+// Macros for the random data distribution protocol
 #define ia 106
 #define ic 1283
 #define im 6075
 
+
+
+
 long *idum;
 long seed;
 
-int jlo, jhi;
+double jlo, jhi;
 int callstorandom = 0;
-long ranqd1(long *idum,int jlo,int jhi);
+void setseed() {
 
-void setseed();
+    time_t timer;
+    struct tm y2k = {0};
+    //double seconds;
 
+    y2k.tm_hour = 0;	y2k.tm_min = 0; y2k.tm_sec = 0;
+    y2k.tm_year = 0;	y2k.tm_mon = 0; y2k.tm_mday = 1;
 
-//
+    time(&timer);
+    seed = difftime(timer,mktime(&y2k));
+    //seed = seconds;
+    idum = &seed;
+}
 
+long ranqd1(long *idum, double jlo, double jhi) {
+    if (callstorandom > 50000) {
+        setseed();
+        callstorandom=0;
+    }
 
-extern int *shm_cmd, *shmCommand_cmd, shmid_cmd, shmidString_cmd, *shared_memory_cmd; 
-extern key_t key_cmd; extern key_t keyString_cmd;
+    if (jlo < 0) return (long) 0;
 
-extern int *shm, *shmCommand, shmid, shmidString, *shared_memory; 
-extern key_t key; extern key_t keyString;
+    *idum = (*idum * ia + ic) % im;
+    double j = jlo + ((jhi - jlo + 1) * (double) *idum) / (double) im;
+    callstorandom++;
 
-extern int *shm2, *shmCommand2, shmid2, shmidString2, *shared_memory2; 
-extern key_t key2; extern key_t keyString2;
+    if ((j-floor(j)) >= 0.5) return (long) ceil(j);
+    else return (long) floor(j);
+}
 
-extern int *shm3, *shmCommand3, shmid3, shmidString3, *shared_memory3;
-extern key_t key3; extern key_t keyString3;
+key_t key_cmd, key, key2, key4, key_rate;
+int *shared_memory_cmd, *shared_memory, *shared_memory2, *shared_memory4, *shared_memory_rate;
 
-extern int *shm4, *shmCommand4, shmid4, shmidString4, *shared_memory4;
-extern key_t key4; extern key_t keyString4;
-
-extern int *shm_rate, *shm_rate, shmid_rate, shmidString_rate, *shared_memory_rate; 
-extern key_t key_rate; extern key_t keyString_rate;
 
 int NSegFault=2000000000;  ///61440000 dovrebbe essere il massimo assoluto
 
@@ -85,9 +85,7 @@ int NSegFault=2000000000;  ///61440000 dovrebbe essere il massimo assoluto
 //////////////////////////////////////////
 void termination(int);
 struct sigaction sigact;
-void sigquit();
-/////////////////////////////////////////
- int ev=0;
+
 int n=1;int k=0;
 FILE *fd,*fds;
 int storage[16384]={0};
@@ -129,60 +127,23 @@ int changeposition=0; //a number that is incremented each time a position is wri
 double millisec;
 struct timeval tv;
 
-/* ########################################################################### */
-/*   Program the registers of the digitizer with the relevant parameters
-/*   //return  0=success; -1=error                                                                  
-/* ########################################################################### */
 
-/* --------------------------------------------------------------------------------------------------------- */
+void configTimer(int seconds);
 
-int ProgramDigitizer(int handle, DigitizerParams_t Params, CAEN_DGTZ_DPP_PHA_Params_t DPPParams)
-{
-
-
+int ProgramDigitizer(int handle, DigitizerParams_t Params, CAEN_DGTZ_DPP_PHA_Params_t DPPParams) {
     /* This function uses the CAENDigitizer API functions to perform the digitizer's initial configuration */
-    int i, ret = 0;
 
-    /* Reset the digitizer */
-    ret |= CAEN_DGTZ_Reset(handle);
+    int ret = 0;
+    ret |= CAEN_DGTZ_Reset(handle);    /* Reset the digitizer */
+    if (ret) { printf("[!] Can't reset the digitizer\n"); return -1; }
 
-    if (ret) {
-        printf("ERROR: can't reset the digitizer.\n");
-        return -1;
-    }
     ret |= CAEN_DGTZ_WriteRegister(handle, 0x8000, 0x010E0114);  // Channel Control Reg (indiv trg, seq readout) ??
-
-    /* Set the DPP acquisition mode
-    This setting affects the modes Mixed and List (see CAEN_DGTZ_DPP_AcqMode_t definition for details)
-    CAEN_DGTZ_DPP_SAVE_PARAM_EnergyOnly        Only energy (DPP-PHA) or charge (DPP-PSD/DPP-CI v2) is returned
-    CAEN_DGTZ_DPP_SAVE_PARAM_TimeOnly        Only time is returned
-    CAEN_DGTZ_DPP_SAVE_PARAM_EnergyAndTime    Both energy/charge and time are returned
-    CAEN_DGTZ_DPP_SAVE_PARAM_None            No histogram data is returned */
     ret |= CAEN_DGTZ_SetDPPAcquisitionMode(handle, Params.AcqMode, CAEN_DGTZ_DPP_SAVE_PARAM_EnergyAndTime);
-    
-    // Set the digitizer acquisition mode (CAEN_DGTZ_SW_CONTROLLED or CAEN_DGTZ_S_IN_CONTROLLED)
     ret |= CAEN_DGTZ_SetAcquisitionMode(handle, CAEN_DGTZ_SW_CONTROLLED);
-    
-    // Set the number of samples for each waveform
     ret |= CAEN_DGTZ_SetRecordLength(handle, Params.RecordLength);
-
-    // Set the I/O level (CAEN_DGTZ_IOLevel_NIM or CAEN_DGTZ_IOLevel_TTL)
     ret |= CAEN_DGTZ_SetIOLevel(handle, Params.IOlev);
-
-    /* Set the digitizer's behaviour when an external trigger arrives:
-
-    CAEN_DGTZ_TRGMODE_DISABLED: do nothing
-    CAEN_DGTZ_TRGMODE_EXTOUT_ONLY: generate the Trigger Output signal
-    CAEN_DGTZ_TRGMODE_ACQ_ONLY = generate acquisition trigger
-    CAEN_DGTZ_TRGMODE_ACQ_AND_EXTOUT = generate both Trigger Output and acquisition trigger
-
-    see CAENDigitizer user manual, chapter "Trigger configuration" for details */
     ret |= CAEN_DGTZ_SetExtTriggerInputMode(handle, CAEN_DGTZ_TRGMODE_ACQ_ONLY);
-
-    // Set the enabled channels
     ret |= CAEN_DGTZ_SetChannelEnableMask(handle, Params.ChannelMask);
-
-    // Set how many events to accumulate in the board memory before being available for readout
     ret |= CAEN_DGTZ_SetDPPEventAggregation(handle, Params.EventAggr, 0);
     
     /* Set the mode used to syncronize the acquisition between different boards.
@@ -191,229 +152,165 @@ int ProgramDigitizer(int handle, DigitizerParams_t Params, CAEN_DGTZ_DPP_PHA_Par
     
     // Set the DPP specific parameters for the channels in the given channelMask
     ret |= CAEN_DGTZ_SetDPPParameters(handle, Params.ChannelMask, &DPPParams);
-    
-    for(i=0; i<MaxNChannels; i++) {
-        if (Params.ChannelMask & (1<<i)) {
-            // Set a DC offset to the input signal to adapt it to digitizer's dynamic range
-	    ret |= CAEN_DGTZ_SetChannelDCOffset(handle, i, 0x7333); //for emulator and for XR100_medium CH0Dt1
-	//	 ret |= CAEN_DGTZ_SetChannelDCOffset(handle, i, 0xB70A); //for detector opd
-            //ret |= CAEN_DGTZ_SetChannelDCOffset(handle, i, 0xEB85);   //era 0x8000 cioè la metà di 0xFFFF (l'offset DC è in 16 bit)
-                                                                      ///il nostro 35% sarebbe 22938 su 65536----->0x599A   0x7333
-                                                                      ////0xF333 è il 95%....NULLA!!!
-                                                                       ////0xEB85 è il 92%...viene histo da 250 
-                                                                      ////0xE666 è il 90%....viene histo da 600
-                                                                      ///0xCCCC è l'80% .....viene histo da 3300
-                                                                      ///0xB333 è il 70% ....viene histo da 5000
-                                                                      ///0x7333 è il 45%.....viene histo da 8350
-                                                                      ////0x599A è il 35%....viene histo da 10050
-                                                                      ////0x1999 è il 10%....viene histo da 14320 
-            // Set the Pre-Trigger size (in samples)
-            ret |= CAEN_DGTZ_SetDPPPreTriggerSize(handle, i, 500);    ///era 80..poco
-            
-            // Set the polarity for the given channel (CAEN_DGTZ_PulsePolarityPositive or CAEN_DGTZ_PulsePolarityNegative)
-            ret |= CAEN_DGTZ_SetChannelPulsePolarity(handle, i, Params.PulsePolarity);
+
+    int offset = 0;
+    if (*(shared_memory4+15) == 1) {
+        offset = *(shared_memory4+7);
+        printf("[!] Setting DC Offset from DPP interface as:\t%d\n",offset);
+        for (int i = 0; i < MaxNChannels; i++) {
+            if (Params.ChannelMask & (1<<i)) {
+                // Set a DC offset to the input signal to adapt it to digitizer's dynamic range
+                ret |= CAEN_DGTZ_SetChannelDCOffset(handle, i, offset);
+                ret |= CAEN_DGTZ_SetDPPPreTriggerSize(handle, i, 500);
+                ret |= CAEN_DGTZ_SetChannelPulsePolarity(handle, i, Params.PulsePolarity);
+            }
         }
     }
-	
-    /* Set the virtual probes settings
-    DPP-PHA can save:
-    2 analog waveforms:
-        the first and the second can be specified with the VIRTUALPROBE 1 and 2 parameters
-        
-    4 digital waveforms:
-        the first is always the trigger
-        the second is always the gate
-        the third and fourth can be specified with the DIGITALPROBE 1 and 2 parameters
 
-    CAEN_DGTZ_DPP_VIRTUALPROBE_SINGLE -> Save only the Input Signal waveform
-    CAEN_DGTZ_DPP_VIRTUALPROBE_DUAL      -> Save also the waveform specified in VIRTUALPROBE
-
-    Virtual Probes 1 types:
-    CAEN_DGTZ_DPP_PHA_VIRTUALPROBE1_trapezoid
-    CAEN_DGTZ_DPP_PHA_VIRTUALPROBE1_Delta
-    CAEN_DGTZ_DPP_PHA_VIRTUALPROBE1_Delta2
-    CAEN_DGTZ_DPP_PHA_VIRTUALPROBE1_Input
+    else {
+        for(int i=0; i<MaxNChannels; i++) {
+            if (Params.ChannelMask & (1<<i)) {
+                ret |= CAEN_DGTZ_SetChannelDCOffset(handle, i, 19661);
+                ret |= CAEN_DGTZ_SetDPPPreTriggerSize(handle, i, 500);
+                ret |= CAEN_DGTZ_SetChannelPulsePolarity(handle, i, Params.PulsePolarity);
+            }
+        }
+    }
     
-    Virtual Probes 2 types:
-    CAEN_DGTZ_DPP_PHA_VIRTUALPROBE2_Input
-    CAEN_DGTZ_DPP_PHA_VIRTUALPROBE2_S3
-    CAEN_DGTZ_DPP_PHA_VIRTUALPROBE2_DigitalCombo
-    CAEN_DGTZ_DPP_PHA_VIRTUALPROBE2_trapBaseline
-    CAEN_DGTZ_DPP_PHA_VIRTUALPROBE2_None
-
-    Digital Probes types:
-    CAEN_DGTZ_DPP_PHA_DIGITAL_PROBE_trgKln
-    CAEN_DGTZ_DPP_PHA_DIGITAL_PROBE_Armed
-    CAEN_DGTZ_DPP_PHA_DIGITAL_PROBE_PkRun
-    CAEN_DGTZ_DPP_PHA_DIGITAL_PROBE_PkAbort
-    CAEN_DGTZ_DPP_PHA_DIGITAL_PROBE_Peaking
-    CAEN_DGTZ_DPP_PHA_DIGITAL_PROBE_PkHoldOff
-    CAEN_DGTZ_DPP_PHA_DIGITAL_PROBE_Flat
-    CAEN_DGTZ_DPP_PHA_DIGITAL_PROBE_trgHoldOff */
-    
-
-
-    //ret |= CAEN_DGTZ_SetDPP_PHA_VirtualProbe(handle, CAEN_DGTZ_DPP_VIRTUALPROBE_DUAL, CAEN_DGTZ_DPP_PHA_VIRTUALPROBE1_Delta2, CAEN_DGTZ_DPP_PHA_VIRTUALPROBE2_Input, CAEN_DGTZ_DPP_PHA_DIGITAL_PROBE_trgHoldOff);
     ret |= CAEN_DGTZ_SetDPP_PHA_VirtualProbe(handle, CAEN_DGTZ_DPP_VIRTUALPROBE_DUAL, CAEN_DGTZ_DPP_PHA_VIRTUALPROBE1_trapezoid, CAEN_DGTZ_DPP_PHA_VIRTUALPROBE2_Input, CAEN_DGTZ_DPP_PHA_DIGITAL_PROBE_Peaking);
 
     if (ret) {
         printf("Warning: errors found during the programming of the digitizer.\nSome settings may not be executed\n");
         return ret;
-    } else {
-        //return 0;
     }
 
+    /****************************\
+    *        INPUT RANGE         *
+    \****************************/
 
+    if (*(shared_memory4+15) != 1) // To load pre-defined values
+        for (ch = 0; ch < MaxNChannels; ch++) {
+            if ((ret = CAENDPP_SetInputRange(handledpp, ch, CAENDPP_InputRange_0_6Vpp)) != 0)
+                printf("[!] Can't set InputRange for channel %d, error %d\n",ch,ret);
+        }
+    else {
+        CAENDPP_InputRange_t inRange;
+        if (*(shared_memory4+1) == 0 || NULL) inRange = CAENDPP_InputRange_0_6Vpp;
+        else if (*(shared_memory4+1) == 1) inRange = CAENDPP_InputRange_1_4Vpp;
+        else if (*(shared_memory4+1) == 2) inRange = CAENDPP_InputRange_3_7Vpp;
+        else if (*(shared_memory4+1) == 3) inRange = CAENDPP_InputRange_9_5Vpp;
+
+        for (ch = 0; ch < MaxNChannels; ch++) {
+            if ((ret = CAENDPP_SetInputRange(handledpp, ch, inRange)) != 0)
+                printf("[!] Can't set InputRange for channel %d, error %d\n",ch,ret);
+        }
+    }
+
+    return ret;
 }
 
-/* ########################################################################### */
-/* MAIN                                                                        */
-/* ########################################################################### */
-int main(int argc, char *argv[])
-{
+int* assignSHM(key_t key, size_t size, int id) {
+    int shmID = shmget(key, size, IPC_CREAT | 0666);
+    if (shmID == -1) {
+        printf("[!] Couldn't obtain a shared memory segment ID for key:\t%d\n", key);
+        printf("%s\n", strerror(errno));
+        return NULL;
+    }
+    else return (int*)(shmat(shmID, NULL, 0));
+}
 
-///////////////////////////////////////shared memory begin//////////////////////////////////
+int main(int argc, char *argv[]) {
+    key_cmd = 6900, key = 7000, key2 = 7200, key4 = 7400, key_rate = 7500;
 
-   key_cmd = 6900;
-   shmid_cmd = shmget (6900, SHMSZ_CMD_STATUS, IPC_CREAT | 0666);
-   if (shmid_cmd == -1)  printf("Errore %s\n ", strerror(errno));
-   shared_memory_cmd =(int *) shmat(shmid_cmd, NULL, 0);
-   printf("Data Memory attached at :%x  with shmid %d\n", (int *)shared_memory_cmd,  shmid_cmd);
+    shared_memory_cmd = assignSHM(key_cmd, SHMSZ_CMD_STATUS, 0);
+    shared_memory = assignSHM(key, SHMSZ, 1);
+    shared_memory2 = assignSHM(key2, SHMSZBIG, 2);
+    shared_memory4 = assignSHM(key4, SHMSZDIGI, 4);
+    shared_memory_rate = assignSHM(key_rate, SHMSZRATE, 6);
 
-   key = 7000;
-   shmid = shmget (7000, SHMSZ, IPC_CREAT | 0666);
-   if (shmid == -1)  printf("Errore %s\n ", strerror(errno));
-   shared_memory =(int *) shmat(shmid, NULL, 0);
-   printf("Data Memory attached at :%x  with shmid %d\n", (int *)shared_memory,  shmid);
-
-   key2 = 7200;
-   shmid2 = shmget (7200, SHMSZBIG, IPC_CREAT | 0666);
-   if (shmid2 == -1) printf("Errore %s\n ", strerror(errno));
-   shared_memory2 =(int *) shmat(shmid2, NULL, 0);
-   printf("Data Memory attached at :%x  with shmid %d\n", (int *)shared_memory2,  shmid2);
-   printf("SHMSZBIG : %d\n", SHMSZBIG);
-
-   key4 = 7400;
-   shmid4 = shmget (7400, SHMSZDIGI, IPC_CREAT | 0666);
-       if (shmid4 == -1) printf("Errore %s\n ",strerror(errno));
-   shared_memory4 =(int *) shmat(shmid4, NULL, 0);
-   
-   key_rate = 7500;
-   shmid_rate = shmget (7500, SHMSZRATE, IPC_CREAT | 0666);
-       if (shmid_rate == -1) printf("Errore %s\n ",strerror(errno));
-   shared_memory_rate =(int *) shmat(shmid_rate, NULL, 0);
-   printf("Data Memory attached at : %x with shmid4 %d\n", (int *)shared_memory_rate, shmid_rate);
-
-
-    for ( w=0; w<16384; w++) {
+    for (int w = 0; w < 16384; w++) { // Clear histograms in shared memory
         *(shared_memory+100+w)=0;
         *(shared_memory+20000+w)=0;
         *(shared_memory+40000+w)=0;
+        //if ( w == 0 ) printf("%d %d %d\n", *(shared_memory+100+w), *(shared_memory+20000+w), *(shared_memory+40000+w));
     }
 
-    for( w=0; w<*(shared_memory2+4); w++) {
-        *(shared_memory2+11+w)=0;
-    }
+    for (int w = 0; w < *(shared_memory2+4); w++) *(shared_memory2+11+w)=0; // Clears loadSHM array for scan files
 
     *(shared_memory2+4)=0;  // Number of records in memory (position and energy)
     *(shared_memory2+5)=0;  // Number of total events per acquisition
     *(shared_memory2+6)=0;  // Warning, number of records in memory close to SegmentationFault
 
-////////////////////end shared memory///////////////////////////////////////////////
+    *(shared_memory_cmd+80) = getpid();
+    printf("... ADC started with pid:\t%d\n", getpid());
 
-int pid=getpid();
-*(shared_memory_cmd+80)=pid;
-
-printf("pidADC\%d\n", pid);
-
-
-///////////////////////////////////////////////////////////// PARAMETRI DEL DIGITALIZZATORE
-
-/*
-                                  *(shared_memory4)=10;        // Trigger Threshold                                   
-                                  *(shared_memory4+1)=0;       // Input range digitalizzatore (0 -> 0.6V // 1 -> 1.4V                                  
-                                  *(shared_memory4+2)=10000;   // Trapezoid Rise Time (ns) 
+    /* DIGITIZER PARAMETERS
+                                  *(shared_memory4)=10;        // Trigger Threshold
+                                  *(shared_memory4+1)=0;       // Input range digitalizzatore (0 -> 0.6V // 1 -> 1.4V
+                                  *(shared_memory4+2)=10000;   // Trapezoid Rise Time (ns)
                                   *(shared_memory4+3)=2000;    // Trapezoid Flat Top  (ns)
                                   *(shared_memory4+4)=300000;  // Decay Time Constant (ns) HACK-FPEP the one expected from fitting algorithm?
                                   *(shared_memory4+5)=2000;    // Peaking delay  (ns)
-                                  *(shared_memory4+6)=2;       // Trigger Filter smoothing factor  
+                                  *(shared_memory4+6)=2;       // Trigger Filter smoothing factor
                                   *(shared_memory4+7)=0;       // OFFSET
-                                  *(shared_memory4+8)=3000;    // Trigger Hold Off  
-                                  *(shared_memory4+9)=256;     // BaseLine Mean - ?? 3 = bx10 = 64 samples (baseline mean del trapezio) (...?? 3)  
-                                  *(shared_memory4+10)=1;      // peak mean (numero punti su cui mediare per peaking del trapezio)  
-                                  *(shared_memory4+11)=3000;   // peak holdoff (min intervallo tra 2 trapezi...minimo=k+m)  
-                                  *(shared_memory4+12)=1;      // Trapezoid Gain  
+                                  *(shared_memory4+8)=3000;    // Trigger Hold Off
+                                  *(shared_memory4+9)=256;     // BaseLine Mean - ?? 3 = bx10 = 64 samples (baseline mean del trapezio) (...?? 3)
+                                  *(shared_memory4+10)=1;      // peak mean (numero punti su cui mediare per peaking del trapezio)
+                                  *(shared_memory4+11)=3000;   // peak holdoff (min intervallo tra 2 trapezi...minimo=k+m)
+                                  *(shared_memory4+12)=1;      // Trapezoid Gain
                                   *(shared_memory4+13)=100;    // NOT USED: Delay(b) Input Signal Rise time (ns)...sarebbe delay (b)
                                   *(shared_memory4+14)=10;     // NOT USED: Energy Normalization Factor
-
                                   *(shared_memory4+15)=0;      // Enable digitiser reading
-
 
 */
 
-  /********************/
-  /* Signals handling */
-  /********************/  
+    /********************/
+    /* Signals handling */
+    /********************/
 
-  sigact.sa_handler=termination;
-  sigemptyset(&sigact.sa_mask);
-  sigact.sa_flags=0;
-  sigaction(SIGTERM,&sigact,NULL);
-  sigaction(SIGINT,&sigact,NULL);
-  sigaction(SIGQUIT,&sigact,NULL);
+    sigact.sa_handler=termination;
+    sigemptyset(&sigact.sa_mask);
+    sigact.sa_flags=0;
+    sigaction(SIGTERM,&sigact,NULL);
+    sigaction(SIGINT,&sigact,NULL);
+    sigaction(SIGQUIT,&sigact,NULL);
 
-/////////////reads from the shared memory the variables for the scanning///////////////
+    // Dereferences from shared memory the scanning variable values
+    int Xmin_adc = *(shared_memory_cmd+50);
+    int Xmax_adc = *(shared_memory_cmd+51);
+    int Ymin_adc = *(shared_memory_cmd+52);
+    int Ymax_adc = *(shared_memory_cmd+53);
+    int Xstep_adc= *(shared_memory_cmd+60);
+    int Ystep_adc= *(shared_memory_cmd+61);
 
-Xmin_adc=*(shared_memory_cmd+50); //printf("Xmin_adc:%d\n", Xmin_adc);
-//printf("Xmin_adc:%d\n", Xmin_adc);
-PositionX_adc=Xmin_adc;
-Xmax_adc=*(shared_memory_cmd+51); //printf("Xmax_adc:%d\n", Xmax_adc);
-//printf("Xmax_adc:%d\n", Xmax_adc);
-Ymin_adc=*(shared_memory_cmd+52); //printf("Ymin_adc:%d\n", Ymin_adc);
-PositionY_adc=Ymin_adc;
-Ymax_adc=*(shared_memory_cmd+53); //printf("Ymax_adc:%d\n", Ymax_adc);
-Xstep_adc=*(shared_memory_cmd+60); //printf("Xstep_adc:%d\n", Xstep_adc);
-Ystep_adc=*(shared_memory_cmd+61); //printf("Ystep_adc:%d\n", Ystep_adc);
-velocity_adc=*(shared_memory_cmd+67); //printf("Velocity_adc:%d\n", velocity_adc);
-time_seconds=(double)Xstep_adc/(double)velocity_adc;
-//printf("time_seconds:%f\n", time_seconds);
-time_interval=(int)(time_seconds*1000); //time in milliseconds, for now we take only the Xstep assuming that it is the same as the Ystep in case of YX scan
-//printf("time_interval:%d\n", time_interval);
-Xn=((Xmax_adc-Xmin_adc)/Xstep_adc)+1;
-Yn=((Ymax_adc-Ymin_adc)/Ystep_adc)+1;
-printf("... X steps and Y steps: %d and %d",Xn,Yn);
-
-/////////////////////////timer////////////////////////////////////
-
-if (signal(SIGALRM, (void (*)(int)) write_position) == SIG_ERR) {
-    perror("Unable to catch SIGALRM");
-    exit(1);
-  }
+    int PositionX_adc = Xmin_adc;
+    int PositionY_adc = Ymin_adc;
+    int Xn = ((Xmax_adc - Xmin_adc) / Xstep_adc) + 1;
+    int Yn = ((Ymax_adc - Ymin_adc) / Ystep_adc) + 1;
 
 
-  /********************/
-  /* On ^C            */
-  /********************/  
+    double time_seconds = (double)Xstep_adc / (double)*(shared_memory_cmd+67);
+    int time_interval = (int)(time_seconds*1000);
 
-////////////////////////////////////////shared memory end////////////////////////////////////////////////
+    printf("... Setting %d X steps and %d Y steps and %d interval\n", Xn, Yn, time_interval);
+    /********************/
+    /*      Timer       */
+    /********************/
+
+    // SIGALRM is sent when real or clock time elapses (defined in struct itimerval)
+    if ( signal(SIGALRM, (void (*)(int)) write_position) == SIG_ERR) {
+        perror("[!] Unable to catch SIGALRM");
+        exit(1);
+    }
 
 
-    /*qui inizia la parte del digitalizzatore*/
+    /********************/
+    /* On ^C            */
+    /********************/
 
-    /* The following variable is the type returned from most of CAENDigitizer
-    library functions and is used to check if there was an error in function
-    execution. For example:
-    ret = CAEN_DGTZ_some_function(some_args);
-    if(ret) printf("Some error"); */
     CAEN_DGTZ_ErrorCode ret;
+    buffer = NULL;
 
-    /* Buffers to store the data. The memory must be allocated using the appropriate
-    CAENDigitizer API functions (see below), so they must not be initialized here
-    NB: you must use the right type for different DPP analysis (in this case PHA) */
-    buffer = NULL;                                 // readout buffer
-    
-
-    /* The following variables will store the digitizer configuration parameters */
     CAEN_DGTZ_DPP_PHA_Params_t DPPParams[MAXNB];
     DigitizerParams_t Params[MAXNB];
 
@@ -431,55 +328,31 @@ if (signal(SIGALRM, (void (*)(int)) write_position) == SIG_ERR) {
     int handle[MAXNB];
 
     /* Other variables */
-    int i, ev;
-    int Quit=0;
-    int AcqRun = 0;
-    uint32_t AllocatedSize, BufferSize;
-    int Nb=0;
-    int DoSaveWave[MAXNB][MaxNChannels];
-    int MajorNumber;
-    int BitMask = 0;
-    uint64_t CurrentTime, PrevRateTime, ElapsedTime;
     uint32_t NumEvents[MaxNChannels];
-    CAEN_DGTZ_BoardInfo_t           BoardInfo;
-    FILE *f;
+    uint32_t AllocatedSize, BufferSize;
+    uint64_t CurrentTime, PrevRateTime, ElapsedTime;
+    CAEN_DGTZ_BoardInfo_t BoardInfo;
 
-   int pippo = 0;		
-   int data=0; ////uint16_t
-   int EvToStore=1;
-   int caso=10;
-   int AdcData;
-   int ok=0;
-   int firstPos=1;
-   bool datazero=false;
-  
-   k=0; n=1;
- 
-   int pluto;
-   int ValidAdcEvent=0;
-                        
+    int MajorNumber;
+    int AcqRun = 0, BitMask = 0, data = 0, caso = 10;
 
-    memset(DoSaveWave, 0, MAXNB*MaxNChannels*sizeof(int));
-    for (i=0; i<MAXNBITS; i++)
-        BitMask |= 1<<i; /* Create a bit mask based on number of bits of the board */
+    k = 0;
+    n = 1;
 
-    /* *************************************************************************************** */
-    /* Set Parameters                                                                          */
-    /* *************************************************************************************** */
     memset(&Params, 0, MAXNB*sizeof(DigitizerParams_t));
     memset(&DPPParams, 0, MAXNB*sizeof(CAEN_DGTZ_DPP_PHA_Params_t));
-    for(b=0; b<MAXNB; b++) 
-     {
-        for(ch=0; ch<MaxNChannels; ch++)
-            EHisto[b][ch] = NULL; //set all histograms pointers to NULL (we will allocate them later)
+
+    for (b = 0; b < MAXNB; b++) { // Initialize DPP parameters
+        for (ch = 0; ch < MaxNChannels; ch++) EHisto[b][ch] = NULL;
+
 
         /****************************\
         * Communication Parameters   *
         \****************************/
 
         // Direct USB connection
-        Params[b].LinkType = CAEN_DGTZ_USB;  // Link Type
-        Params[b].VMEBaseAddress = 0;  // For direct USB connection, VMEBaseAddress must be 0
+        Params[b].LinkType = CAEN_DGTZ_USB;         // Link Type
+        Params[b].VMEBaseAddress = 0;               // For direct USB connection, VMEBaseAddress must be 0
         Params[b].IOlev = CAEN_DGTZ_IOLevel_TTL;
 
         /****************************\
@@ -491,217 +364,118 @@ if (signal(SIGALRM, (void (*)(int)) write_position) == SIG_ERR) {
         Params[b].EventAggr = 1;                                    // number of events in one aggregate (0=automatic)
         Params[b].PulsePolarity = CAEN_DGTZ_PulsePolarityPositive;
 
-        // The following is for direct OPTLINK connection
-        connParam.LinkType = CAEN_DGTZ_USB;
-        connParam.LinkNum = 0;            // This defines the PCI(e) link to use
-        connParam.ConetNode = 0;          // This must increase with board number in dasy chain
-        connParam.VMEBaseAddress = 0x0;   // For direct connection the address must be 0
-
         /****************************\
         *      DPP parameters        *
         \****************************/
 
-
-        for(ch=0; ch<MaxNChannels; ch++) {
-
-
+        if (*(shared_memory4+15) != 1) { // To load pre-defined values
             /* Trigger and shaping paramters for channel 0 */
-
-            DPPParams[b].thr[0] = 30;// Trigger Threshold
-            DPPParams[b].k[0] =  4000;// Trapezoid Rise Time (ns)
-            DPPParams[b].m[0] = 4500;// Trapezoid Flat Top  (ns)
-            DPPParams[b].M[0] = 600000;// Decay Time Constant (ns)
-            DPPParams[b].ftd[0] = 2600;// Peaking delay  (ns)
-            DPPParams[b].a[0] = 8; // Trigger Filter smoothing factor
-            DPPParams[b].b[0] = 100; // Delay(b)
-            DPPParams[b].trgho[0] = 1100;// Trigger Hold Off
-            DPPParams[b].nsbl[0] = 5;// Baseline mean del trapezio (ordine di comparsa nel menu)
+            DPPParams[b].thr[0] = 400;// Trigger Threshold
+            DPPParams[b].k[0] =  1000;// Trapezoid Rise Time (ns)
+            DPPParams[b].m[0] = 1000;// Trapezoid Flat Top  (ns)
+            DPPParams[b].M[0] = 3500;// Decay Time Constant (ns)
+            DPPParams[b].ftd[0] = 600;// Peaking delay  (ns)
+            DPPParams[b].a[0] = 32; // Trigger Filter smoothing factor
+            DPPParams[b].b[0] = 200; // Delay(b)
+            DPPParams[b].trgho[0] = 1300;// Trigger Hold Off
+            DPPParams[b].nsbl[0] = 6;// Baseline mean del trapezio (ordine di comparsa nel menu)
             DPPParams[b].nspk[0] = 3;// Peak mean (ordine di comparsa nel menu)
-            DPPParams[b].pkho[0] = 1300;// Peak holdoff
-            DPPParams[b].blho[0] = 1100;// Baseline holdoff del trapezio
+            DPPParams[b].pkho[0] = 1100;// Peak holdoff
+            DPPParams[b].blho[0] = 3100;// Baseline holdoff del trapezio
             DPPParams[b].enf[0] = 1;// Energy Normalization Factor
             DPPParams[b].dgain[0] = 0;//Digital Gain (ordine di comparsa nel menu)
             DPPParams[b].decimation[0] = 0;// Decimation
 
-
             /* Trigger and shaping paramters for channel 1 */
-
-            DPPParams[b].thr[1] = 30;// Trigger Threshold
-            DPPParams[b].k[1] =  4000;// Trapezoid Rise Time (ns)
-            DPPParams[b].m[1] = 4500;// Trapezoid Flat Top  (ns)
-            DPPParams[b].M[1] = 600000;// Decay Time Constant (ns)
-            DPPParams[b].ftd[1] = 2600;// Peaking delay  (ns)
-            DPPParams[b].a[1] = 8; // Trigger Filter smoothing factor
-            DPPParams[b].b[1] = 100; // Delay(b)
+            DPPParams[b].thr[1] = 1000;// Trigger Threshold
+            DPPParams[b].k[1] =  1000;// Trapezoid Rise Time (ns)
+            DPPParams[b].m[1] = 1000;// Trapezoid Flat Top  (ns)
+            DPPParams[b].M[1] = 8500;// Decay Time Constant (ns)
+            DPPParams[b].ftd[1] = 500;// Peaking delay  (ns)
+            DPPParams[b].a[1] = 1; // Trigger Filter smoothing factor
+            DPPParams[b].b[1] = 200; // Delay(b)
             DPPParams[b].trgho[1] = 1100;// Trigger Hold Off
-            DPPParams[b].nsbl[1] = 5;// Baseline mean del trapezio (ordine di comparsa nel menu)
+            DPPParams[b].nsbl[1] = 6;// Baseline mean del trapezio (ordine di comparsa nel menu)
             DPPParams[b].nspk[1] = 3;// Peak mean (ordine di comparsa nel menu)
-            DPPParams[b].pkho[1] = 1300;// Peak holdoff
-            DPPParams[b].blho[1] = 1100;// Baseline holdoff del trapezio
+            DPPParams[b].pkho[1] = 1100;// Peak holdoff
+            DPPParams[b].blho[1] = 3100;// Baseline holdoff del trapezio
             DPPParams[b].enf[1] = 1;// Energy Normalization Factor
             DPPParams[b].dgain[1] = 0;//Digital Gain (ordine di comparsa nel menu)
             DPPParams[b].decimation[1] = 0;// Decimation
-
-
         }
-       if(*(shared_memory4+15)==1) //IMPORTING PARAMETERS FROM DIGITISER INTERFACE
-          {
-          printf("Loading parameters from interface...\n");
-	  CAENDPP_InputRange_t InRange_2;
-          int Input_Range=*(shared_memory4+1); ///// INPUT RANGE: Input dynamic range: 0 for 9.5, 1 for 3.7, 2 for 1.4 and 3 for 0.6 
-          if(*(shared_memory4+1)==0) InRange_2=CAENDPP_InputRange_0_6Vpp;
-	  else 	
-	  if(*(shared_memory4+1)==1) InRange_2=CAENDPP_InputRange_1_4Vpp;
-	  else
-	  if(*(shared_memory4+1)==2) InRange_2=CAENDPP_InputRange_3_7Vpp;
-	  else
-	  if(*(shared_memory4+1)==3) InRange_2=CAENDPP_InputRange_9_5Vpp;
-	  for(ch=0; ch<MaxNChannels; ch++)
-          {
-	    if ((ret = CAENDPP_SetInputRange(handledpp, 0, InRange_2)) != 0) {
-                printf("Can't set Input Range for Channel 0, error %d\n", ret);
+
+        else { // For importing DPP parameters from Digitizer interface
+            printf("... Loading parameters from DPP interface\n");
+            for (ch = 0; ch < MaxNChannels; ch++) {
+
+                DPPParams[b].thr[ch] = 400;// Trigger Threshold
+                DPPParams[b].k[ch] =  1000;// Trapezoid Rise Time (ns)
+                DPPParams[b].m[ch] = 1000;// Trapezoid Flat Top  (ns)
+                DPPParams[b].M[ch] = 8500;// Decay Time Constant (ns)
+                DPPParams[b].ftd[ch] = 500;// Peaking delay  (ns)
+                DPPParams[b].a[ch] = 1; // Trigger Filter smoothing factor
+                DPPParams[b].b[ch] = 200; // Delay(b)
+                DPPParams[b].trgho[ch] = 1100;// Trigger Hold Off
+                DPPParams[b].nsbl[ch] = 6;// Baseline mean del trapezio (ordine di comparsa nel menu)
+                DPPParams[b].nspk[ch] = 3;// Peak mean (ordine di comparsa nel menu)
+                DPPParams[b].pkho[ch] = 1100;// Peak holdoff
+                DPPParams[b].blho[ch] = 3100;// Baseline holdoff del trapezio
+                DPPParams[b].enf[ch] = 1;// Energy Normalization Factor
+                DPPParams[b].dgain[ch] = 0;//Digital Gain (ordine di comparsa nel menu)
+                DPPParams[b].decimation[ch] = 0;// Decimation
+                //                DPPParams[b].thr[ch]        = *(shared_memory4);    // Threshold
+                //                DPPParams[b].k[ch]          = *(shared_memory4+2);  // Rise time
+                //                DPPParams[b].m[ch]          = *(shared_memory4+3);  // Flat top
+                //                DPPParams[b].M[ch]          = *(shared_memory4+4);  // Decay time
+                //                DPPParams[b].ftd[ch]        = *(shared_memory4+5);  // Peaking time
+                //                DPPParams[b].a[ch]          = *(shared_memory4+6);  // Smoothing factor
+                //                DPPParams[b].b[ch]          = 200;                  // Delay(b)
+                //                DPPParams[b].trgho[ch]      = *(shared_memory4+8);  // Trigger holdoff
+                //                DPPParams[b].nsbl[ch]       = *(shared_memory4+9);  // Baseline mean samples
+                //                DPPParams[b].nspk[ch]       = *(shared_memory4+10); // Peak mean samples
+                //                DPPParams[b].pkho[ch]       = *(shared_memory4+11); // Peak holdoff
+                //                DPPParams[b].blho[ch]       = 2100;                  // Trapezium baseline holdoff (at least m+2*k)
+                //                DPPParams[b].enf[ch]        = 1;                   // Energy Normalization Factor
+                //                DPPParams[b].dgain[ch]      = 0;
+                //                DPPParams[b].decimation[ch] = 0;
             }
-            
-            DPPParams[b].thr[ch] = *(shared_memory4);        ///// TRESHOLD
-            DPPParams[b].k[ch] = *(shared_memory4+2);        ///// RISE TIME
-            DPPParams[b].m[ch] = *(shared_memory4+3);        ///// FLAT TOP
-            DPPParams[b].M[ch] = *(shared_memory4+4);        ///// FALL TIME
-            DPPParams[b].ftd[ch] = *(shared_memory4+5);      ///// PEAKING TIME
-            DPPParams[b].a[ch] = *(shared_memory4+6);        ///// SMOOTHING FACTOR
-
-            DPPParams[b].b[ch] = 200;       //Delay(b)  // Input Signal Rise time (ns)
-            DPPParams[b].trgho[ch] = *(shared_memory4+8);    ///// TRIGGER HOLDOFF
-            DPPParams[b].nsbl[ch] = *(shared_memory4+9);     ///// BASELINE MEAN
-            DPPParams[b].nspk[ch] = *(shared_memory4+10);    ///// PEAK MEAN
-            DPPParams[b].pkho[ch] = *(shared_memory4+11);    ///// PEAK HOLDOFF
-            DPPParams[b].blho[ch] = 160;    //Baseline holdoff del trapezio (intervallo dove non calcolare la baseline 0 sta per default=m+2*k)
-            DPPParams[b].enf[ch] = 10;      //Energy Normalization Factor
-            //DPPParams[b].tsampl[ch] = 10;
-            DPPParams[b].dgain[ch] = 0;
-            DPPParams[b].decimation[ch] = 0; 
-
-
-//{*(shared_memory4+7)=offset;}           ///// OFFSET
-//{*(shared_memory4+12)=trapgain;}    ///// TRAPEZOID GAIN
-           } //endfor
-          }  //endif
-
+        }
     }
-
-// Init the library
     retdpp = CAENDPP_InitLibrary(&handledpp);
-    printf("Return Init: %d\n", retdpp);
 
-    /* *************************************************************************************** */
-    /* Open the digitizer and read board information                                           */
-    /* *************************************************************************************** */
-    /* The following function is used to open the digitizer with the given connection parameters
-    and get the handler to it */
-    for(b=0; b<MAXNB; b++) 
-     {
-        /* IMPORTANT: The following function identifies the different boards with a system which may change
-        for different connection methods (USB, Conet, ecc). Refer to CAENDigitizer user manual for more info.
-        Some examples below */
-        
-        /* The following is for b boards connected via b USB direct links
-        in this case you must set Params[b].LinkType = CAEN_DGTZ_USB and Params[b].VMEBaseAddress = 0 */
+    for (b = 0; b < MAXNB; b++) { // Open the digitizer and get its info
         ret = CAEN_DGTZ_OpenDigitizer(Params[b].LinkType, b, 0, Params[b].VMEBaseAddress, &handle[b]);
+        if (ret) { printf("[!] Can't open digitizer\n"); goto QuitProgram; }
 
-        /* The following is for b boards connected via 1 opticalLink in dasy chain
-        in this case you must set Params[b].LinkType = CAEN_DGTZ_PCI_OpticalLink and Params[b].VMEBaseAddress = 0 */
-        //ret = CAEN_DGTZ_OpenDigitizer(Params[b].LinkType, 0, b, Params[b].VMEBaseAddress, &handle[b]);
-        //handle_global[b]=handle[b];
-        /* The following is for b boards connected to A2818 (or A3818) via opticalLink (or USB with A1718)
-        in this case the boards are accessed throught VME bus, and you must specify the VME address of each board:
-        Params[b].LinkType = CAEN_DGTZ_PCI_OpticalLink (CAEN_DGTZ_PCIE_OpticalLink for A3818 or CAEN_DGTZ_USB for A1718)
-        Params[0].VMEBaseAddress = <0xXXXXXXXX> (address of first board) 
-        Params[1].VMEBaseAddress = <0xYYYYYYYY> (address of second board) 
-        etc */
-        //ret = CAEN_DGTZ_OpenDigitizer(Params[b].LinkType, 0, 0, Params[b].VMEBaseAddress, &handle[b]);
-
-        if (ret) 
-           {
-            printf("Can't open digitizer\n");
-            goto QuitProgram;    
-           }
-        
-        /* Once we have the handler to the digitizer, we use it to call the other functions */
         ret = CAEN_DGTZ_GetInfo(handle[b], &BoardInfo);
-        if (ret) 
-          {
-            printf("Can't read board info\n");
-            goto QuitProgram;
-          }
+        if (ret) { printf("[!] Can't read board info\n"); goto QuitProgram; }
         printf("\nConnected to CAEN Digitizer Model %s, recognized as board %d\n", BoardInfo.ModelName, b);
         printf("ROC FPGA Release is %s\n", BoardInfo.ROC_FirmwareRel);
         printf("AMC FPGA Release is %s\n", BoardInfo.AMC_FirmwareRel);
 
-        /* Check firmware revision (only DPP firmwares can be used with this Demo) */
         sscanf(BoardInfo.AMC_FirmwareRel, "%d", &MajorNumber);
-        if (MajorNumber != 128) 
-             {
-            printf("This digitizer has not a DPP-PHA firmware\n");
-            goto QuitProgram;
-            }
-
-	ret = CAENDPP_AddBoard(handledpp, connParam, &bId[0]);
+        if (MajorNumber != 128) { printf("[!] This digitizer has not a DPP-PHA firmware\n"); goto QuitProgram; }
+        ret = CAENDPP_AddBoard(handledpp, connParam, &bId[0]);
     }
 
-    /* *************************************************************************************** */
-    /* Program the digitizer (see function ProgramDigitizer)                                   */
-    /* *************************************************************************************** */
-    for(b=0; b<MAXNB; b++) 
-      {
+    for (b = 0; b < MAXNB; b++) { // Program the Digitizer
         ret = ProgramDigitizer(handle[b], Params[b], DPPParams[b]);
-        if (ret) 
-          {
-            printf("Failed to program the digitizer\n");
-            goto QuitProgram;
-           }
-      }
+        if (ret) { printf("[!] Failed to program the digitizer\n"); goto QuitProgram; }
+    }
 
-// Input Range
-CAENDPP_InputRange_t InRange;
-//InRange=CAENDPP_InputRange_3_7Vpp;//for emulator
-InRange=CAENDPP_InputRange_0_6Vpp; //for detector OPD and also Ch0 in the modified digitizer version
-
-
-// Set input range
-   if ((ret = CAENDPP_SetInputRange(handledpp, 0, InRange)) != 0) {
-                printf("Can't set Input Range for Channel 0, error %d\n", ret);
-            }
-   else {printf("Input Range of Channel 0 successfully set\n");}
-
-if ((ret = CAENDPP_SetInputRange(handledpp, 1, InRange)) != 0) {
-                printf("Can't set Input Range for Channel 1, error %d\n", ret);
-            }
-   else {printf("Input Range of Channel 1 successfully set\n");}
-
-
-    /* WARNING: The mallocs MUST be done after the digitizer programming,
-    because the following functions needs to know the digitizer configuration
-    to allocate the right memory amount */
-    /* Allocate memory for the readout buffer */
     ret = CAEN_DGTZ_MallocReadoutBuffer(handle[0], &buffer, &AllocatedSize);
-    /* Allocate memory for the events */
-    ret |= CAEN_DGTZ_MallocDPPEvents(handle[0], Events, &AllocatedSize); 
-    /* Allocate memory for the waveforms */
-    ret |= CAEN_DGTZ_MallocDPPWaveforms(handle[0], &Waveform, &AllocatedSize); 
-    if (ret) 
-     {
-        printf("Can't allocate memory buffers\n");
-        goto QuitProgram;    
-     }
+    ret |= CAEN_DGTZ_MallocDPPEvents(handle[0], Events, &AllocatedSize);        /* Allocate memory for the events */
+    ret |= CAEN_DGTZ_MallocDPPWaveforms(handle[0], &Waveform, &AllocatedSize);  /* Allocate memory for the waveforms */
+    if (ret) { printf("[!] Can't allocate memory buffers\n"); goto QuitProgram; }
 
-         
+
+
     /* *************************************************************************************** */
     /* Readout Loop                                                                            */
     /* *************************************************************************************** */
-    // Clear Histograms and counters
-    for(b=0; b<MAXNB; b++)
-     {
-        for(ch=0; ch<MaxNChannels; ch++) 
-          {
+
+    for (b = 0; b < MAXNB; b++) { // Clear histograms and counters
+        for (ch = 0; ch < MaxNChannels; ch++)  {
             EHisto[b][ch] = (uint32_t *)malloc( (1<<MAXNBITS)*sizeof(uint32_t) );
             memset(EHisto[b][ch], 0, (1<<MAXNBITS)*sizeof(uint32_t));
             TrgCnt[b][ch] = 0;
@@ -709,374 +483,180 @@ if ((ret = CAENDPP_SetInputRange(handledpp, 1, InRange)) != 0) {
             PrevTime[b][ch] = 0;
             ExtendedTT[b][ch] = 0;
             PurCnt[b][ch] = 0;
-          }
+        }
     }
+
     PrevRateTime = get_time();
-    AcqRun = 0;
+    if (*(shared_memory2+9) || *(shared_memory_cmd+70)) AcqRun = 1;
 
     ret=CAEN_DGTZ_SWStartAcquisition(handle[0]);
-    if (ret) ("Problem starting acquisition, ret:%d\n", ret);
-    printf("Acquisition Started for Board 0\n");
-	
-	if(*(shared_memory2+9)==1)
-	{
-		AcqRun=1;printf("AcqRun=1\n");
-		
-	}
+    if (ret || !AcqRun) {printf("[!] Problem starting acquisition, error code: %d\n", ret);}
+    else printf("[!] Acquisition started\n");
 
-        // Sets the first seed for the acquisition.
-        setseed();
-   
-    for(;;) {
+    setseed(); // Sets the first seed for the acquisition.
 
+    int codePosX = 50000000, codePosY = 60000000;
+    int codeDetA = 20000000, codeDetB = 30000000;
+    bool discardfirst = true;
+    double calGrad = (double)(*(shared_memory_cmd+101)) / (double)(*(shared_memory_cmd+103));
+    double calOffs = (double)(*(shared_memory_cmd+102)) / (double)(*(shared_memory_cmd+103));
 
+    printf("Multidetector paremeters: %5.3f %5.3f\n", calGrad, calOffs);
 
-        if(*(shared_memory_cmd+70)==0)
-	   {
-	   //AcqRun=0;
-		printf("shared_memory_cmd+70=0\n");
-	   goto QuitProgram;	
-	   }
+    while (*(shared_memory_cmd+70) != 0) { // While acquisition is active
 
-	
-        
-        if(check)
-	{
-                if(*(shared_memory2+3)==1) {
+        /* !! This condition can be simplified, the need for 'check' can be eliminated if *(shared_memory2+3) is better placed in MainWindow::ScanXY() */
+        if (*(shared_memory2+3) == 1 && check) { // Handles changes in scan lines
+            *(shared_memory2+10+n)= PositionX_adc+codePosX; n++;
+            *(shared_memory2+10+n)= PositionY_adc+codePosY; n++; x++;
 
-			if(y%2==0)
-			{
-				  
-	 			*(shared_memory2+10+n)= PositionX_adc+50000000;
-				//printf("PositionX_adc:%d\n", *(shared_memory2+10+n));
-         			n++;
-				*(shared_memory2+10+n)= PositionY_adc+60000000;
-				//printf("PositionY_adc:%d\n", *(shared_memory2+10+n));
-    				
-         			n++;
-				x++;
-				//firstPos=false;
-			}else
-			if(y%2!=0)
-			{
-				  
-	 			*(shared_memory2+10+n)= PositionX_adc+50000000;
-				//printf("PositionX_adc:%d\n", *(shared_memory2+10+n));
-         			n++;
-				*(shared_memory2+10+n)= PositionY_adc+60000000;
-				//printf("PositionY_adc:%d\n",*(shared_memory2+10+n));
-         			n++;
-				x++;
-			}
-			
-			check=false;
-			
-			*(shared_memory2+3)=0;	
-			//printf("time_interval:%d\n", time_interval);		
-			it_val.it_value.tv_sec = time_interval/1000;
-			//printf("it_val.it_value.tv_sec:%d\n", it_val.it_value.tv_sec);
-  			it_val.it_value.tv_usec = (time_interval*1000) % 1000000;
-			//printf("it_val.it_value.tv_usec:%d\n", it_val.it_value.tv_usec);	
-  			it_val.it_interval = it_val.it_value;
-  			if (setitimer(ITIMER_REAL, &it_val, NULL) == -1) {
-    				perror("error calling setitimer()");
-    				exit(1);}
-			AcqRun=1; //printf("AcqRun=1\n");
-		}
-	}
+            *(shared_memory2+3) = 0; check = false;
+            configTimer(time_interval);
+            AcqRun=1;
+        }
 
-	
-			
-			/* Calculate throughput and trigger rate (every second) */
-       			CurrentTime = get_time();
-        		ElapsedTime = CurrentTime - PrevRateTime; /* milliseconds */
-        		if (ElapsedTime > 1000)
-        		{
-            		//system(CLEARSCR);
-           		//PrintInterface();
-            		PrevRateTime = CurrentTime;
-           		*(shared_memory_rate)=(eventi-stored_event); stored_event=eventi;
-			}
-       			
-		/* Read data from the boards */
-        	for(b=0; b<MAXNB; b++) 
-         	{	
-            		/* Read data from the board */
-            		ret = CAEN_DGTZ_ReadData(handle[b], CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, buffer, &BufferSize);
-			//printf("oi2, ret:%d\n");
-            		if (ret) 
-             		{
-                		printf("Readout Error: %d\n", ret);
-                		///goto QuitProgram;    
-              		}
+        if (write_coordinates) {
+            if (x < (Xn - 1) && (y % 2 == 0))       caso=1; // Writes positions (from left-to-right)
+            else if (x == (Xn - 1))                 caso=2; // Changes scan line
+            else if (x < (Xn - 1) && (y % 2 != 0))  caso=3; // Writes positions (from right-to-left)
 
-            		if (BufferSize == 0){data=0; datazero=true;}	
-			else
-			{			
-                	datazero=false;
-           		//ret = DataConsistencyCheck((uint32_t *)buffer, BufferSize/4);
-           		ret |= CAEN_DGTZ_GetDPPEvents(handle[b], buffer, BufferSize, Events, NumEvents);
-           		if (ret) 
-           		{
-           			printf("Data Error: %d\n", ret);
-                			//goto QuitProgram;
-              			}
+            switch (caso) {
+            case 1:
+                PositionX_adc += Xstep_adc; x++;
+                *(shared_memory2+10+n) = PositionX_adc+codePosX; n++;
+                *(shared_memory2+10+n) = PositionY_adc+codePosY; n++;
+                *(shared_memory2+4) = n;
 
-			
-			}
-			
+                *(shared_memory+42) = 1;    // Informs the Online Map of new data available
+                write_coordinates = false;
+                break;
+            case 2:
+                configTimer(0);
+                PositionY_adc += Ystep_adc;
+                x = 0; y++; AcqRun = 0;
 
-            			/* Analyze data */
-            			//for(b=0; b<MAXNB; b++) printf("%d now: %d\n", b, Params[b].ChannelMask);
-            			for(ch=0; ch<MaxNChannels; ch++) 
-             			{
-                		if (!(Params[b].ChannelMask & (1<<ch)))
-                    		continue;
+                write_coordinates = false; check = true;
+                *(shared_memory2+8) = 1;
+                if (y == Yn+1) goto QuitProgram;
+                break;
+            case 3:
+                PositionX_adc -= Xstep_adc; x++;
+                *(shared_memory2+10+n) = PositionX_adc+codePosX; n++;
+                *(shared_memory2+10+n) = PositionY_adc+codePosY; n++;
+                *(shared_memory2+4) = n;
+
+                *(shared_memory+42) = 1;
+                write_coordinates = false;
+                break;
+            default:
+                printf("[!] Case not defined\n");
+                break;
+            }
+        }
+
+        CurrentTime = get_time();
+        ElapsedTime = CurrentTime - PrevRateTime; // In milliseconds
+        if (ElapsedTime > 1000) { // Calculate trigger rate (per second)
+            PrevRateTime = CurrentTime;
+            *(shared_memory_rate) = (eventi - stored_event);
+            stored_event = eventi;
+        }
+
+        for (b = 0; b < MAXNB; b++) { // Read data from the boards
+            ret = CAEN_DGTZ_ReadData(handle[b], CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, buffer, &BufferSize);
+            if (ret) printf("[!] Readout error, code: %d\n", ret);
+
+            if (BufferSize != 0) {
+                ret |= CAEN_DGTZ_GetDPPEvents(handle[b], buffer, BufferSize, Events, NumEvents);
+                if (ret) printf("[!] Data error, code: %d\n", ret);
+            }
+
+            for (ch = 0; ch < MaxNChannels; ch++) {
+                if ( !(Params[b].ChannelMask & (1 << ch)) ) continue; // Always false for ch = 0 and ch = 1
+                if (AcqRun == 1) {
+                    for (int ev = 0; ev < NumEvents[ch]; ev++) {
+                        if (BufferSize != 0) data = Events[ch][ev].Energy;
+                        else continue;
+
+                        TrgCnt[b][ch]++;
 
 
+                        if (data >= 0 && data < 16385  && n<NSegFault)          caso=4; // Writes the energies
+                        if (discardfirst)                                       caso=5;
+                        switch (caso) {
+                        case 4:
+                            if (ch == 0) {
+                                *(shared_memory2+10+n) = data+codeDetA; n++;
 
-                                if(AcqRun==1) {
+                                *(shared_memory2+5) = ++eventi;
+                                *(shared_memory+100+data) += 1;
+                                *(shared_memory+40000+data) +=1;
+                            }
+                            if (ch == 1) {
+                                *(shared_memory2+10+n) = data+codeDetB; n++;
 
-                                for(ev=0; ev<NumEvents[ch]; ev++) {
+                                *(shared_memory2+5) = ++eventi;
+                                *(shared_memory+20000+data) += 1;
 
-                                    if (datazero == false) {
-                                        data=Events[ch][ev].Energy;
-                                        datazero=true;
-                                    }
+                                jlo = (double)(data - 1) * calGrad + calOffs;
+                                jhi = jlo + calGrad;
+                                data = ranqd1(idum,jlo,jhi);
 
-                                    if (callstorandom > 50000) {
-                                        // Sets a different seed for the random number generator
-                                        setseed();
-                                        callstorandom = 0;
-                                    }
+                                *(shared_memory+40000+data) += 1;
+                            }
+                            break;
+                        case 5:
+                            ev = NumEvents[ch];
+                            discardfirst = false;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-                    			TrgCnt[b][ch]++;
-
-                    			if(data > 10 && data < 16000  && n<NSegFault) caso=1;//Scrive le energie
-                    			if(write_coordinates==true && x<(Xn-1) && (y%2==0)) caso=2;//scrive le posizione andando da sinistra a destra
-					if(write_coordinates==true && (x==(Xn-1))) caso=3;//gira 
-					if(write_coordinates==true && x<(Xn-1) && (y%2!=0)) caso=4;//scrive le posizione andando da destra a sinistra
-
-
-
-     					switch (caso)
-     					{
-       						case 1:
-       						{
-                                                        if(ch==0) {
-                                                            // Increases the counter for number of recorded events.
-                                                            eventi++;
-                                                            // Masks the data with a prefix for channel 0, then passes it to shared memory.
-                                                            *(shared_memory2+10+n)=data+20000000;
-                                                            n++;
-
-                                                            *(shared_memory2+5) = eventi;
-                                                            // Increases the events in shared memory by 1 for visualization in the XRF program.
-                                                            *(shared_memory+100+data)=*(shared_memory+100+data)+1;
-                                                            *(shared_memory+40000+data)=*(shared_memory+40000+data)+1;
-                                                        }
-
-                                                        if(ch==1) {
-                                                            // Increases the counter for number of recorded events.
-                                                            eventi++;
-                                                            // Masks the data with a prefix for channel 0, then passes it to shared memory.
-                                                            *(shared_memory2+10+n)=data+30000000;
-                                                            n++;
-
-                                                            *(shared_memory2+5)=eventi;
-                                                            // Increases the events in shared memory by 1 for visualization in the XRF program.
-                                                            *(shared_memory+20000+data)=*(shared_memory+20000+data)+1;
-
-                                                            //if ( *(shared_memory_cmd+100) == 2 ) {
-                                                            jlo = (((data-1)*(*(shared_memory_cmd+101)))+(*(shared_memory_cmd+102)))/(*(shared_memory_cmd+103));
-                                                            jhi = ((data*(*(shared_memory_cmd+101)))+(*(shared_memory_cmd+102)))/(*(shared_memory_cmd+103));
-                                                            data = ranqd1(idum,jlo,jhi);
-
-                                                            //printf("Data passed to summed histogram:\t%d\n", data);
-                                                            *(shared_memory+40000+data)=*(shared_memory+40000+data)+1;    //spettro x XRF2
-
-                                                        }
-                                                        caso=10;
-							break;
-							
-        					}///chiude case 1
-
-       						case 2://scrive le posizioni  
-       						{
-							
-							x++;
-							PositionX_adc=PositionX_adc+Xstep_adc;
-							
-         						*(shared_memory2+10+n)= PositionX_adc+50000000;
-							//printf("PositionX_adc:%d\n", PositionX_adc);
-         						n++;
-        						//if(n%500000==0 && n>0) {printf("Dati in memoria %d\n", n);*(shared_memory2+4)=n;} 
-							*(shared_memory2+10+n)= PositionY_adc+60000000;
-							//printf("PositionY_adc:%d\n", PositionY_adc);
-							*(shared_memory2+4)=n; //printf("n_adc:%d\n", n);
-         						n++;
-                                                        //if(n%500000==0 && n>0) {printf("Dati in memoria %d\n", n);*(shared_memory2+4)=n;}
-        					        caso=10;
-							write_coordinates=false;
-							*(shared_memory+42)=1;
-							break;
-        					}///chiude case 2
-
-						case 3:
-						{
-							it_val.it_value.tv_sec = 0/1000;
-  							it_val.it_value.tv_usec = (0*1000)/1000000;	
-  							it_val.it_interval = it_val.it_value;
-  							if (setitimer(ITIMER_REAL, &it_val, NULL) == -1) {
-    							perror("error calling setitimer()");
-    							exit(1);}
-							AcqRun=0;
-							y++;
-							x=0;
-							PositionY_adc=PositionY_adc+Ystep_adc;
-							write_coordinates=false;
-							check=true;
-							caso=10;	
-							//printf("Changing direction...\n");
-							*(shared_memory2+8)=1;//motori possono spostare la Y
-							if(y==Yn+1) goto QuitProgram;	
-							break;
-						}//chiude caso 3
-
-						case 4://scrive le posizioni  
-       						{
-							
-							x++;
-							PositionX_adc=PositionX_adc-Xstep_adc;
-         						*(shared_memory2+10+n)= PositionX_adc+50000000;
-							//printf("PositionX_adc:%d\n", PositionX_adc);
-         						n++;
-        						//if(n%500000==0 && n>0) {printf("Dati in memoria %d\n", n);*(shared_memory2+4)=n;} 
-							*(shared_memory2+10+n)= PositionY_adc+60000000;
-							//printf("PositionY_adc:%d\n", PositionY_adc);
-							*(shared_memory2+4)=n; //printf("n_adc:%d\n", n);
-         						n++;
-	          					//if(n%500000==0 && n>0) {printf("Dati in memoria %d\n", n);*(shared_memory2+4)=n;} 
-        					        caso=10;
-							write_coordinates=false;
-							*(shared_memory+42)=1;
-							
-							break;
-        					}///chiude case 4
-
-					}///chiude switch
-
-                    
-		        
-                    /* Get Waveforms (only from 1st event in the buffer) */
-                    if ((Params[b].AcqMode != CAEN_DGTZ_DPP_ACQ_MODE_List) && DoSaveWave[b][ch] && (ev == 0)) 
-                     {
-                        int size;
-                        int16_t *WaveLine;
-                        uint8_t *DigitalWaveLine;
-                        CAEN_DGTZ_DecodeDPPWaveforms(handle[b], &Events[ch][ev], Waveform);
-
-                        // Use waveform data here...
-                        size = (int)(Waveform->Ns); // Number of samples
-                        WaveLine = Waveform->Trace1; // First trace (VIRTUALPROBE1 set with CAEN_DGTZ_SetDPP_PSD_VirtualProbe)
-                        SaveWaveform(b, ch, 1, size, WaveLine);
-
-                        WaveLine = Waveform->Trace2; // Second Trace (if single trace mode, it is a sequence of zeroes)
-                        SaveWaveform(b, ch, 2, size, WaveLine);
-
-                        DigitalWaveLine = Waveform->DTrace1; // First Digital Trace (DIGITALPROBE1 set with CAEN_DGTZ_SetDPP_PSD_VirtualProbe)
-                        SaveDigitalProbe(b, ch, 1, size, DigitalWaveLine);
-
-                        DigitalWaveLine = Waveform->DTrace2; // Second Digital Trace (for DPP-PHA it is ALWAYS Trigger)
-                        SaveDigitalProbe(b, ch, 2, size, DigitalWaveLine);
-                        DoSaveWave[b][ch] = 0;
-                        printf("Waveforms saved to 'Waveform_<board>_<channel>_<trace>.txt'\n");
-                    } // loop to save waves        
-                } // loop on events
-            } // loop on channels
-        } // loop on acqrun
-	}//loop on boards
-    } // End for
-*(shared_memory2+4)=n;  
+    goto QuitProgram;
 
 QuitProgram:
-   
-	it_val.it_value.tv_sec = 0/1000;
-  	it_val.it_value.tv_usec = (0*1000)/1000000;	
-  	it_val.it_interval = it_val.it_value;
-  	if (setitimer(ITIMER_REAL, &it_val, NULL) == -1) {
-    	perror("error calling setitimer()");
-    	exit(1);}		
-
-	
-    /* stop the acquisition, close the device and free the buffers */
-    for(b=0; b<MAXNB; b++) 
-     {
+    configTimer(0); // Stops acquisition, closes digitizer, and frees buffers
+    for (int b = 0; b < MAXNB; b++) {
         CAEN_DGTZ_SWStopAcquisition(handle[b]);
-        
-        for (ch=0; ch<MaxNChannels; ch++)
-            if (EHisto[b][ch] != NULL)
-                free(EHisto[b][ch]);
-     }
-printf("Closing Digitizer\n");
+        for (int ch = 0; ch < MaxNChannels; ch++)
+            if (EHisto[b][ch] != NULL) free(EHisto[b][ch]);
+    }
     CAEN_DGTZ_FreeReadoutBuffer(&buffer);
     CAEN_DGTZ_FreeDPPEvents(handle[0], Events);
     CAEN_DGTZ_FreeDPPWaveforms(handle[0], Waveform);
     CAEN_DGTZ_ClearData(handle[0]);
     CAENDPP_EndLibrary(handledpp);
+
+    printf("[!] Closing digitizer\n");
     CAEN_DGTZ_CloseDigitizer(handle[b]);
-    *(shared_memory2+4)=n;  
-    printf("ntot_adcxrf:%d\n", *(shared_memory2+4));
-	
+
+    *(shared_memory2+4) = n;
+    printf("... Total no. of records in memory: %d\n", *(shared_memory2+4));
     return ret;
 }
-    
+
+void configTimer(int seconds) {
+    it_val.it_value.tv_sec = seconds / 1000;
+    it_val.it_value.tv_usec = (seconds * 1000) % 1000000;
+    it_val.it_interval = it_val.it_value;
+    if (setitimer(ITIMER_REAL, &it_val, NULL) == -1) {
+        perror("[!] Error setting interval timer");
+        exit(1);
+    }
+}
+
 void write_position() {
+    printf("Current x step is %d, y step is %d\n", x, y);
     if (write_coordinates == false) write_coordinates=true;
     else printf("write_coordinates is already true\n");
 }
 
-void sigquit() {
-    printf("... Exiting\n");
-    exit(1);
-}
-
-void setseed() {
-
-    time_t timer;
-    struct tm y2k = {0};
-    double seconds;
-
-    y2k.tm_hour = 0;	y2k.tm_min = 0; y2k.tm_sec = 0;
-    y2k.tm_year = 0;	y2k.tm_mon = 0; y2k.tm_mday = 1;
-
-    time(&timer);
-
-    seconds = difftime(timer,mktime(&y2k));
-
-    //printf("%.f seconds since January 1, 2000 in the current timezone\n", seconds);
-
-    /* The following sets the seed according to the system's time. The sequence can overflow for calls over 1E5, so
-     * a new seed should be set after the function has been called ~100,000 times.
-     */
-
-    seed = seconds;
-    idum = &seed;
-}
-
-long ranqd1(long *idum, int jlo, int jhi) {
-
-        long j;
-
-        *idum=(*idum*ia+ic) % im;
-        j=jlo+((jhi-jlo+1)*(*idum))/im;
-
-        callstorandom++;
-        return j;
-}
 
 void termination(int pippo) {
-
     printf("\n... Recorded events:%d\n", eventi);
     *(shared_memory2+4)=n;
     *(shared_memory_cmd+70)=0;

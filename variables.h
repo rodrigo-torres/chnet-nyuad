@@ -6,35 +6,12 @@
 
 #pragma once
 
-int *shm_cmd;int *shmCommand_cmd;
-int shmid_cmd; int shmidString_cmd; 
-key_t key_cmd; key_t keyString_cmd;
-int *shared_memory_cmd;
+extern int shmid[8];
+extern key_t key, key2, key3, key4, key5, key_cmd, key_rate, key_laser;
+extern int *shared_memory, *shared_memory2, *shared_memory3, *shared_memory4;
+extern char*shared_memory5;
+extern int *shared_memory_cmd, *shared_memory_rate, *shared_memory_laser;
 
-int *shm;int *shmCommand;
-int shmid; int shmidString; 
-key_t key; key_t keyString;
-int *shared_memory;
-
-int *shm2;int *shmCommand2;
-int shmid2; int shmidString2; 
-key_t key2; key_t keyString2;
-int *shared_memory2;
-
-int *shm3;int *shmCommand3;
-int shmid3; int shmidString3; 
-key_t key3; key_t keyString3;
-int *shared_memory3;
-
-int *shm4;int *shmCommand4;
-int shmid4; int shmidString4; 
-key_t key4; key_t keyString4;
-int *shared_memory4;
-
-int *shm_rate;int *shmCommand_rate;
-int shmid_rate; int shmidString_rate; 
-key_t key_rate; key_t keyString_rate;
-int *shared_memory_rate;
 
 
 int DAQ_TYPE=1;

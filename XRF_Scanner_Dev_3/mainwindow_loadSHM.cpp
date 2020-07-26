@@ -11,7 +11,7 @@ using namespace std;
  ****************************************************/
 
 long *idum, seed;
-int jlo = 0, jhi = 0, callstorandom = 0;
+int callstorandom = 0;
 
 void setseed() {
 
@@ -158,8 +158,11 @@ void MainWindow::LoadNewFileWithNoCorrection_SHM() {
                 else dataread -= codeDetB;
             }
 
-            vectorMap[dataread + 3] += 1;   // The vectorMap is shifted by 3 positions
-            if (dataread >= ChMin && dataread <= ChMax) vectorMap[2] += 1;
+            if (dataread >= ChMin && dataread <= ChMax) {
+                vectorMap[2] += 1;
+                vectorMap[dataread + 3] += 1; // The vectorMap is shifted by 3 positions
+            }
+            //else printf("!!! Invalid data found : %d\n", dataread);
             j++;
             break;
         default:
@@ -192,6 +195,8 @@ void MainWindow::LoadNewFileWithCorrection_SHM() {
 }
 
 void MainWindow::LoadSHM_SumMap() {
+
+    double jlo = 0, jhi = 0;
 
     int j=0, casenumber=10;
     int Ntot=*(shared_memory2+4);    //// Numero dati in memoria
@@ -381,4 +386,3 @@ void MainWindow::LoadSHM_SumMap() {
     *(shared_memory3+numdati+mempos)=-2;
     displaySumImage_SHM();
 }
-

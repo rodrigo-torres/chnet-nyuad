@@ -85,92 +85,76 @@ void MainWindow::ShowHistogram() {
 //////////////////////////////////////////////////////////////////// RATEMETER
 void MainWindow::RateMeter()
 {
-if(*(shared_memory_cmd+73)==0)
- {
-  system("./rate & ");
-  *(shared_memory_cmd+73)=1; // Rate
- }
-else
-qDebug()<<"Ratemeter alreay opened!\n";
+    if(*(shared_memory_cmd+73)==0)
+    {
+        system("./rate & ");
+        *(shared_memory_cmd+73)=1; // Rate
+    }
+    else
+        qDebug()<<"Ratemeter alreay opened!\n";
 }
 //////////////////////////////////////////////////////////////////// XRAY TABLE
 void MainWindow::XrayTable()                                        
 {  
-  if(*(shared_memory_cmd+74)==0)
-      {
-     system("./XRayTable & ");
-     *(shared_memory_cmd+74)=1;
-      }
-  else qDebug()<<"[!] X-Ray table window already opened";
+    if(*(shared_memory_cmd+74)==0)
+    {
+        system("./XRayTable & ");
+        *(shared_memory_cmd+74)=1;
+    }
+    else qDebug()<<"[!] X-Ray table window already opened";
 }
 //////////////////////////////////////////////////////////////////// HELIUM INTERFACE
 void MainWindow::Helium_interface()                                  
 {
-  QMessageBox msgBox;
-  msgBox.setText("GAS INTERFACE not implemented.... work in progress");
-  msgBox.exec();
+    QMessageBox msgBox;
+    msgBox.setText("GAS INTERFACE not implemented.... work in progress");
+    msgBox.exec();
 }
 //////////////////////////////////////////////////////////////////// CAEN OSCILLOSCOPE
 void MainWindow::caenoscilloscope()                                   
 {
 }
 //////////////////////////////////////////////////////////////////// DIGITISER INTERFACE
-void MainWindow::Digitiser2()                                        
-  {
-   if(*(shared_memory_cmd+72)==0)
-    {
-     system("./Digitiser_interface &"); 
-     *(shared_memory_cmd+72)=1; // Digitiser_interface
-    } 
-   else qDebug()<<"....digitiser already started...";
-  }
+void MainWindow::openDPPInter() {
+    if (*(shared_memory_cmd+72) == 0) {
+        d_guiDPP =  new MainWindowDPP();
 
-
-/////////////////////////////////////////////////////////////////// PI MOTOR TEST AND TABLE
-void MainWindow::PI_motor_test()
-  {
-  if (*(shared_memory_cmd+76)==0)
-    {
-     system("./Test_Stage &"); 
-     *(shared_memory_cmd+76)=1; // Digitiser_interface
-    } 
-   else qDebug()<<"....PI motor test tool already started...";
-  }
-
-void MainWindow::PI_motor_table()
-  {
-  if (*(shared_memory_cmd+77)==0)
-    {
-     system("./MotorParametersTable &"); 
-     *(shared_memory_cmd+77)=1; // Digitiser_interface
-    } 
-   else qDebug()<<"....PI motor perameters table already started...";
-  }
+        d_guiDPP->resize(580,370);
+        d_guiDPP->setMinimumSize(580,370);
+        d_guiDPP->setMaximumSize(580,370);
+        d_guiDPP->setWindowTitle("Digitizer Settings");
+        d_guiDPP->show();
+        *(shared_memory_cmd+72)=1; // DPP interface active
+    }
+    else {
+        qDebug()<<"[!] DPP window already opened";
+    }
+}
 
 
 
 ////////////////////////////////////////////////////////////////////  DETECTOR INTERFACE
 void MainWindow::Detector()          
 {
-system("gnome-terminal -x sh -c  'HV_SDD;  bash' &"); 
+    system("gnome-terminal -x sh -c  'HV_SDD;  bash' &");
 }
 //////////////////////////////////////////////////////////////////// VLC INTERFACE 
 void MainWindow::VLC_interface()                              
 {
-  if(CameraOn) {system("pkill -9 vlc &"); CameraOn=false;} 
-  else {system("vlc & "); CameraOn=true;}
- }
+    if(CameraOn) {system("pkill -9 vlc &"); CameraOn=false;}
+    else {system("vlc & "); CameraOn=true;}
+}
 
 
 
 
 void MainWindow::TreD()
 {;
-  }
+}
 
 void MainWindow::DueD()
 {;
-  }
+}
 
 
 

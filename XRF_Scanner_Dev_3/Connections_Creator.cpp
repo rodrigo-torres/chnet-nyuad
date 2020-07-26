@@ -136,8 +136,7 @@ void MainWindow::CONNECTIONS_CREATOR()
 
 //////////////////////////////////////////////////////////
 
-     connect(SW_treshold_Button, SIGNAL(clicked()), 
-          this, SLOT(Treshold()));
+     connect(SW_treshold_Button, SIGNAL(clicked()), this, SLOT(Treshold()));
 
 
 

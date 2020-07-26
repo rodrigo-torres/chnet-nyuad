@@ -149,14 +149,6 @@ void MainWindow::createActions()
     connect(TreDAct, SIGNAL(triggered()), this, SLOT(TreD()));
 
     //In Menu tools
-    Open_motor_test = new QAction(tr("PI: motors test"), this);
-    Open_motor_test->setStatusTip(tr("Tool for testing Pi motors"));
-    connect(Open_motor_test, SIGNAL(triggered()), this, SLOT(PI_motor_test()));
-
-    Open_PI_motor_parameter_table = new QAction(tr("PI: parameters table"), this);
-    Open_PI_motor_parameter_table->setStatusTip(tr("PI motors parameters table"));
-    connect(Open_PI_motor_parameter_table, SIGNAL(triggered()), this, SLOT(PI_motor_table()));
-
     actionOpen_settings = new QAction(tr("CAEN: oscilloscope"), this);
     actionOpen_settings->setStatusTip(tr("Oscilloscope"));
     //connect(actionOpen_settings, SIGNAL(triggered()), this, SLOT(caenoscilloscope()));
@@ -222,9 +214,6 @@ void MainWindow::builder_Menu() {
     TreDMenu->addAction(TreDAct);
 
     TOOLMenu = menuBar()->addMenu(tr("Tools"));
-    TOOLMenu->addAction(Open_motor_test);
-    TOOLMenu->addAction(Open_PI_motor_parameter_table);
-    TOOLMenu->addSeparator();
     TOOLMenu->addAction(actionOpen_settings);
 
     HowToMenu = menuBar()->addMenu(tr("HowTo"));

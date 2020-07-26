@@ -1,86 +1,30 @@
-#include <qregexp.h>
-#include <qtoolbar.h>
-#include <qtoolbutton.h>
-#include <qlabel.h>
-#include <qlayout.h>
-#include <qstatusbar.h>
-
-#include <qpicture.h>
-#include <qpainter.h>
-
-#include <qwt_counter.h>
-#include <qwt_picker_machine.h>
-#include <qwt_plot_zoomer.h>
-#include <qwt_plot_panner.h>
-#include <qwt_plot_renderer.h>
-#include <qwt_text.h>
-#include <qwt_math.h>
-#include "pixmaps.h"
-#include "plot.h"
 #include "mainwindow.h"
-#include <QTimer>
-#include <QFile>
-#include<QGroupBox>
-#include<QLabel>
-#include<QLineEdit>
-#include<QDialogButtonBox>
-#include<QHBoxLayout>
-#include<QVBoxLayout>
-#include<QPushButton>
-#include <QMouseEvent>
-#include <QFileDialog>
-#include <QDockWidget>
-#include <QString>
-#include <string.h>
-#include <sys/types.h>
-#include <unistd.h>
+#include "plot.h"
 
-extern double max;
-extern double channel_lowerbound; extern double channel_upperbound;
-extern int *shm, *shmCommand, shmid, shmidString; 
-extern key_t key; extern key_t keyString;
-extern int *shared_memory;
-
-extern int *shm_cmd, *shmCommand_cmd, shmid_cmd, shmidString_cmd; 
-extern key_t key_cmd; extern key_t keyString_cmd;
-extern int *shared_memory_cmd;
-
-extern QString fileName;
-QString strSaveName; 
-QString extension;
+#include <QSignalBlocker>
 
 extern bool EnergyOn;
-extern bool aperto;
-extern double cal_gradient,cal_offset;
-///////////////////////////////////////
+extern QString fileName;
+extern int *shared_memory_cmd, *shared_memory;
+extern double max, channel_lowerbound, channel_upperbound;
+extern double channel1_cal, channel2_cal, energy1_cal, energy2_cal;
 
 
-bool logchecked=false;
-bool autoscaleOn=false;
-bool provaRun=false;
+extern double cal_gradient, cal_offset;
+bool logchecked = false, autoscaleOn = false, liveOn = false;
 
-int length=16385; int resolution=0;
-/////////////////////////////////////////
-extern bool digichannel0sel, digichannel1sel, digichannel0and1sel;
-
-class Zoomer: public QwtPlotZoomer
-{
+class Zoomer: public QwtPlotZoomer {
 public:
-    Zoomer( int xAxis, int yAxis, QWidget *canvas ):
-        QwtPlotZoomer( xAxis, yAxis, canvas )
-    {
+    Zoomer( int xAxis, int yAxis, QWidget *canvas ): QwtPlotZoomer( xAxis, yAxis, canvas ) {
         setTrackerMode( QwtPicker::AlwaysOff );
         setRubberBand( QwtPicker::NoRubberBand );
-
     }
 };
 
-
-MainWindow::MainWindow( QWidget *parent ): QMainWindow( parent ) {
+MainWindow::MainWindow(QWidget *parent): QMainWindow( parent ) {
 
     //int pid=getpid();
     *(shared_memory_cmd+81) = getpid();
-
 
     d_plot = new Plot( this );
 
@@ -119,13 +63,12 @@ MainWindow::MainWindow( QWidget *parent ): QMainWindow( parent ) {
     QToolButton *btnOpen = new QToolButton( toolBar );
     btnOpen->setText( "Open" );
     btnOpen->setIcon( QPixmap( Open_xpm ) );
-//    btnOpen->setCheckable( true );
     btnOpen->setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
     toolBar->addWidget( btnOpen );
-    connect( btnOpen, SIGNAL( clicked() ), this, SLOT( PreOpen(  ) ) );
+    connect( btnOpen, SIGNAL( clicked() ), SLOT(preOpen()));
 
 
-//////////////salvare txt//////////////////////
+    //////////////salvare txt//////////////////////
 
     QToolButton *btnExportTxt = new QToolButton( toolBar );
     btnExportTxt->setText( "Save" );
@@ -144,7 +87,7 @@ MainWindow::MainWindow( QWidget *parent ): QMainWindow( parent ) {
     AutoRefresh->setCheckable( true );
     AutoRefresh->setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
     toolBar->addWidget( AutoRefresh );
-    connect( AutoRefresh, SIGNAL( toggled( bool ) ), SLOT ( enableRunMode( bool ) ));
+    connect( AutoRefresh, SIGNAL( toggled( bool ) ), SLOT ( liveHistogram( bool ) ));
 
     QToolButton *refresh = new QToolButton( toolBar );
     refresh->setText( "Refresh" );
@@ -182,27 +125,18 @@ MainWindow::MainWindow( QWidget *parent ): QMainWindow( parent ) {
 
     toolBar->addSeparator();
 
-
-    fileloaded = new QLineEdit( this );
-    fileloaded->setEnabled(false);
-    fileloaded->setText("\tNo file loaded into memory");
-    fileloaded->setFixedWidth(500);
-    toolBar->addWidget(fileloaded);
-
-
     QDockWidget *dock = new QDockWidget(tr("DAQ and Calibration"), this);
     dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 
     QWidget *DockBox = new QWidget(this);
-
     QGridLayout *layout = new QGridLayout( DockBox );
-    layout->setSpacing( 1 );
+    layout->setSpacing(0);
 
     Energy = new QToolButton( this );
     Energy->setText( "Toggle \nEnergy " );
     Energy->setCheckable( true );
     layout->addWidget( Energy, 0, 0 );
-    connect( Energy, SIGNAL( clicked( bool ) ), SLOT( toggleEnergy(bool) ) );
+
 
     Log = new QToolButton( this );
     Log->setText( "LogScale" );
@@ -210,291 +144,254 @@ MainWindow::MainWindow( QWidget *parent ): QMainWindow( parent ) {
     Log->setCheckable( true );
     Log->setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
     layout->addWidget( Log, 0, 1 );
-    connect( Log, SIGNAL( clicked( bool ) ), SLOT ( toggleLogScale() ));
 
+    QLabel *gradLabel = new QLabel(this);
+    gradLabel->setText("Calibration grad. (keV / ch)");
+    gradLabel->setMaximumHeight(20);
+    layout->addWidget(gradLabel, 1, 0, 1, 2, Qt::AlignHCenter);
 
-    layout->addWidget( new QLabel( "  keV/Ch  " ), 0,2 );
-
-
+    QLabel *offLabel = new QLabel(this);
+    offLabel->setText("Calibration off. (channels)");
+    offLabel->setMaximumHeight(20);
+    layout->addWidget(offLabel, 3, 0, 1, 2, Qt::AlignHCenter);
 
     cntDamp = new QwtCounter( this );
-    cntDamp->setRange( 0.0, 5.0 );
-    cntDamp->setSingleStep( 0.01 );
-    cntDamp->setValue( 1.0 );
-    layout->addWidget( cntDamp, 0,3 );
-    connect( cntDamp, SIGNAL( valueChanged(double)), d_plot, SLOT ( setGradient( double ) ));
+    cntDamp->setValue(1.0);
+    cntDamp->setRange(0.0, 5.0);
+    cntDamp->setSingleStep(0.01);
+    cntDamp->setMinimumWidth(160);
+    cntDamp->setMinimumHeight(40);
+    layout->addWidget(cntDamp, 2, 0, 1, 2, Qt::AlignHCenter);
 
-    layout->addWidget( new QLabel( "  Offset  " ), 0,4 );
 
     cntDamp2 = new QwtCounter( this );
-    cntDamp2->setRange( -1000.0, 1000.0 );
-    cntDamp2->setSingleStep( 0.01 );
-    cntDamp2->setValue( 0.0 );
-    layout->addWidget( cntDamp2, 0, 5 );
-    connect( cntDamp2, SIGNAL( valueChanged( double ) ), d_plot, SLOT ( setOffset( double ) ));
-
-
+    cntDamp2->setValue(0.0);
+    cntDamp2->setSingleStep(0.01);
+    cntDamp2->setMinimumHeight(40);
+    cntDamp2->setMinimumWidth(160);
+    cntDamp2->setRange(-10.0, 10.0);
+    layout->addWidget(cntDamp2, 4, 0, 1, 2, Qt::AlignHCenter);
 
     QToolButton *AutoCal = new QToolButton( this );
-    AutoCal->setText( "Calculate\nCalibration" );
-    layout->addWidget( AutoCal, 0, 7);
-    connect( AutoCal, SIGNAL( clicked( bool ) ), this, SLOT ( AutoCalibrate() ));
+    AutoCal->setText("Calculate calibration");
+    layout->addWidget(AutoCal, 5, 0, 1, 2, Qt::AlignHCenter);
 
+    connect( Energy, SIGNAL( clicked( bool ) ), SLOT( toggleEnergy(bool) ) );
+    connect( Log, SIGNAL( clicked( bool ) ), SLOT ( toggleLogScale() ));
+    connect( AutoCal, SIGNAL( clicked( bool ) ), this, SLOT ( dlgCalibration() ));
 
     dock->setWidget(DockBox);
-    addDockWidget(Qt::BottomDockWidgetArea, dock);
+    dock->setMaximumHeight(300);
+    addDockWidget(Qt::RightDockWidgetArea, dock);
 
     addToolBar( toolBar );
 #ifndef QT_NO_STATUSBAR
-    ( void )statusBar();
+    status = statusBar();
+    //( void )statusBar();
 #endif
 
 
 
     timerRefresh = new QTimer(this);
-    connect(timerRefresh, SIGNAL(timeout()), d_plot, SLOT(timerRefreshEvent())); //è quello dello spettro online. Controlla ProvaRun
-    timerRefresh->start(500);
-
-    timer_SHM = new QTimer(this);
-    connect(timer_SHM, SIGNAL(timeout()), d_plot, SLOT(Check_SHM()));       //controlla se è stato cliccato il mouse e chiama ShowPixelHisto
+    timer_SHM = new QTimer(this);   //controlla se è stato cliccato il mouse e chiama ShowPixelHisto
     timer_SHM->start(400);
 
-    timer_Info = new QTimer(this);
-    connect(timer_Info, SIGNAL(timeout()), this, SLOT(showInfo()));    //controlla se c'è uno spettro aperto x mostrarne il nome
-    timer_Info->start(3000);
-
-    connect(d_plot, SIGNAL(filenameChanged(QString)), this, SLOT(update_fileStatus(QString)));
+    connect(timer_SHM, SIGNAL(timeout()), d_plot, SLOT(Check_SHM()));
     connect(d_plot, SIGNAL(calibrationActive(bool)), this, SLOT(toggleEnergy(bool)));
 
+    connect(timerRefresh, SIGNAL(timeout()), d_plot, SLOT(showPixelHisto()));
+    //We also want toggleLogScale to be mapped to showPixelHisto
     d_plot->loadCalibration();
 
+
+
+    QSignalMapper *plotMapper = new QSignalMapper(this);
+    plotMapper->setMapping(cntDamp, 0);
+    plotMapper->setMapping(cntDamp2, 1);
+
+    connect(cntDamp, SIGNAL(valueChanged(double)), plotMapper, SLOT(map()));
+    connect(cntDamp2, SIGNAL(valueChanged(double)), plotMapper, SLOT(map()));
+    connect(plotMapper, SIGNAL(mapped(int)), d_plot, SLOT(setCalParam(int)));
+
 }
 
-
-void MainWindow::enableRunMode( bool run ) {
-    if(run) {
-        provaRun=true;
-        fileloaded->setText("Live acquisition on");
-    }
-    else {
-        provaRun= false;
-        fileloaded->setText("Live acquisition off");
-    }
+MainWindow::~MainWindow() {
+    *(shared_memory_cmd+71) = 0;
 }
 
+void MainWindow::closeEvent(QCloseEvent *event) {
+    event->ignore();
+    *(shared_memory_cmd+71)=0;
+    event->accept();
+}
+
+void MainWindow::preOpen() {
+    if (Log->isChecked()) { Log->setChecked(false); logchecked = false; }
+    d_plot->Open();
+}
 
 void MainWindow::enableAutoScale(bool OnAuto) {
-    if (OnAuto) {
-        autoscaleOn=true;
-    }
-    else {
-        autoscaleOn=false;
-    }
+    if (OnAuto) autoscaleOn = true;
+    else autoscaleOn = false;
 }
 
 void MainWindow::toggleLogScale() {
+    if (Log->isChecked()) logchecked = true;
+    else logchecked = false;
+    if (!liveOn) d_plot->showPixelHisto();
+}
 
-    if ( Log->isChecked() ){
-        logchecked=true;
-        qDebug()<<"... Logarithmic scale toggled";
-    }
+void MainWindow::liveHistogram(bool run) {
+    if (run) {
+        liveOn = true;
+        timerRefresh->start(500);
+        status->showMessage("[!] Live acquisition is on"); }
     else {
-        logchecked=false;
-        qDebug()<<"... Linear scale toggled";
-    }
-  if (!provaRun) {
-      d_plot->showPixelHisto();
-  }
+        liveOn = false;
+        timerRefresh->stop();
+        status->showMessage("[!] Live acquisition is off", 5000); }
 }
 
 void MainWindow::toggleEnergy(bool active) {
-
-    if ( active )  {
-        EnergyOn=true;
-        Energy->setText(" Toggle \n Channels ");
+    if (active)  {
+        EnergyOn = active;
+        Energy->setText("Toggle\nChannels");
         Energy->setChecked(true);
-        cntDamp->setValue(cal_gradient);
-        cntDamp2->setValue(cal_offset);
+
+        cntDamp->blockSignals(true); cntDamp->setValue(cal_gradient);
+        cntDamp->blockSignals(false);
+
+        cntDamp2->blockSignals(true); cntDamp2->setValue(cal_offset);
+        cntDamp2->blockSignals(false);
     }
     else {
-        EnergyOn=false;
-        Energy->setText(" Toggle \n Energy ");
+        EnergyOn = active;
+        Energy->setText("Toggle\nEnergy");
         Energy->setChecked(false);
     }
-    if (!provaRun) {
-        d_plot->showPixelHisto();
-    }
+    if (!liveOn) d_plot->showPixelHisto();
 }
 
-
-
 void MainWindow::enableOnTop(bool OnTp) {
-
     Qt::WindowFlags flags = this->windowFlags();
-    if ( OnTp ) {
-       this->setWindowFlags(flags | Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint);
-       this->show();
+    if (OnTp) {
+        this->setWindowFlags(flags | Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint);
+        this->show();
     }
-
     else {
         this->setWindowFlags(flags ^ (Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint));
         this->show();
     }
 }
 
-
-
-void MainWindow::PreOpen() {
-    if (Log->isChecked()) {
-        Log->setChecked(false);
-        logchecked=false;
-    }
-    d_plot->Open();
-}
-
-
-
 void MainWindow::exportTxt() {
-
-    QString directory = QFileDialog::getSaveFileName(this,tr("Save as"), QDir::currentPath());
+    QString dataDir = "/home/rtorres/Desktop/XRFData";
+    QString directory = QFileDialog::getSaveFileName(this, "Save file as...", dataDir);
     QFile file1(directory);
     file1.open(QIODevice::ReadWrite);
     QTextStream out(&file1);
 
-    for(int i=0;i<=16384;i++) {
+    for (int i = 0; i <= 16384; i++) {
         out<<*(shared_memory+100+i)<<"\t"<<*(shared_memory+20000+i)<<"\t"<<*(shared_memory+40000+i)<<"\t\n";
-        *(shared_memory+100+i)=0;
-        *(shared_memory+20000+i)=0;
-        *(shared_memory+40000+i)=0;
+        *(shared_memory+100+i) = 0;
+        *(shared_memory+20000+i) = 0;
+        *(shared_memory+40000+i) = 0;
     }
 
     file1.close();
-    qDebug()<<"... File ready!";
+    printf("... File ready!");
 }
 
-
-
-void MainWindow::enableZoomMode(  )
-{
+void MainWindow::enableZoomMode() {
     d_plot->setAxisScale(QwtPlot::yLeft, 0, max);
-    d_plot->setAxisScale(QwtPlot::xBottom, channel_lowerbound,channel_upperbound);
+    d_plot->setAxisScale(QwtPlot::xBottom, channel_lowerbound, channel_upperbound);
     d_plot->replot();
-    qDebug()<<"... Zooming";
 }
 
-
-void MainWindow::showInfo() {
-    if (aperto)
-    {
-     statusBar()->showMessage(fileName);
-    }
-
+void MainWindow::showInfo(QString filename) {
+    status->showMessage(filename);
 }
 
-
-void MainWindow::AutoCalibrate() {
-
+void MainWindow::dlgCalibration() {
     dlg = new QDialog;
     dlg->resize(480,150);
 
     QGroupBox *groupBox = new QGroupBox( "Calibration" );
-    QLabel *label = new QLabel( "First peak (ch)" );
-    QwtCounter *cntDamp1 = new QwtCounter( groupBox );
-    cntDamp1->setRange( 0, 16384 );
-    cntDamp1->setSingleStep( 1 );
-    cntDamp1->setValue( 0 );
+
+    QLabel *label = new QLabel("First peak (ch)");
+    QwtCounter *cntDamp1 = new QwtCounter(groupBox);
+    cntDamp1->setRange(0, 16384);
+    cntDamp1->setSingleStep(1);
     cntDamp1->setNumButtons(1);
-    cntDamp1->resize(50,50);
-    connect( cntDamp1, SIGNAL( valueChanged( double ) ), d_plot, SLOT ( ch1( double ) ));
+    cntDamp1->setValue(channel1_cal);
+    //cntDamp1->resize(50,50);
 
-
-QLabel *label1 = new QLabel( "First peak (keV)" );
-QwtCounter *cntDamp3 = new QwtCounter( groupBox );
-    cntDamp3->setRange( 0, 50 );
-    cntDamp3->setSingleStep( 1 );
-    cntDamp3->setValue( 0 );
+    QLabel *label1 = new QLabel("First peak (keV)");
+    QwtCounter *cntDamp3 = new QwtCounter(groupBox);
+    cntDamp3->setRange(0, 70);
+    cntDamp3->setSingleStep(1);
     cntDamp3->setNumButtons(1);
-    connect( cntDamp3, SIGNAL( valueChanged( double ) ), d_plot, SLOT ( E1( double ) ));
-QLabel *label2 = new QLabel( "Second peak (ch)" );
-QwtCounter *cntDamp4 = new QwtCounter( groupBox );
-    cntDamp4->setRange( 0, 16384 );
-    cntDamp4->setSingleStep( 1 );
-    cntDamp4->setValue( 0 );
+    cntDamp3->setValue(energy1_cal);
+
+    QLabel *label2 = new QLabel("Second peak (ch)");
+    QwtCounter *cntDamp4 = new QwtCounter(groupBox);
+    cntDamp4->setRange(0, 16384);
+    cntDamp4->setSingleStep(1);
+    cntDamp4->setValue(channel2_cal);
     cntDamp4->setNumButtons(1);
-    connect( cntDamp4, SIGNAL( valueChanged( double ) ), d_plot, SLOT ( ch2( double ) ));
-QLabel *label3 = new QLabel( "Second peak (keV)" );
-QwtCounter *cntDamp5 = new QwtCounter( groupBox );
-    cntDamp5->setRange( 0, 50 );
-    cntDamp5->setSingleStep( 1 );
-    cntDamp5->setValue( 0 );
+
+    QLabel *label3 = new QLabel("Second peak (keV)");
+    QwtCounter *cntDamp5 = new QwtCounter(groupBox);
+    cntDamp5->setRange(0, 70);
+    cntDamp5->setSingleStep(1);
     cntDamp5->setNumButtons(1);
-    connect( cntDamp5, SIGNAL( valueChanged( double ) ), d_plot, SLOT ( E2( double ) ));
+    cntDamp5->setValue(energy2_cal);
 
-QDialogButtonBox *buttons = new QDialogButtonBox( Qt::Horizontal );
-buttonOK = new QPushButton( "Ok" );
+    buttonOK = new QPushButton("Ok");
+    buttonCANC = new QPushButton("Cancel");
 
+    QDialogButtonBox *buttons = new QDialogButtonBox(Qt::Horizontal);
+    buttons->addButton(buttonOK, QDialogButtonBox::AcceptRole);
+    buttons->addButton(buttonCANC, QDialogButtonBox::AcceptRole);
 
-connect( buttonOK, SIGNAL(clicked()), dlg, SLOT(close()) );
-connect( buttonOK, SIGNAL(clicked()), d_plot, SLOT(set_calibrationparam()) );
+    QSignalMapper *dlgMapper = new QSignalMapper(this);
+    dlgMapper->setMapping(cntDamp1, 0);
+    dlgMapper->setMapping(cntDamp3, 1);
+    dlgMapper->setMapping(cntDamp4, 2);
+    dlgMapper->setMapping(cntDamp5, 3);
 
-buttons->addButton( buttonOK, QDialogButtonBox::AcceptRole );
-buttonCANC = new QPushButton( "Cancel" );
-connect( buttonCANC, SIGNAL(clicked()), dlg, SLOT(close()) );
-buttons->addButton( buttonCANC, QDialogButtonBox::AcceptRole );
+    connect(cntDamp1, SIGNAL(valueChanged(double)), dlgMapper, SLOT(map()));
+    connect(cntDamp3, SIGNAL(valueChanged(double)), dlgMapper, SLOT(map()));
+    connect(cntDamp4, SIGNAL(valueChanged(double)), dlgMapper, SLOT(map()));
+    connect(cntDamp5, SIGNAL(valueChanged(double)), dlgMapper, SLOT(map()));
+    connect(dlgMapper, SIGNAL(mapped(int)), d_plot, SLOT(writeCalParam(int)));
 
+    connect(buttonOK, SIGNAL(clicked()), dlg, SLOT(close()));
+    connect(buttonCANC, SIGNAL(clicked()), dlg, SLOT(close()));
+    connect(buttonOK, SIGNAL(clicked()), d_plot, SLOT(setCalParam()));
 
-QGridLayout *Layout = new QGridLayout( groupBox );
-Layout->setSpacing(0);
-Layout->addWidget( label,0,0 );
-Layout->addWidget( cntDamp1,0,1 );
-Layout->addWidget( label1,0,2 );
-Layout->addWidget( cntDamp3,0,3 );
-Layout->addWidget( label2,1,0 );
-Layout->addWidget( cntDamp4,1,1 );
-Layout->addWidget( label3,1,2 );
-Layout->addWidget( cntDamp5,1,3 );
-QVBoxLayout *vLayout = new QVBoxLayout( dlg );
-vLayout->addWidget( groupBox );
-vLayout->addStretch();
-vLayout->addWidget( buttons );
+    QGridLayout *Layout = new QGridLayout( groupBox );
+    Layout->setSpacing(1);
+    Layout->addWidget(label,0,0);
+    Layout->addWidget(cntDamp1,0,1);
+    Layout->addWidget(label1,0,2);
+    Layout->addWidget(cntDamp3,0,3);
+    Layout->addWidget(label2,1,0);
+    Layout->addWidget(cntDamp4,1,1);
+    Layout->addWidget(label3,1,2);
+    Layout->addWidget(cntDamp5,1,3);
 
-dlg->show();
+    QVBoxLayout *vLayout = new QVBoxLayout( dlg );
+    vLayout->addWidget(groupBox);
+    vLayout->addStretch();
+    vLayout->addWidget(buttons);
 
+    dlg->show();
 }
 
-
-
-
-
-
-
- MainWindow::~MainWindow()
- {
-   *(shared_memory_cmd+71)=0; // XRF;
- }
-
-
-
-
-
-void MainWindow::mousePressEvent(QMouseEvent *event)
-{
-  
-  if (event->buttons() == Qt::RightButton) 
-  {
-   qDebug()<<"zooming -> last view";
-  }
+void MainWindow::mousePressEvent(QMouseEvent *event) {
+    if (event->buttons() == Qt::RightButton) printf("... Zooming to last view\n");
 }
-
-
-// A QSlot to receive the signal from Plot::Open()
-void MainWindow::update_fileStatus (QString filename) {
-    qDebug()<<"About to change the filename in the line edit";
-    fileloaded->setText(filename);
-}
-
-
-
 
 
 

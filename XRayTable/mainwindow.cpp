@@ -4,12 +4,10 @@
 #include "../variables.h"
 #include "../Shm.h"
 
-extern int *shm_cmd, *shmCommand_cmd, shmid_cmd, shmidString_cmd, *shared_memory_cmd; 
-extern key_t key_cmd; extern key_t keyString_cmd;
+int shmid_cmd, *shared_memory_cmd; 
+key_t key_cmd;
 
-
-MainWindow::MainWindow()
-{
+MainWindow::MainWindow() {
 
    key_cmd = 6900;
    shmid_cmd = shmget (key_cmd, SHMSZ_CMD_STATUS, IPC_CREAT | 0666);

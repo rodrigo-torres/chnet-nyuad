@@ -383,61 +383,54 @@ void MainWindow::Init_KeyenceLaser() {
     QString commentoACM="Arduino";
     QString NameNumber;
 
-const char *MYTTY_ACM;
-     TTY_ACM="/dev/";
-    
-portACM=Sacm;
+    const char *MYTTY_ACM;
+    TTY_ACM="/dev/";
 
-qDebug()<<"Arduino port is: "<< portACM <<'\n';
+    portACM=Sacm;
 
-NameNumber.setNum(Sacm);
-TTY_ACM.append(NameNumber); 
-    
-if(portACM==0)  {MYTTY_ACM="/dev/ttyACM0"; commentoACM.append(" on ttyACM0");}
-else          
-if(portACM==1)  {MYTTY_ACM="/dev/ttyACM1"; commentoACM.append(" on ttyACM1");}
-else
-if(portACM==2)  {MYTTY_ACM="/dev/ttyACM2"; commentoACM.append(" on ttyACM2");}
-else
-if(portACM==3)  {MYTTY_ACM="/dev/ttyACM3"; commentoACM.append(" on ttyACM3");}
+    NameNumber.setNum(Sacm);
+    TTY_ACM.append(NameNumber);
 
-  errno=0; //RispPortZ=2; i_Z2=0;
+    if (portACM==0)       {MYTTY_ACM="/dev/ttyACM0"; commentoACM.append(" on ttyACM0");}
+    else if (portACM==1)  {MYTTY_ACM="/dev/ttyACM1"; commentoACM.append(" on ttyACM1");}
+    else if (portACM==2)  {MYTTY_ACM="/dev/ttyACM2"; commentoACM.append(" on ttyACM2");}
+    else if (portACM==3)  {MYTTY_ACM="/dev/ttyACM3"; commentoACM.append(" on ttyACM3");}
+    errno=0;
 
-qDebug()<<"The communication bus is: "<<MYTTY_ACM<<'\n';
+    //qDebug()<<"The communication bus is: "<<MYTTY_ACM<<'\n';
 
 
-if (noKeyence_init)
-{
-  errno=0;
+    if (noKeyence_init) {
+        errno=0;
+
+        struct termios my_termios;
+        struct termios new_termios;
+
+        tcgetattr( serialK, &my_termios );
+        cfsetospeed(&my_termios,B9600);
+        my_termios.c_oflag &= (unsigned short)(~(ONLCR | OPOST));
+        my_termios.c_cflag |= CLOCAL;
+        my_termios.c_lflag &= (unsigned short)(~(ICANON | ECHO | ISIG));
+        my_termios.c_cc[VMIN] = 11;
+        my_termios.c_cc[VTIME] =5;
 
 
-  serialK=open(MYTTY_ACM,O_RDWR);  
-  if(serialK<0)
-    {
-      qDebug()<<"ERROR opening ACM port"<< MYTTY_ACM<< strerror(errno);
-//      exit(-1);
+        serialK=open(MYTTY_ACM,O_RDWR);
+        tcflush( serialK, TCIFLUSH );
+        tcsetattr( serialK, TCSANOW, &my_termios );
+        tcgetattr( serialK, &new_termios );
+
+        if (serialK < 0) {
+            qDebug()<<"ERROR opening ACM port"<< MYTTY_ACM<< strerror(errno);
+        }
+        else {
+
+        noKeyence_init=false;
+        CurrentActionACM->setText(commentoACM);
+        AUTOFOCUS_ON_pushButton->setEnabled(true);
+        }
     }
-  else{
-  struct termios my_termios;
-  struct termios new_termios;
-
-  tcgetattr( serialK, &my_termios );
-  cfsetospeed(&my_termios,B9600);
-  my_termios.c_oflag &= (unsigned short)(~(ONLCR | OPOST));
-  my_termios.c_cflag |= CLOCAL;
-  my_termios.c_lflag &= (unsigned short)(~(ICANON | ECHO | ISIG));  
-  my_termios.c_cc[VMIN] = 1;
-  tcsetattr( serialK, TCSANOW, &my_termios );
-  tcgetattr( serialK, &new_termios );
-
-
-
-noKeyence_init=false;
-CurrentActionACM->setText(commentoACM);
-AUTOFOCUS_ON_pushButton->setEnabled(true);
-} 
-
-}
+    qDebug()<<"... Keyence inited succesfully";
 }
 
 

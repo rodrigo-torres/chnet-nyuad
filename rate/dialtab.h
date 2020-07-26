@@ -3,10 +3,9 @@
 
 #include <qwidget.h>
 
-class DialTab: public QWidget
-{
+class DialTab: public QWidget {
 public:
-    DialTab( QWidget *parent = NULL );
+    DialTab(QWidget *parent = NULL);
 };
 
 #endif

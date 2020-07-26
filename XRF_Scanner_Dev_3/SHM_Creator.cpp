@@ -2,83 +2,40 @@
 #include <../Header.h>
 #include <../Shm.h>
 
-extern int *shm_cmd, *shmCommand_cmd, shmid_cmd, shmidString_cmd, *shared_memory_cmd; 
-extern key_t key_cmd; extern key_t keyString_cmd;
-
-extern int *shm, *shmCommand, shmid, shmidString, *shared_memory; 
-extern key_t key; extern key_t keyString;
-
-extern int *shm2, *shmCommand2, shmid2, shmidString2, *shared_memory2; 
-extern key_t key2; extern key_t keyString2;
-
-extern int *shm3, *shmCommand3, shmid3, shmidString3, *shared_memory3;
-extern key_t key3; extern key_t keyString3;
-
-extern int *shm4, *shmCommand4, shmid4, shmidString4, *shared_memory4;
-extern key_t key4; extern key_t keyString4;
-
-extern int *shm_rate, *shmCommand_rate, shmid_rate, shmidString_rate, *shared_memory_rate;
-extern key_t key_rate; extern key_t keyString_rate;
+int shmid[8] = { 0 };
+key_t key, key2, key3, key4, key5, key_cmd, key_rate, key_laser;
+int *shared_memory, *shared_memory2, *shared_memory3, *shared_memory4;
+char*shared_memory5;
+int *shared_memory_cmd, *shared_memory_rate, *shared_memory_laser;
 
 extern int MotoreWindowStatus, CentralWindowStatus;
-extern int portX, portY, portZ, IniX, IniY, IniZ, IniXready, IniYready, IniZready, SerialiStatus, pixel_Xstep, pixel_Ystep, PassoZ; 
+extern int portX, portY, portZ, IniX, IniY, IniZ, IniXready, IniYready, IniZready, SerialiStatus, pixel_Xstep, pixel_Ystep, PassoZ;
 
-
-void MainWindow::SHM_CREATOR()
-{
-    key_cmd = 6900;
-    shmid_cmd = shmget (6900, SHMSZ_CMD_STATUS, IPC_CREAT | 0666);
-    if (shmid_cmd == -1) {
-        qDebug()<<"[!] Shared memory allocation error for 'shmid_cmd': "<<strerror(errno)<<'\n';
+template <typename T> T* assignSHM(key_t key, size_t size, int id) {
+    int shmID = shmget(key, size, IPC_CREAT | 0666);
+    shmid[id] = shmID;
+    if (shmID == -1) {
+        printf("[!] Couldn't obtain a shared memory segment ID for key:\t%d\n", key);
+        printf("%s\n", strerror(errno));
+        return nullptr;
     }
-    shared_memory_cmd =(int *) shmat(shmid_cmd, NULL, 0);
-    //cout << "... Shared memory 'shmid_cmd' attached with ID: " << shmid_cmd << endl;
+    else return static_cast<T*>(shmat(shmID, nullptr, 0));
+}
 
-    key = 7000;
-    shmid = shmget (7000, SHMSZ, IPC_CREAT | 0666);
-    if (shmid == -1) {
-       qDebug()<<"[!] Shared memory allocation error for 'shmid': "<<strerror(errno)<<'\n';
-    }
-    shared_memory =(int *) shmat(shmid, NULL, 0);
-    //cout << "... Shared memory 'shmid' attached with ID: " << shmid << endl;
+void MainWindow::SHM_CREATOR() {
 
-    key2 = 7200;
-    shmid2 = shmget (7200, SHMSZBIG, IPC_CREAT | 0666);
-    if (shmid2 == -1) {
-       qDebug()<<"[!] Shared memory allocation error for 'shmid2': "<<strerror(errno)<<'\n';
-    }
-    shared_memory2 =(int *) shmat(shmid2, NULL, 0);
-    //cout << "... Shared memory 'shmid2' attached with ID: " << shmid2 << endl;
+    key_cmd = 6900, key = 7000, key2 = 7200, key3 = 7300, key4 = 7400, key5 = 8000;
+    key_rate = 7500, key_laser = 7600;
 
-    ///////////////////////////////// FOR AUTOFOCUS ///////////////////////////
+    shared_memory_cmd = assignSHM<int>(key_cmd, SHMSZ_CMD_STATUS, 0);
+    shared_memory = assignSHM<int>(key, SHMSZ, 1);
+    shared_memory2 = assignSHM<int>(key2, SHMSZBIG, 2);
+    shared_memory3 = assignSHM<int>(key3, SHMSZHISTO, 3);
+    shared_memory4 = assignSHM<int>(key4, SHMSZDIGI, 4);
+    shared_memory5 = assignSHM<char>(key5, 4096, 5);
+    shared_memory_rate = assignSHM<int>(key_rate, SHMSZRATE, 6);
+    shared_memory_laser = assignSHM<int>(key_laser, 4096, 7);
 
-    key3 = 7300;
-    shmid3 = shmget (7300, SHMSZHISTO, IPC_CREAT | 0666);
-    if (shmid3 == -1) {
-       qDebug()<<"[!] Shared memory allocation error for 'shmid3': "<<strerror(errno)<<'\n';
-    }
-    shared_memory3 =(int *) shmat(shmid3, NULL, 0);
-    //cout << "... Shared memory 'shmid3' attached with ID: " << shmid3 << endl;
-
-    /////////////////////////////// FOR DIGITISER /////////////////////////////
-
-    key4 = 7400;
-    shmid4 = shmget (7400, SHMSZDIGI, IPC_CREAT | 0666);
-    if (shmid4  == -1) {
-       qDebug()<<"[!] Shared memory allocation error for 'shmid4': "<<strerror(errno)<<'\n';
-    }
-    shared_memory4 =(int *) shmat(shmid4, NULL, 0);
-    //cout << "... Shared memory 'shmid4' attached with ID: " << shmid4 << endl;
-
-    /////////////////////////////// FOR RATE METER /////////////////////////////
-
-    key_rate = 7500;
-    shmid_rate = shmget (7500, SHMSZRATE, IPC_CREAT | 0666);
-    if (shmid_rate == -1) {
-        qDebug()<<"[!] Shared memory allocation error for 'shmid_rate': "<<strerror(errno)<<'\n';
-    }
-    shared_memory_rate =(int *) shmat(shmid_rate, NULL, 0);
-    //cout << "... Shared memory 'shmid_rate' attached with ID: " << shmid_rate << endl;
 
     ////////////////   SHARED MEMORY STARTING CONFIGURATION   ///////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -142,7 +99,10 @@ void MainWindow::SHM_CREATOR()
                     *(shared_memory_cmd+101)=1;                  /// Multidetector angular (A) calibration parameter (for sum mode)
                     *(shared_memory_cmd+102)=0;                  /// Multidetector linear (B) calibration parameter (for sum mode)
                     *(shared_memory_cmd+103)=1;                  /// Multidetector scale factor calibration parameter (number to which parameters A and B parameters must be divided since shared memory does not accept double values)
-
+                    *(shared_memory_cmd+105)=0;
+                    *(shared_memory_laser+5)=0;
+                    *(shared_memory_laser+10)=20;
+                    *(shared_memory_laser+20)=0;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -173,14 +133,12 @@ void MainWindow::SHM_CREATOR()
                     *(shared_memory2+1)=0;    // Posiz X
                     *(shared_memory2+2)=0;    // Posiz Y
                     *(shared_memory2+3)=0;    // ontarget if 1
-
-                    *(shared_memory2+5)=0;    // NEvents totali ADC per mappa online
+                   *(shared_memory2+4)=0;    // NEvents totali ADC per mappa online
 
 
                     *(shared_memory2+8)=0; //usato per indicare timer stop prime di cambiare righa
                     *(shared_memory2+9)=0; //usato quando l'acquisizione viene chiamata senza scanzione
-
-
+	            *(shared_memory2+10)=0;	//From this position onwards, starts the map data array from
 ////////////////////////////////////////////// DIGITISER PARAMETERS
 
 
@@ -205,13 +163,8 @@ void MainWindow::SHM_CREATOR()
 }
 
 void MainWindow::SHM_delete() {
+    qDebug()<<"!!!";
 
-
-    shmctl(shmid_rate, IPC_RMID, 0);
-    shmctl(shmid, IPC_RMID, 0);
-    shmctl(shmid2, IPC_RMID, 0);
-    shmctl(shmid3, IPC_RMID, 0);
-    shmctl(shmid4, IPC_RMID, 0);
 }
 
 
