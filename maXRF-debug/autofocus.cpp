@@ -12,8 +12,6 @@ extern string read_answer(int port);
 extern bool AutofocusOn, ZOnTarget;
  string checkK;
 
-double AutofocusBuffer[5] = {0,0,0};
-
 double Autofocus_value=0;  double Autofocus_average_value=0;
 
 extern char process[30];

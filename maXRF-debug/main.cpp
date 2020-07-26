@@ -39,6 +39,7 @@ int checkcaenmodules()
     }
 
     file2.close();
+    system("rm -f modules");
     //Sleeper::msleep(500);
 
     if(module==0)

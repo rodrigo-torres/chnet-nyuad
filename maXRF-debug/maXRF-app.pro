@@ -3,7 +3,7 @@
 ######################################################################
 
 TEMPLATE = app
-TARGET = XRF_Scanner_Dev_3
+TARGET = maXRF-app
 INCLUDEPATH += .
 QT += widgets\
       opengl \

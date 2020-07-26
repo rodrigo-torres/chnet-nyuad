@@ -17,11 +17,11 @@ void MainWindow::StartVme() {
     if(*(shared_memory_cmd+70)==0) {
 
         if(DAQ_TYPE==1) {
-            system("./ADCXRF_USB &");
+            system("./app-modules/ADCXRF_USB &");
         }
 
         if(DAQ_TYPE==0) {
-            system("./ADCXRF_Optical_Link &");
+            system("./app-modules/ADCXRF_Optical_Link &");
         }
 
         *(shared_memory2+9)=1;      // Tells the external program ADCXRF it should run on point acquisition mode
@@ -77,7 +77,7 @@ void MainWindow::Stop_Vme() {
 
 void MainWindow::ShowHistogram() {
     if ( *(shared_memory_cmd+71) == 0 ) {
-        system("./XRF & ");
+        system("./app-modules/spectrum & ");
         *(shared_memory_cmd+71)=1; // XRF
     }
     else {
@@ -88,7 +88,7 @@ void MainWindow::ShowHistogram() {
 void MainWindow::RateMeter() {
     if(*(shared_memory_cmd+73)==0)
     {
-        system("./rate & ");
+        system("./app-modules/rate & ");
         *(shared_memory_cmd+73)=1; // Rate
     }
     else
@@ -99,7 +99,7 @@ void MainWindow::XrayTable()
 {  
     if(*(shared_memory_cmd+74)==0)
     {
-        system("./XRayTable & ");
+        system("./app-modules/XRayTable & ");
         *(shared_memory_cmd+74)=1;
     }
     else qDebug()<<"[!] X-Ray table window already opened";

@@ -210,19 +210,23 @@ private slots:
     void CheckYOnTarget();
     void timerEvent();
 
+    void stage_check_on_target(int serial, int id);
+
 
     void CheckSegFault();
     void SaveTxt();
-    void SetSerialXName(int number);
-    void SetSerialYName(int number);
-    void AssignY();
-    void AssignX();
+    //void SetSerialXName(int number);
+    //void SetSerialYName(int number);
+    //void AssignY();
+    //void AssignX();
+    int tty_interface_conf(int df_minor_no, int device_type, int device_number);
+    void tty_init(int identifier);
 
     void XrayTable();
 
     // Mapped functions
 
-    void assign_ports(int id);
+    void tty_set_path(int id);
     void slotMoveFine(int id);
     void slotMoveStage(int id);
 
@@ -490,34 +494,11 @@ public slots:
     void Init_Zmotor();
     void StartZ();
 
-    void Init_KeyenceLaser();
-
-    //void MoveZ(double);
-    //void MoveZ_To();
-    //void Move_forward();
-    //void Move_backward();
-    //void AbortZ();
-    //void StopZ();
     void CheckZOnTarget();
     void Focustimer();
     void readKeyence();
     void TrackingON();
     void AutoFocusRunning();
-    //       void Camera();
-
-    ///////////////////////// LASER
-    //       void Laser();
-//    void Laser_switching();
-//    void LaserOn();
-//    void LaserOff();
-
-    //////////////////////////////
-
-    void SetSerialZName(int number);
-    void AssignZ();
-
-    //void AssignACM();
-    //void NameACM(int numberacm);
 
 
 

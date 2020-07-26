@@ -31,7 +31,7 @@ void MainWindow::GoOnLine() {
         MapIsOpened=true;
         qDebug()<<"... Live-Map is active";
         *(shared_memory_cmd+75)=1;
-        system("./OnLineMap & ");
+        system("./app-modules/OnLineMap & ");
     }
 }
 

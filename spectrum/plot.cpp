@@ -99,7 +99,7 @@ void Plot::setCalParam(int data) {
 }
 
 void Plot::loadCalibration() {
-    QFile file("./Calibration.txt");
+    QFile file("./conf/Calibration.txt");
 
     if (file.exists()) {
         if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -124,7 +124,7 @@ void Plot::Calibration(double gradient = 1, double offset = 0) {
     cal_offset = offset;
     cal_gradient = gradient;
 
-    QFile file("Calibration.txt");
+    QFile file("./conf/Calibration.txt");
     file.remove();
     file.open(QIODevice::WriteOnly);
     QTextStream out(&file);

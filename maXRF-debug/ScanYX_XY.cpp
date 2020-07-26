@@ -40,13 +40,13 @@ bool MainWindow::StartXYScan() {
             if (DAQ_TYPE == 1) {
                 QMessageBox::StandardButton reply;
                 reply = QMessageBox::question(this, "WARNING", "[!] Start USB DAQ?", QMessageBox::Yes|QMessageBox::No);
-                if (reply == QMessageBox::Yes) { system("./ADCXRF_USB &"); }
+                if (reply == QMessageBox::Yes) { system("./app-modules/ADCXRF_USB &"); }
             }
             if (DAQ_TYPE == 0) {
                 QMessageBox::StandardButton reply;
                 reply = QMessageBox::question(this, "WARNING", "[!] Start Optical DAQ?", QMessageBox::Yes|QMessageBox::No);
                 if (reply == QMessageBox::Yes) {
-                    system("./ADCXRF_Optical_Link &");
+                    system("./app-modules/ADCXRF_Optical_Link &");
                     *(shared_memory_cmd+70) = 1;
                     Sleeper::msleep(2000);
                 }

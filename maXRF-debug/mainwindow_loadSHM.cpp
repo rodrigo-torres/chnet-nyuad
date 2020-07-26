@@ -64,7 +64,10 @@ void MainWindow::LoadNewFileWithNoCorrection_SHM() {
     setseed();
 
     if (*(shared_memory+24)==1) {// Called if energy calibration is active in the spectrum visualization program.
-        QFile file("Calibration.txt");
+
+        QString dir = QDir::currentPath();
+        dir += "/conf/Calibration.txt";
+        QFile file(dir);
         file.open(QIODevice::ReadOnly);
         QString a,b;
         a = file.readLine();
@@ -199,7 +202,7 @@ void MainWindow::LoadSHM_SumMap() {
 
 
     if (*(shared_memory+24)) {// Called if energy calibration is active in the spectrum visualization program.
-        QFile file("Calibration.txt");
+        QFile file("conf/Calibration.txt");
         file.open(QIODevice::ReadOnly);
         QString a,b;
         a = file.readLine();
