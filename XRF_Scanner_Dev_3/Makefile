@@ -35,7 +35,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = XRF_Scanner_Dev_31.0.0
-DISTDIR = /home/rtorres/Desktop/Github/XRFMultidet_v10.0/XRF_Scanner_Dev_3/.tmp/XRF_Scanner_Dev_31.0.0
+DISTDIR = /home/frao/Desktop/Github/XRFMultidet_v10.1/XRF_Scanner_Dev_3/.tmp/XRF_Scanner_Dev_31.0.0
 LINK          = g++
 LFLAGS        = -Wl,-O1
 LIBS          = $(SUBLIBS) -lpthread -lQt5OpenGL -lQt5Widgets -lQt5Gui -lQt5Sql -lQt5Xml -lQt5Core -lGL 
@@ -134,6 +134,9 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_core_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_dbus.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_dbus_private.pri \
+		/usr/lib64/qt5/mkspecs/modules/qt_lib_designer.pri \
+		/usr/lib64/qt5/mkspecs/modules/qt_lib_designer_private.pri \
+		/usr/lib64/qt5/mkspecs/modules/qt_lib_designercomponents_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_devicediscovery_support_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_edid_support_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_egl_support_private.pri \
@@ -147,6 +150,8 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_glx_support_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_gui.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_gui_private.pri \
+		/usr/lib64/qt5/mkspecs/modules/qt_lib_help.pri \
+		/usr/lib64/qt5/mkspecs/modules/qt_lib_help_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_input_support_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_kms_support_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_linuxaccessibility_support_private.pri \
@@ -201,6 +206,9 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_testlib.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_testlib_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_theme_support_private.pri \
+		/usr/lib64/qt5/mkspecs/modules/qt_lib_uiplugin.pri \
+		/usr/lib64/qt5/mkspecs/modules/qt_lib_uitools.pri \
+		/usr/lib64/qt5/mkspecs/modules/qt_lib_uitools_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_waylandclient.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_waylandclient_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_waylandcompositor.pri \
@@ -320,6 +328,9 @@ Makefile: XRF_Scanner_Dev_3.pro /usr/lib64/qt5/mkspecs/linux-g++/qmake.conf /usr
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_core_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_dbus.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_dbus_private.pri \
+		/usr/lib64/qt5/mkspecs/modules/qt_lib_designer.pri \
+		/usr/lib64/qt5/mkspecs/modules/qt_lib_designer_private.pri \
+		/usr/lib64/qt5/mkspecs/modules/qt_lib_designercomponents_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_devicediscovery_support_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_edid_support_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_egl_support_private.pri \
@@ -333,6 +344,8 @@ Makefile: XRF_Scanner_Dev_3.pro /usr/lib64/qt5/mkspecs/linux-g++/qmake.conf /usr
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_glx_support_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_gui.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_gui_private.pri \
+		/usr/lib64/qt5/mkspecs/modules/qt_lib_help.pri \
+		/usr/lib64/qt5/mkspecs/modules/qt_lib_help_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_input_support_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_kms_support_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_linuxaccessibility_support_private.pri \
@@ -387,6 +400,9 @@ Makefile: XRF_Scanner_Dev_3.pro /usr/lib64/qt5/mkspecs/linux-g++/qmake.conf /usr
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_testlib.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_testlib_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_theme_support_private.pri \
+		/usr/lib64/qt5/mkspecs/modules/qt_lib_uiplugin.pri \
+		/usr/lib64/qt5/mkspecs/modules/qt_lib_uitools.pri \
+		/usr/lib64/qt5/mkspecs/modules/qt_lib_uitools_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_waylandclient.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_waylandclient_private.pri \
 		/usr/lib64/qt5/mkspecs/modules/qt_lib_waylandcompositor.pri \
@@ -481,6 +497,9 @@ Makefile: XRF_Scanner_Dev_3.pro /usr/lib64/qt5/mkspecs/linux-g++/qmake.conf /usr
 /usr/lib64/qt5/mkspecs/modules/qt_lib_core_private.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_dbus.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_dbus_private.pri:
+/usr/lib64/qt5/mkspecs/modules/qt_lib_designer.pri:
+/usr/lib64/qt5/mkspecs/modules/qt_lib_designer_private.pri:
+/usr/lib64/qt5/mkspecs/modules/qt_lib_designercomponents_private.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_devicediscovery_support_private.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_edid_support_private.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_egl_support_private.pri:
@@ -494,6 +513,8 @@ Makefile: XRF_Scanner_Dev_3.pro /usr/lib64/qt5/mkspecs/linux-g++/qmake.conf /usr
 /usr/lib64/qt5/mkspecs/modules/qt_lib_glx_support_private.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_gui.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_gui_private.pri:
+/usr/lib64/qt5/mkspecs/modules/qt_lib_help.pri:
+/usr/lib64/qt5/mkspecs/modules/qt_lib_help_private.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_input_support_private.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_kms_support_private.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_linuxaccessibility_support_private.pri:
@@ -548,6 +569,9 @@ Makefile: XRF_Scanner_Dev_3.pro /usr/lib64/qt5/mkspecs/linux-g++/qmake.conf /usr
 /usr/lib64/qt5/mkspecs/modules/qt_lib_testlib.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_testlib_private.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_theme_support_private.pri:
+/usr/lib64/qt5/mkspecs/modules/qt_lib_uiplugin.pri:
+/usr/lib64/qt5/mkspecs/modules/qt_lib_uitools.pri:
+/usr/lib64/qt5/mkspecs/modules/qt_lib_uitools_private.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_waylandclient.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_waylandclient_private.pri:
 /usr/lib64/qt5/mkspecs/modules/qt_lib_waylandcompositor.pri:
@@ -662,7 +686,7 @@ moc_mainwindow.cpp: ../Shm.h \
 		mainwindow.h \
 		moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
-	/usr/lib64/qt5/bin/moc $(DEFINES) --include ./moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/rtorres/Desktop/Github/XRFMultidet_v10.0/XRF_Scanner_Dev_3 -I/home/rtorres/Desktop/Github/XRFMultidet_v10.0/XRF_Scanner_Dev_3 -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/6.4.1 -I/usr/include/c++/6.4.1/x86_64-redhat-linux -I/usr/include/c++/6.4.1/backward -I/usr/lib/gcc/x86_64-redhat-linux/6.4.1/include -I/usr/local/include -I/usr/include -I/usr/include/c++/8 -I/usr/include/c++/8/x86_64-redhat-linux -I/usr/include/c++/8/backward -I/usr/lib/gcc/x86_64-redhat-linux/8/include -I/usr/local/include -I/usr/include mainwindow.h -o moc_mainwindow.cpp
+	/usr/lib64/qt5/bin/moc $(DEFINES) --include ./moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/frao/Desktop/Github/XRFMultidet_v10.1/XRF_Scanner_Dev_3 -I/home/frao/Desktop/Github/XRFMultidet_v10.1/XRF_Scanner_Dev_3 -I/usr/include/qt5 -I/usr/include/qt5/QtOpenGL -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtSql -I/usr/include/qt5/QtXml -I/usr/include/qt5/QtCore -I/usr/include/c++/6.4.1 -I/usr/include/c++/6.4.1/x86_64-redhat-linux -I/usr/include/c++/6.4.1/backward -I/usr/lib/gcc/x86_64-redhat-linux/6.4.1/include -I/usr/local/include -I/usr/include -I/usr/include/c++/8 -I/usr/include/c++/8/x86_64-redhat-linux -I/usr/include/c++/8/backward -I/usr/lib/gcc/x86_64-redhat-linux/8/include -I/usr/local/include -I/usr/include mainwindow.h -o moc_mainwindow.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
