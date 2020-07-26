@@ -30,7 +30,7 @@ extern int SerialiStatus;
 
 extern int serialX,serialY,serialZ;
 extern int send_command(int chan,const char *comando, const char *parametri, int port);
-extern string read_Xanswer2();
+extern string read_answer(int port);
 extern string read_Yanswer2();
 extern string read_Zanswer2();
 
@@ -137,8 +137,6 @@ else   /////////////// START CONNECTION WITH FILE DESCRIPTOR
 
   tcgetattr( serialX, &my_termios );
   cfsetospeed(&my_termios,B9600);
-  //int h=cfsetospeed(&my_termios,B9600);
-  //int h1=cfgetospeed(&my_termios);
 
   my_termios.c_oflag &= (unsigned short)(~(ONLCR | OPOST));
   my_termios.c_cflag |= CLOCAL;
@@ -155,8 +153,7 @@ else   /////////////// START CONNECTION WITH FILE DESCRIPTOR
   send_command(1,"*IDN?",NULL,serialX);
   Nfd=serialX+1;
   retval=select(Nfd, &rfds, NULL,NULL, &tv);
-  //string vediamo=read_Xanswer2();
-  read_Xanswer2();
+  read_answer(serialX);
 
 
   if (retval==0)   RispPortX=0;
@@ -381,10 +378,10 @@ qDebug()<<"Connection ACM already established!!!";
 }
 
 
-void MainWindow::Init_KeyenceLaser()
-{
+void MainWindow::Init_KeyenceLaser() {
 
-QString commentoACM="Arduino"; QString commentoACM_long=""; QString NameNumber;
+    QString commentoACM="Arduino";
+    QString NameNumber;
 
 const char *MYTTY_ACM;
      TTY_ACM="/dev/";
@@ -425,7 +422,7 @@ if (noKeyence_init)
   struct termios new_termios;
 
   tcgetattr( serialK, &my_termios );
-  int h=cfsetospeed(&my_termios,B9600);
+  cfsetospeed(&my_termios,B9600);
   my_termios.c_oflag &= (unsigned short)(~(ONLCR | OPOST));
   my_termios.c_cflag |= CLOCAL;
   my_termios.c_lflag &= (unsigned short)(~(ICANON | ECHO | ISIG));  

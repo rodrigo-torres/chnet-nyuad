@@ -39,121 +39,12 @@ extern struct timeval tv;
 
 extern struct itimerval it_val;	/* for setting itimer */
 
-
-void MainWindow::ScanYX()
-{
-temp=Xmax;
-
-{
-
-    if((*(shared_memory_cmd+70)==0) && ask==false)
-         {
-	  ask=true;
-          if(DAQ_TYPE==1)
-            {
-             QMessageBox::StandardButton reply;
-             reply=QMessageBox::question(this, "WAENING", "Starting USB DAQ?", QMessageBox::Yes|QMessageBox::No);
-             if (reply == QMessageBox::Yes) 
-	        {system("./ADCXRF_USB &"); *(shared_memory_cmd+70)=1;}
-             }
-          if(DAQ_TYPE==0)
-            {
-             QMessageBox::StandardButton reply;
-             reply=QMessageBox::question(this, "WARNING", "Starting OPTICAL DAQ?", QMessageBox::Yes|QMessageBox::No);
-             if (reply == QMessageBox::Yes) 
-                 {system("./ADCXRF_Optical_Link &");*(shared_memory_cmd+70)=1;}
-             }
-	    }
-           	  
-
-
-   if(NscanY==0 && XOnTarget==true && YOnTarget==true)
-     {
-     send_command(1,"VEL 1 10",NULL,serialX);
-     send_command(1,"VEL 1 10",NULL,serialY);
-      qDebug()<<"Spostamento a Xmin e Ymin....."<<"che sarebbero "<<positionX<<" "<<positionY<<'\n'; 
-      MoveX(positionX); 
-      //XOnTarget=false;
-      MoveY(positionY); 
-      //YOnTarget=false;
-      XHasMoved=true;
-      NscanY++;
-     }
-
-   else
-     {
-      
-      if(XOnTarget==true && YOnTarget==true && XHasMoved==true)       //si inizia a muovere Y        
-        {
-         //qDebug()<<"XonT "<<XOnTarget<<"YOnT"<<YOnTarget<<"XMoved"<<XHasMoved<<'\n';
-            Clock2=0;
-            //timerPos->start(tempoPos);
-            if(onlyOne==0) 
-               {char v[10];
-                sprintf(v,"%f",V);
-                send_command(1,"VEL",v,serialY);
-                onlyOne=1;
-                }
-             
-             XHasMoved=false;
-             if(positionY==Ymin) {positionY=Ymax; Yo=Ymin; vy=V;} 
-             else
-             if(positionY==Ymax) {positionY=Ymin; Yo=Ymax; vy=-V;}  
-             YOnTarget=false;
-            //qDebug()<<"Xmin Xmax"<<Xmin<<Xmax<<"V "<<V<<'\n';
-             MoveY(positionY);
-             timerPos->start(tempoPos);
-              
-        }
-                              
-      if(XOnTarget==true && YOnTarget==true && XHasMoved==false)  //si inizia a muovere X
-        {
-             
-            if(positionX<Xmax)
-                       {
-                     
-                        positionX=positionX+Px; 
-                        timerPos->stop();
-                        Clock2=0;
-                        MoveX(positionX);
-                        //XOnTarget=false;
-                        XHasMoved=true;
-                       }
-                
-
-                 else{                                                                         //La scansione � finita
-			YXscanning=false; NscanY=0;Clock2=0;timerPos->stop();onlyOne=0;
-                           if(*(shared_memory_cmd+70)==1)
-                              {   qDebug()<<*(shared_memory2+4);
-                                  int pidVme=*(shared_memory_cmd+80);
-                                  sprintf(process, "kill -s TERM %i &", pidVme);
-                                  system(process);
-                                  *(shared_memory_cmd+70)=0;
-                                  ask=false;
-                                  SaveTxt();
-                                  qDebug()<<".... file saved....";
-                              }
-                      }
-           }
-
-       }///chiude else
-   }
-
-
-}
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////
-
-
 void MainWindow::ScanXY()
 {
     temp=Ymax;
 
-    if((*(shared_memory_cmd+70)==0) && ask==false) {
-        ask=true;
+    if( *(shared_memory_cmd+70) == 0 ) {
+
         if(DAQ_TYPE==1) {
             QMessageBox::StandardButton reply;
             reply=QMessageBox::question(this, "WARNING", "[!] Start USB DAQ?", QMessageBox::Yes|QMessageBox::No);
@@ -162,6 +53,7 @@ void MainWindow::ScanXY()
                 *(shared_memory_cmd+70)=1;
             }
         }
+
         if(DAQ_TYPE==0) {
             QMessageBox::StandardButton reply;
             reply=QMessageBox::question(this, "WARNING", "[!] Start Optical DAQ?", QMessageBox::Yes|QMessageBox::No);
@@ -249,7 +141,7 @@ void MainWindow::ScanXY()
                     }
                     *(shared_memory_cmd+70)=0;
                     *(shared_memory2+8)=0;
-                    ask=false;
+
                     SaveTxt();
                 }
             }

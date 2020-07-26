@@ -15,5 +15,6 @@ CONFIG += qwt
 
 
 # Input
-HEADERS += complexnumber.h mainwindow.h pixmaps.h plot.h
+HEADERS += complexnumber.h mainwindow.h pixmaps.h plot.h ../Shm.h
 SOURCES += main.cpp mainwindow.cpp plot.cpp
+RESOURCES += Resource.qrc

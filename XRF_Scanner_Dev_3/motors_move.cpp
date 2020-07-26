@@ -10,7 +10,7 @@ extern bool XYscanning, XOnTarget, YOnTarget, ZOnTarget;
 
 extern int serialX,serialY,serialZ;
 extern int send_command(int chan,const char *comando, const char *parametri,int port);
-extern string read_Xanswer2();
+extern string read_answer(int port);
 extern string read_Yanswer2();
 extern string read_Zanswer2();
 extern int accelerationtime;
@@ -49,7 +49,7 @@ double value;
 if(XOnTarget==true)
 {
 send_command(1,"POS?",NULL,serialX);
-posX = read_Xanswer2();
+posX = read_answer(serialX);
 current_posX =posX.data();
 current_posX.remove(0,2);
 value=current_posX.toDouble();
@@ -69,7 +69,7 @@ double value;
 if(XOnTarget==true)
 {
 send_command(1,"POS?",NULL,serialX);
-posX = read_Xanswer2();
+posX = read_answer(serialX);
 current_posX =posX.data();
 current_posX.remove(0,2);
 value=current_posX.toDouble();

@@ -80,7 +80,7 @@ extern double Px;
 
 
 bool PixelCorrection=false;  bool CutBorders=false;   bool OnLine=false;         bool MapIsOpened=false;  bool CameraOn=false;
-bool okX=false;              bool okY=false;          bool aborted=false;        bool ask=false;          bool energychanged=false;
+bool okX=false;              bool okY=false;          bool energychanged=false;
 bool FirstRun=true;          bool opened=false;       bool XConnected=false;     bool YConnected=false;   bool TimerActive=false;
 bool XOnTarget=false;        bool YOnTarget=false;    bool XHasMoved=true;       bool Xmoving=false;      bool Ymoving=false;
 bool XYscanning=false;       bool YXscanning=false;   bool YHasMoved=true;       bool okZ=false;          bool TimerZActive=false;
@@ -88,7 +88,7 @@ bool ZConnected=false;       bool ZOnTarget=false;    bool ZHasMoved=true;      
 bool InitX=false;            bool InitY=false;        bool InitZ=false;          bool AutofocusOn=false;
 
 int i=0;                     int j=0;                 int n=1;                   int MergePos=0;          int mempos=0; //memory position histo
-int Pixeldim=1;              int EventOffset=0;       int nz=1;                  int missing=1;           int measuring_time=20;
+int Pixeldim=1;              int EventOffset=0;       int nz=1;                  int missing=1;           int measuring_time=300;
 int OffsetX;                 int OffsetY;             int NshiftY=0;             int onlyOne=0;           int NshiftX=0;/////o 1???
 int point;                   int Clock=0;             int Clock2=0;              int ClockMotore=0;       int ClockZ=0;
 int casenumber=4;            int interval=100;        int NscanX=0;              int NscanY=0;            int StoredPoint=0;  
@@ -135,19 +135,27 @@ struct timeval tv;
 
 
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
-{
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
-     switch (Resolution_mode)
-      {
-       case(0): {PixelX=795; PixelY=795; break;}
-       case(1): {PixelX=595; PixelY=595; break;}
-       case(2): {PixelX=395; PixelY=395; break;}
-      }
+    switch (Resolution_mode) {
+    case 0:
+        PixelX=795;
+        PixelY=795;
+        break;
+    case 1:
+        PixelX=595;
+        PixelY=595;
+        break;
+    case 2:
+        PixelX=395;
+        PixelY=395;
+        break;
+    }
 
      SHM_CREATOR();                 /// CREATING SHARED MEMORY SEGMENT
+     qDebug()<<"... Succesfully attached all memory segments";
      createActions();
-     CREATE_MENU();            	    /// CREATING MENU from Menu.cpp
+     builder_Menu();            	    /// CREATING MENU from Menu.cpp
      GUI_CREATOR();
      CONNECTIONS_CREATOR();
 
@@ -157,11 +165,19 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
      QImage image1("IMG/TT_CHNet_res1.png");
      QImage image2("IMG/TT_CHNet_res2.png");
 
-     switch (Resolution_mode)
-      {
-       case(0): {imageLabel->setPixmap(QPixmap::fromImage(image)); qDebug()<<"Map info: pixmap width scaled to 795x795"; break;}
-       case(1): {imageLabel->setPixmap(QPixmap::fromImage(image1)); qDebug()<<"Map info: pixmap width scaled to 595x595"; break;}
-       case(2): {imageLabel->setPixmap(QPixmap::fromImage(image2)); qDebug()<<"Map info: pixmap width scaled to 395x395"; break;}
+     switch (Resolution_mode) {
+     case 0:
+         imageLabel->setPixmap(QPixmap::fromImage(image));
+         //qDebug()<<"Map info: pixmap width scaled to 795x795";
+         break;
+     case 1 :
+         imageLabel->setPixmap(QPixmap::fromImage(image1));
+         //qDebug()<<"Map info: pixmap width scaled to 595x595";
+         break;
+       case 2 :
+         imageLabel->setPixmap(QPixmap::fromImage(image2));
+         //qDebug()<<"Map info: pixmap width scaled to 395x395";
+         break;
       }
 
      imageLabel->setBackgroundRole(QPalette::Base);
@@ -198,45 +214,34 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     timer = new QTimer(this);                                                // TIMER for program control
     connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
 
-    //timerPos = new QTimer(this);                                             // TIMER for scanning
-    //connect(timerPos, SIGNAL(timeout()), this, SLOT(WritePositionXY()));
-    //connect(timerPos, SIGNAL(timeout()), this, SLOT(Write_coordinates()));
-    //timerPos->setTimerType(Qt::PreciseTimer);
-
-    
     timerAutofocus =new QTimer(this);                                        // TIMER for RECORDING Z DISTANCE FROM TARGET
     connect(timerAutofocus, SIGNAL(timeout()), this, SLOT(Focustimer()));
-    //timerAutofocus->start(100);
 
-//    timerZ = new QTimer(this);                                                // TIMER for DISTANCE FEEDBACK TO Z MOTOR
-//    connect(timerZ, SIGNAL(timeout()), this, SLOT(AutoFocusRunning()));
+    ///Red channel intervals///
+    char element[3];
+    FILE *filech; //name of the file where the channel intervals are specified
+    filech = fopen ("../channel_intervals", "r");
+    fscanf(filech, "%s %d %d", element, &ChMinBa, &ChMaxBa);
+    fscanf(filech, "%s %d %d", element, &ChMinCa, &ChMaxCa);
+    fscanf(filech, "%s %d %d", element, &ChMinK, &ChMaxK);
+    fscanf(filech, "%s %d %d", element, &ChMinCo, &ChMaxCo);
+    fscanf(filech, "%s %d %d", element, &ChMinAg, &ChMaxAg);
+    fscanf(filech, "%s %d %d", element, &ChMinCr, &ChMaxCr);
+    fscanf(filech, "%s %d %d", element, &ChMinCu, &ChMaxCu);
+    fscanf(filech, "%s %d %d", element, &ChMinPbL, &ChMaxPbL);
+    fscanf(filech, "%s %d %d", element, &ChMinAu, &ChMaxAu);
+    fscanf(filech, "%s %d %d", element, &ChMinHg, &ChMaxHg);
+    fscanf(filech, "%s %d %d", element, &ChMinSi, &ChMaxSi);
+    fscanf(filech, "%s %d %d", element, &ChMinTi, &ChMaxTi);
+    fscanf(filech, "%s %d %d", element, &ChMinSn, &ChMaxSn);
+    fscanf(filech, "%s %d %d", element, &ChMinFe, &ChMaxFe);
+    fscanf(filech, "%s %d %d", element, &ChMinZn, &ChMaxZn);
+    fscanf(filech, "%s %d %d", element, &ChMinPbM, &ChMaxPbM);
+    fclose(filech);
 
-///Red channel intervals///
-char element[3];
-FILE *filech; //name of the file where the channel intervals are specified
-filech = fopen ("../channel_intervals", "r");
-fscanf(filech, "%s %d %d", element, &ChMinBa, &ChMaxBa);
-fscanf(filech, "%s %d %d", element, &ChMinCa, &ChMaxCa);
-fscanf(filech, "%s %d %d", element, &ChMinK, &ChMaxK);
-fscanf(filech, "%s %d %d", element, &ChMinCo, &ChMaxCo);
-fscanf(filech, "%s %d %d", element, &ChMinAg, &ChMaxAg);
-fscanf(filech, "%s %d %d", element, &ChMinCr, &ChMaxCr);
-fscanf(filech, "%s %d %d", element, &ChMinCu, &ChMaxCu);
-fscanf(filech, "%s %d %d", element, &ChMinPbL, &ChMaxPbL);
-fscanf(filech, "%s %d %d", element, &ChMinAu, &ChMaxAu);
-fscanf(filech, "%s %d %d", element, &ChMinHg, &ChMaxHg);
-fscanf(filech, "%s %d %d", element, &ChMinSi, &ChMaxSi);
-fscanf(filech, "%s %d %d", element, &ChMinTi, &ChMaxTi);
-fscanf(filech, "%s %d %d", element, &ChMinSn, &ChMaxSn);
-fscanf(filech, "%s %d %d", element, &ChMinFe, &ChMaxFe);
-fscanf(filech, "%s %d %d", element, &ChMinZn, &ChMaxZn);
-fscanf(filech, "%s %d %d", element, &ChMinPbM, &ChMaxPbM);
-fclose(filech);
-
-readmultidetcalpar();
-printf("%d %d %d\n",*(shared_memory_cmd+101), *(shared_memory_cmd+102), *(shared_memory_cmd+103));
-
- }
+    readmultidetcalpar();
+    printf("%d %d %d\n",*(shared_memory_cmd+101), *(shared_memory_cmd+102), *(shared_memory_cmd+103));
+}
 
 
 
@@ -319,18 +324,18 @@ void MainWindow::hideImage()  // MANAGE IMAGE IN SCROLL AREA
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void MainWindow::timerEvent()       
-  {
-   ClockMotore++;
-   if(XYscanning)ScanXY();  
-   if(YXscanning)ScanYX();
-   if (InitX)CheckXOnTarget();
-   if (InitY)CheckYOnTarget();
-   if (InitZ)CheckZOnTarget();
-   if(AutofocusOn)AutoFocusRunning();
-   MoveDoubleClick();
-   CheckSegFault();
-  }
+void MainWindow::timerEvent() {
+
+    //ClockMotore++;
+    if(XYscanning)ScanXY();
+    //if(YXscanning)ScanYX();
+    if (InitX)CheckXOnTarget();
+    if (InitY)CheckYOnTarget();
+    if (InitZ)CheckZOnTarget();
+    //if(AutofocusOn)AutoFocusRunning();
+    MoveDoubleClick();
+    CheckSegFault();
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -360,24 +365,24 @@ int send_command(int channel,const char *command, const char *parameter, int por
     }
 }
 
-char *read_answer(int port)                                                       // Z MOTOR: READ ANSWER CHAR
+string read_answer(int port)                                                       // Z MOTOR: READ ANSWER CHAR
 {
     string rest;
     char c[100];
     int n=0;
 
-    while( (n=read(port, &c, sizeof(c)))>0 )
-    {
+    while( ( n = read(port, &c, sizeof(c)) ) > 0 ) {
         c[n]=0;
         rest=rest+c;
-        if(c[n-1]=='\n')
-        break;
+        if ( c[n-1] == '\n' ) {
+            break;
+        }
     }
-    return c;
+    return rest;
 }
 
 
-
+/*
 string read_Xanswer2()                                                     // X MOTOR: READ ANSWER STRING
 {
   char c[100];
@@ -394,6 +399,7 @@ string read_Xanswer2()                                                     // X 
   Xread =rest;
   return Xread;  
 }
+*/
 
 string read_Yanswer2()                                                     // Y MOTOR: READ ANSWER STRING
 {
@@ -437,39 +443,36 @@ string read_Zanswer2()                                                     // Z 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void MainWindow::CheckXOnTarget()                                           // X MOTOR: CHECK_ON_TARGET
-  {
-   string a;
-   send_command(1,"ONT?",NULL,serialX);
-   a=read_Xanswer2();
-   QString Qa=a.data();
-   if(Qa.contains("0", Qt::CaseInsensitive)==false) // also 1=0 can be used 
-     {
-	
-      XOnTarget=true; Xmoving=false;
-      if(InitPhaseX)
-       {
-        if(nxInit==0)
-          {
-           nxInit=1;
-           qDebug()<<"... X motor initialized\n";
-           IniX=0; IniXready=1; 
-          }
-       }
-     }
-   else 
-    {
-     XOnTarget=false;
-     Xmoving=true;
+void MainWindow::CheckXOnTarget() {
+
+    string a;
+    send_command(1,"ONT?",NULL,serialX);
+    a=read_answer(serialX);
+    QString Qa=a.data();
+
+    if ( Qa.contains("0", Qt::CaseInsensitive) == false ) {
+
+        XOnTarget=true;
+        Xmoving=false;
+        if ( InitPhaseX && nxInit == 0 ) {
+                nxInit=1;
+                qDebug()<<"... X motor initialized\n";
+                IniX=0;
+                IniXready=1;
+        }
+    }
+    else {
+        XOnTarget=false;
+        Xmoving=true;
     }
     
     send_command(1,"POS?",NULL,serialX);
-    checkX = read_Xanswer2();
-   NowX="X= ";
-   NowX.append(checkX.data());
-   NowX.remove(3,2); 
-   X_POSITION_lineEdit->setText(NowX);
-  }
+    checkX = read_answer(serialX);
+    NowX="X= ";
+    NowX.append(checkX.data());
+    NowX.remove(3,2);
+    X_POSITION_lineEdit->setText(NowX);
+}
 
 
 void MainWindow::CheckYOnTarget()                                           // Y MOTOR: CHECK_ON_TARGET
@@ -581,9 +584,9 @@ void MainWindow::VelocityZ(double numberZ)                       // MOTOR SETTIN
 
 
 void MainWindow::PassoX_Func(double number1)                     // MOTOR SETTINGS STEP
-  {Px=number1*1000; *(shared_memory_cmd+60)=Px; PassoX=number1;} 
+  {Px=number1*1000; *(shared_memory_cmd+60)=Px; pixel_Xstep=number1;} 
 void MainWindow::PassoY_Func(double number5)
-  {Py=number5*1000; *(shared_memory_cmd+61)=Py; PassoY=number5;} 
+  {Py=number5*1000; *(shared_memory_cmd+61)=Py; pixel_Ystep=number5;} 
 /*void MainWindow::PassoZ_Func(double number1)
   {Pz=number1*1000; *(shared_memory_cmd+62)=Pz;}
 */
@@ -664,15 +667,15 @@ void MainWindow::StartZ()                                          // MOTOR STAR
   } 
 
 
-void MainWindow::Stop()                                             // MOTOR STOP
-  {
+void MainWindow::stop_motorXY() {
    send_command(1,"HLT",NULL,serialX);
-   send_command(1,"HLT",NULL,serialY);
    send_command(1,"ERR?",NULL,serialX);
-   checkX = read_Xanswer2();
+   checkX = read_answer(serialX);
+
+   send_command(1,"HLT",NULL,serialY);
    send_command(1,"ERR?",NULL,serialY);
-   checkY = read_Yanswer2();
-  }
+   checkY = read_answer(serialY);
+}
 
 void MainWindow::StopZ()                                            // MOTOR STOP Z
   {
@@ -690,52 +693,33 @@ void MainWindow::StopZ()                                            // MOTOR STO
 
 
 
-bool MainWindow::StartXYScan()
-  {
-   if(TimerActive==false)
-     {
-     timer->start(interval);
-     TimerActive=true;
-     }
-   if(XYscanning==false) 
-     {
-      positionY=Ymin1; positionX=Xmin1; Xmin=positionX; Ymin=positionY; Xmax=Xmax1;Ymax=Ymax1;
-      XYscanning=true; NscanX=0; FirstRun=true;
-      tempoPos=Px/V;
-	
+bool MainWindow::StartXYScan() {
 
+    if(TimerActive==false) {
+        timer->start(interval);
+        TimerActive=true;
+    }
 
+    if(XYscanning==false) {
+        positionY=Ymin1; positionX=Xmin1;
+        Xmin=positionX; Ymin=positionY;
+        Xmax=Xmax1;Ymax=Ymax1;
 
+        // The acceleration of the motor is specified as 200 mm/s
+        // The variable V is the desired motor velocity specified in the GUI
 
-accelerationtime=(V/200); //time interval for the acquisition startup, taken considering the time needed for acceleration
+        XYscanning=true; NscanX=0; FirstRun=true;
+        tempoPos=Px/V;
+        accelerationtime=(V/200); //time interval for the acquisition startup, taken considering the time needed for acceleration
+        posXforacceleration=(100*(accelerationtime*accelerationtime))*1000; //in um
+        accelerationtimesleep=round(accelerationtime*1000)+23;
 
-posXforacceleration=(100*(accelerationtime*accelerationtime))*1000; //in um
+        printf("... Acquisition sleep to account for acceleration set at:%d ms\n", accelerationtimesleep);
+    }
 
-accelerationtimesleep=round(accelerationtime*1000)+23;
+    return XYscanning;
+}
 
-printf("posXforacceleration:%f um, accelerationtimesleep:%d ms\n", posXforacceleration, accelerationtimesleep);
-
-     }
-   return XYscanning;
-  }
-
-
-bool MainWindow::StartYXScan()
-  {
-   if(TimerActive==false) 
-     {
-      timer->start(interval);
-      TimerActive=true;
-     }
-   if(YXscanning==false) 
-     {
-      positionY=Ymin1; positionX=Xmin1; Xmin=positionX; Ymin=positionY; Xmax=Xmax1;Ymax=Ymax1;
-      YXscanning=true; NscanY=0; FirstRun=true;
-      tempoPos=Py/V;
-     }
-    return YXscanning;
-  }
- 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -754,13 +738,12 @@ void MainWindow::OPTICAL_DAQ()                              // DAQ VIA OPTICAL L
    {DAQ_TYPE=0; qDebug()<<"OPTICAL link active..."<<"DAQ_TYPE: "<<DAQ_TYPE;}
   }
 
-void MainWindow::SelMeasTime()
-{
-    bool ok3;
-    measuring_time = QInputDialog::getInt(this, tr("Measurement time (s)"),
-				 tr("MTime:"),0, 0, 3600, 1, &ok3);
-    if (ok3)
-    {qDebug()<<"Measurement time (seconds) ="<<measuring_time<<'\n';}
+void MainWindow::set_PMAcquisitionTime() {
+    bool dlgok;
+    measuring_time = QInputDialog::getInt(this, tr("Set Acquisition Time"), tr("Seconds:"),300, 0, 18000, 60, &dlgok);
+    if (dlgok) {
+        printf("... Point-mode acquisition time set to:\t%d seconds\n", measuring_time);
+    }
 }
 
 void MainWindow::SelDigiCh0()
@@ -882,11 +865,11 @@ void MainWindow::MapCorrection()                                  // MAP: CORREC
    bool ok3;
    int nX=QInputDialog::getInt(this, tr("Shift X"), tr("Positions to shift"), 0, -10, 10, 1, &ok3);
    if(ok3)
-     {qDebug()<<"Shift of "<<nX<<"Positions\n"; PassoX=*(shared_memory_cmd+60); NshiftX=(nX*PassoX);}
+     {qDebug()<<"Shift of "<<nX<<"Positions\n"; pixel_Xstep=*(shared_memory_cmd+60); NshiftX=(nX*pixel_Xstep);}
    bool ok4;
    int nY=QInputDialog::getInt(this, tr("Shift Y"), tr("Positions to shift"), 0, -10, 10, 1, &ok4);
    if(ok4)
-     {qDebug()<<"Shift of "<<nY<<"Positions\n"; PassoY=*(shared_memory_cmd+61); NshiftY=nY*PassoY;}
+     {qDebug()<<"Shift of "<<nY<<"Positions\n"; pixel_Ystep=*(shared_memory_cmd+61); NshiftY=nY*pixel_Ystep;}
    LoadNewFile_SHM(); // inserted on 30/12/2016
 }
 
@@ -956,34 +939,33 @@ void MainWindow::LoadNewFile_SHM()                               // LOAD FILE IN
    if(!PixelCorrection) {qDebug()<<"...no file correction active...";LoadNewFileWithNoCorrection_SHM();displayImage_SHM();}
   }
 
-void MainWindow::LoadElementsMapSum()
-{
+void MainWindow::LoadElementsMapSum() {
 
-elementsdlg= new QDialog;
-elementsdlg->resize(150,150);
-QGroupBox *elementsgroupBox = new QGroupBox( "Select Elements" );
-QLabel *element1label = new QLabel( "First Element (red)" );
-QComboBox *element1comboBox = new QComboBox; 
-    element1comboBox->insertItems(0, QStringList()
-	<< QApplication::translate("Element 1", "None", 0)
-         << QApplication::translate("Element 1", "Ba", 0)
-         << QApplication::translate("Element 1", "Ca", 0)
-         << QApplication::translate("Element 1", "K", 0)
-         << QApplication::translate("Element 1", "Co", 0)
-	<< QApplication::translate("Element 1", "Ag", 0)
-	<< QApplication::translate("Element 1", "Cr", 0)
-	<< QApplication::translate("Element 1", "Cu", 0)
-	<< QApplication::translate("Element 1", "PbL", 0)
-	<< QApplication::translate("Element 1", "Au", 0)
-	<< QApplication::translate("Element 1", "Hg", 0)
-	<< QApplication::translate("Element 1", "Si", 0)
-	<< QApplication::translate("Element 1", "Ti", 0)
-	<< QApplication::translate("Element 1", "Sn", 0)
-	<< QApplication::translate("Element 1", "Fe", 0)
-	<< QApplication::translate("Element 1", "Zn", 0)
-	<< QApplication::translate("Element 1", "PbM", 0)
-        );
-    connect(element1comboBox, SIGNAL(activated(int)),this, SLOT(SelectionElement1(int)));
+    elementsdlg = new QDialog;
+    elementsdlg->resize(150,150);
+    QGroupBox *elementsgroupBox = new QGroupBox( "Select Elements" );
+    QLabel *element1label = new QLabel( "First Element (red)" );
+    QComboBox *element1comboBox = new QComboBox;
+        element1comboBox->insertItems(0, QStringList()
+        << QApplication::translate("Element 1", "None", 0)
+             << QApplication::translate("Element 1", "Ba", 0)
+             << QApplication::translate("Element 1", "Ca", 0)
+             << QApplication::translate("Element 1", "K", 0)
+             << QApplication::translate("Element 1", "Co", 0)
+        << QApplication::translate("Element 1", "Ag", 0)
+        << QApplication::translate("Element 1", "Cr", 0)
+        << QApplication::translate("Element 1", "Cu", 0)
+        << QApplication::translate("Element 1", "PbL", 0)
+        << QApplication::translate("Element 1", "Au", 0)
+        << QApplication::translate("Element 1", "Hg", 0)
+        << QApplication::translate("Element 1", "Si", 0)
+        << QApplication::translate("Element 1", "Ti", 0)
+        << QApplication::translate("Element 1", "Sn", 0)
+        << QApplication::translate("Element 1", "Fe", 0)
+        << QApplication::translate("Element 1", "Zn", 0)
+        << QApplication::translate("Element 1", "PbM", 0)
+            );
+        connect(element1comboBox, SIGNAL(activated(int)),this, SLOT(SelectionElement1(int)));
 
 
 QLabel *element2label = new QLabel( "Second Element (green)" );
@@ -1034,15 +1016,16 @@ QComboBox *element3comboBox = new QComboBox;
 
 QDialogButtonBox *buttonBox = new QDialogButtonBox( Qt::Horizontal );
 OKbutton = new QPushButton( "Ok" );
-connect( OKbutton, SIGNAL(clicked()), this, SLOT(ClickedOK()) );
+
+connect( OKbutton, SIGNAL( clicked() ), elementsdlg, SLOT( close() ));
+connect( OKbutton, SIGNAL( clicked() ), this, SLOT( LoadSHM_SumMap() ));
+
 buttonBox->addButton( OKbutton, QDialogButtonBox::AcceptRole );
+
 CANCELbutton = new QPushButton( "Cancel" );
-connect( CANCELbutton, SIGNAL(clicked()), this, SLOT(ClickedCANCEL()) );
+
+connect( CANCELbutton, SIGNAL(clicked() ), elementsdlg, SLOT( close() ));
 buttonBox->addButton( CANCELbutton, QDialogButtonBox::AcceptRole );
-
-//connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
-// connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
-
 
 QGridLayout *Layout = new QGridLayout( elementsgroupBox );
 Layout->setSpacing(0);
@@ -1063,16 +1046,6 @@ elementsdlg->show();
 
 }
 
-void MainWindow::ClickedOK()
-{
-elementsdlg->close();
-LoadSHM_SumMap();
-}
-
-void MainWindow::ClickedCANCEL()
-{
-elementsdlg->close();
-}
 
 void MainWindow::SelectionElement1(int element1)
 {
@@ -1240,13 +1213,13 @@ void MainWindow::LoadTxt()  //carica Position.txt in memoria
 	else
 	{
 		 bool ok1;
-		  PassoX = QInputDialog::getInt(this, tr("Step X"),
+		  pixel_Xstep = QInputDialog::getInt(this, tr("Step X"),
                                  tr("Step X (um):"), 500, 1, 10000, 1, &ok1);
- 		 *(shared_memory_cmd+60)=PassoX;
+ 		 *(shared_memory_cmd+60)=pixel_Xstep;
 
- 		 PassoY = QInputDialog::getInt(this, tr("Step Y"),
+ 		 pixel_Ystep = QInputDialog::getInt(this, tr("Step Y"),
                                  tr("Step Y (um):"), 500, 1, 10000, 1, &ok1);
-		  *(shared_memory_cmd+61)=PassoY;
+		  *(shared_memory_cmd+61)=pixel_Ystep;
 
 		numero=line.toInt();
           	i++;
@@ -1324,29 +1297,25 @@ void MainWindow::MergeTxt()  //carica File.txt in memoria
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void MainWindow::Abort()
-  {
-   aborted=true;
-	 if(*(shared_memory_cmd+70)==1) *(shared_memory_cmd+70)=0;
-   if(XYscanning==true || YXscanning==true)                    
-     {
-      XYscanning=false;
-      YXscanning=false;
-      send_command(1,"HLT",NULL,serialX);
-      send_command(1,"ERR?",NULL,serialX);
-      checkX = read_Xanswer2();
-      send_command(1,"HLT",NULL,serialY);
-      send_command(1,"ERR?",NULL,serialY);
-      checkY = read_Yanswer2();
-      //timerPos->stop();
-      onlyOne=0;
-	SaveTxt();
-	
-	    
-  ask=false;
-     }
-   
-  }
+void MainWindow::Abort() {
+    if ( *(shared_memory_cmd+70) == 1) {
+        *(shared_memory_cmd+70)=0;
+    }
+
+    if ( XYscanning==true ) {
+        send_command(1,"HLT",NULL,serialX);
+        send_command(1,"ERR?",NULL,serialX);
+        checkX = read_answer(serialX);
+
+        send_command(1,"HLT",NULL,serialY);
+        send_command(1,"ERR?",NULL,serialY);
+        checkY = read_answer(serialY);
+
+        onlyOne=0;
+        XYscanning=false;
+        SaveTxt();
+    }
+}
 
 
 
@@ -1381,95 +1350,86 @@ void MainWindow::Exit()
   }
 
 
- MainWindow::~MainWindow()
- {
-   char clearShmCmd[30]; char clearShm1[30]; char clearShm2[30]; char clearShm3[30]; char clearShm4[30];
+MainWindow::~MainWindow() {
 
-   qDebug()<<"...clearing shared memory segments....";
-   sprintf(clearShmCmd, "ipcrm shm %i &", shmid_cmd);
-   system(clearShmCmd);
+    qDebug()<<"... Unallocating shared memory segments";
+    SHM_delete();
 
-   sprintf(clearShm1, "ipcrm shm %i &", shmid);
-   system(clearShm1);
+    qDebug()<<"... Killing child processes\n";
+    Sleeper::msleep(500);
 
-   sprintf(clearShm2, "ipcrm shm %i &", shmid2);
-   system(clearShm2);
+    if ( *(shared_memory_cmd+70) ) {
+       *(shared_memory_cmd+70)=0;
+    }
 
-   sprintf(clearShm3, "ipcrm shm %i &", shmid3);
-   system(clearShm3);
+    else { qDebug()<< "... DPP-ADC already off"; }
+    //Sleeper::msleep(200);
 
-   sprintf(clearShm4, "ipcrm shm %i &", shmid4);
-   system(clearShm4);
+    if ( *(shared_memory_cmd+71) ) {
 
-   sprintf(clearShm4, "ipcrm shm %i &", shmid_rate);
-   system(clearShm4);
-
-   Sleeper::msleep(500);
-
-/////////////////////////////////////////// KILLING PROCESS
-
-
-
-   if(*(shared_memory_cmd+70)) 
-       { *(shared_memory_cmd+70)=0;
-//       int pidADCXRF=*(shared_memory_cmd+80);
-//       sprintf(process, "kill -s TERM %i &", pidADCXRF);
-//       system(process);qDebug()<< "...killing ADCXRF...";
-        }
-   else qDebug()<< "ADCXRF is already off...";
-   Sleeper::msleep(200);
-
-   if(*(shared_memory_cmd+71)) 
-       {int pidSpectrum=*(shared_memory_cmd+81);
+       int pidSpectrum= *(shared_memory_cmd+81);
        sprintf(process, "kill -s TERM %i &", pidSpectrum);
-       system(process);qDebug()<< "...killing specrtum viewer...";}
-   else qDebug()<< "Specrtum viewer is already off...";
-   Sleeper::msleep(100);
+       system(process);
+       qDebug()<< "... Killing spectrum viewer...";
+    }
+    else { qDebug()<< "... Spectrum viewer already off"; }
+    //Sleeper::msleep(100);
 
-   if(*(shared_memory_cmd+72)) 
-       {int piddigitiser=*(shared_memory_cmd+82);
+    if ( *(shared_memory_cmd+72) )  {
+       int piddigitiser=*(shared_memory_cmd+82);
        sprintf(process, "kill -s TERM %i &", piddigitiser);
-       system(process);qDebug()<< "...killing digitiser interface...";}
-   else qDebug()<< "digitiser interface is already off...";
-   Sleeper::msleep(100);
+       system(process);
+       qDebug()<< "... Killing DPP interface";
+    }
+    else { qDebug()<< "... DPP interface already off"; }
+    //Sleeper::msleep(100);
 
-   if(*(shared_memory_cmd+73)) 
-       {int pidrate=*(shared_memory_cmd+83);
+    if ( *(shared_memory_cmd+73) ) {
+       int pidrate=*(shared_memory_cmd+83);
        sprintf(process, "kill -s TERM %i &", pidrate);
-       system(process);qDebug()<< "...killing rate meter...";}
-   else qDebug()<< "rate meter is already off...";
-   Sleeper::msleep(100);
+       system(process);
+       qDebug()<< "... Killing rate meter";
+    }
+    else { qDebug()<< "... Rate meter already off"; }
+    //Sleeper::msleep(100);
 
-   if(*(shared_memory_cmd+74)) 
-       {int pidxraytable=*(shared_memory_cmd+84);
+    if ( *(shared_memory_cmd+74) ) {
+       int pidxraytable=*(shared_memory_cmd+84);
        sprintf(process, "kill -s TERM %i &", pidxraytable);
-       system(process);qDebug()<< "...killing XrayTable...";}
-   else qDebug()<< "XrayTable is already off...";
-   Sleeper::msleep(100);
+       system(process);
+       qDebug()<< "... Killing X-ray reference table";
+    }
+    else { qDebug()<< "... X-ray reference table already off"; }
+    //Sleeper::msleep(100);
 
-   if(*(shared_memory_cmd+75)) 
-       {int pidmaponline=*(shared_memory_cmd+85);
+    if ( *(shared_memory_cmd+75) ) {
+       int pidmaponline=*(shared_memory_cmd+85);
        sprintf(process, "kill -s TERM %i &", pidmaponline);
-       system(process);qDebug()<< "...killing MapOnLine...";}
-   else qDebug()<< "MapOnLine is already off...";
-   Sleeper::msleep(100);
+       system(process);
+       qDebug()<< "... Killing live map display...";
+    }
+    else { qDebug()<< "... Live map display already off"; }
+    //Sleeper::msleep(100);
 
-   if(*(shared_memory_cmd+76)) 
-       {int pid_motor_test=*(shared_memory_cmd+86);
+    if ( *(shared_memory_cmd+76) ) {
+       int pid_motor_test=*(shared_memory_cmd+86);
        sprintf(process, "kill -s TERM %i &", pid_motor_test);
-       system(process);qDebug()<< "...killing PI motor test tool...";}
-   else qDebug()<< "PI motor test tool is already off...";
-   Sleeper::msleep(100);
+       system(process);
+       qDebug()<< "... Killing PI motor test tool";
+    }
+    else { qDebug()<< "... PI motor test tool already off"; }
+    //Sleeper::msleep(100);
 
-   if(*(shared_memory_cmd+77)) 
-       {int pid_motor_parameter_table=*(shared_memory_cmd+87);
+    if ( *(shared_memory_cmd+77) ) {
+       int pid_motor_parameter_table=*(shared_memory_cmd+87);
        sprintf(process, "kill -s TERM %i &", pid_motor_parameter_table);
-       system(process);qDebug()<< "...killing PI motor parameter table...";}
-   else qDebug()<< "PI motor parameter table is already off...";
-   Sleeper::msleep(100);
+       system(process);qDebug()<< "... Killing PI motor parameter table";
+    }
+    else { qDebug()<< "... PI parameter table already off"; }
+    //Sleeper::msleep(100);
 
-
- }
+    shmctl(shmid_cmd, IPC_RMID, 0);
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -107,7 +107,8 @@ struct Pixel_BIG {
      void MENU_CONNECTIONS_CREATOR();
      void CONNECTIONS_CREATOR();
      void SHM_CREATOR();
-     void CREATE_MENU();
+     void SHM_delete();
+     void builder_Menu();
 
 
      void SetCurrentAction(QString);
@@ -115,7 +116,7 @@ struct Pixel_BIG {
      QVector2D map(int pixX, int pixY);
      void LoadNewFileWithCorrection_SHM();
      void LoadNewFileWithNoCorrection_SHM();
-     void LoadSHM_SumMap();
+
      
      
 
@@ -165,7 +166,7 @@ struct Pixel_BIG {
        void SelectChannels();
        void StartVme();
        void Stop_Vme();
-       void SelMeasTime();
+       void set_PMAcquisitionTime();
        void SelDigiCh0();
        void SelDigiCh1();
        void SelDigiCh0and1();
@@ -201,8 +202,6 @@ struct Pixel_BIG {
       void Enable_TabWidget_3_4_XY();
 
       void Image_Export();
-      void ClickedOK();
-      void ClickedCANCEL();
 
 
 //////from motore.h////
@@ -227,9 +226,9 @@ void Velocity(double);
        void StartX();
        void StartY();
        bool StartXYScan();
-       bool StartYXScan();
+       //bool StartYXScan();
        void ScanXY();
-       void ScanYX();
+       //void ScanYX();
        void MoveX(double);
        void MoveY(double);
        void Move_up();
@@ -240,7 +239,7 @@ void Velocity(double);
        void Move_left();
        void MoveDoubleClick();
        void Abort();
-       void Stop();
+       void stop_motorXY();
        void CheckXOnTarget();
        void CheckYOnTarget();
        void timerEvent();
@@ -506,7 +505,7 @@ void Velocity(double);
      QDoubleSpinBox *SET_SCAN_Y_MIN_doubleSpinBox;
      QDoubleSpinBox *SET_SCAN_Y_MAX_doubleSpinBox;
      QPushButton *SCANXY_pushButton;
-     QPushButton *SCANYX_pushButton;
+     //QPushButton *SCANYX_pushButton;
      QPushButton *SCAN_ABORT_pushButton;
 
 /////// XY SCAN SETTINGS (AREA BELOW TAB2)
@@ -516,7 +515,7 @@ void Velocity(double);
      QFrame *XY_SPEED_line;
      QLabel *X_STEP_label;
      QDoubleSpinBox *X_STEP_doubleSpinBox;
-     QFrame *XY_STEP_line;
+     QLabel *XY_STEP_line;
      QLabel *Y_STEP_label;
      QDoubleSpinBox *Y_STEP_doubleSpinBox;
      QLabel *X_POSITION_label;
@@ -541,6 +540,7 @@ void Velocity(double);
 
    public slots:
 
+     void LoadSHM_SumMap();
        //void Write_coordinates();
        void Treshold();
 

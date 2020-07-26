@@ -30,7 +30,7 @@ void MainWindow::CONNECTIONS_CREATOR()
 //     connect(pushButton_tab_2_2XY, SIGNAL(released()),   //////////////////////////////////////////// INIT X + Y
 //            this, SLOT(StartBoth()));
 
-     connect(pushButton_tab_2_2ABORT, SIGNAL(clicked()), this, SLOT(Stop()));
+     connect(pushButton_tab_2_2ABORT, SIGNAL(clicked()), this, SLOT(stop_motorXY()));
 
      connect(MOVEUP_pushButton, SIGNAL(released()),
             this, SLOT(Move_down()));
@@ -46,7 +46,7 @@ void MainWindow::CONNECTIONS_CREATOR()
      connect(MOVEDOWN_pushButton, SIGNAL(released()),
             this, SLOT(Move_up()));
 
-     connect(STOPMOVE_pushButton, SIGNAL(clicked()), this, SLOT(Stop()));
+     connect(STOPMOVE_pushButton, SIGNAL(clicked()), this, SLOT(stop_motorXY()));
 
      connect(MOVE_TO_X_pushButton, SIGNAL(released()),
             this, SLOT(MoveX_To()));
@@ -74,7 +74,7 @@ void MainWindow::CONNECTIONS_CREATOR()
 
      connect(SCANXY_pushButton, SIGNAL(clicked()), this, SLOT(StartXYScan()));
 
-     connect(SCANYX_pushButton, SIGNAL(clicked()), this, SLOT(StartYXScan()));
+     //connect(SCANYX_pushButton, SIGNAL(clicked()), this, SLOT(StartYXScan()));
 
      connect(SCAN_ABORT_pushButton, SIGNAL(clicked()), this, SLOT(Abort()));
 

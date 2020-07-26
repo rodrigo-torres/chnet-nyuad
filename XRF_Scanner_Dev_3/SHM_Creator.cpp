@@ -21,7 +21,7 @@ extern int *shm_rate, *shmCommand_rate, shmid_rate, shmidString_rate, *shared_me
 extern key_t key_rate; extern key_t keyString_rate;
 
 extern int MotoreWindowStatus, CentralWindowStatus;
-extern int portX, portY, portZ, IniX, IniY, IniZ, IniXready, IniYready, IniZready, SerialiStatus, PassoX, PassoY, PassoZ; 
+extern int portX, portY, portZ, IniX, IniY, IniZ, IniXready, IniYready, IniZready, SerialiStatus, pixel_Xstep, pixel_Ystep, PassoZ; 
 
 
 void MainWindow::SHM_CREATOR()
@@ -36,7 +36,7 @@ void MainWindow::SHM_CREATOR()
 
     key = 7000;
     shmid = shmget (7000, SHMSZ, IPC_CREAT | 0666);
-    if (shmid_cmd == -1) {
+    if (shmid == -1) {
        qDebug()<<"[!] Shared memory allocation error"<<strerror(errno)<<'\n';
     }
     shared_memory =(int *) shmat(shmid, NULL, 0);
@@ -44,7 +44,7 @@ void MainWindow::SHM_CREATOR()
 
     key2 = 7200;
     shmid2 = shmget (7200, SHMSZBIG, IPC_CREAT | 0666);
-    if (shmid_cmd == -1) {
+    if (shmid2 == -1) {
        qDebug()<<"[!] Shared memory allocation error"<<strerror(errno)<<'\n';
     }
     shared_memory2 =(int *) shmat(shmid2, NULL, 0);
@@ -55,7 +55,7 @@ void MainWindow::SHM_CREATOR()
 
     key3 = 7300;
     shmid3 = shmget (7300, SHMSZHISTO, IPC_CREAT | 0666);
-    if (shmid_cmd == -1) {
+    if (shmid3 == -1) {
        qDebug()<<"[!] Shared memory allocation error"<<strerror(errno)<<'\n';
     }
     shared_memory3 =(int *) shmat(shmid3, NULL, 0);
@@ -65,7 +65,7 @@ void MainWindow::SHM_CREATOR()
 
     key4 = 7400;
     shmid4 = shmget (7400, SHMSZDIGI, IPC_CREAT | 0666);
-    if (shmid_cmd == -1) {
+    if (shmid4  == -1) {
        qDebug()<<"[!] Shared memory allocation error"<<strerror(errno)<<'\n';
     }
     shared_memory4 =(int *) shmat(shmid4, NULL, 0);
@@ -75,7 +75,7 @@ void MainWindow::SHM_CREATOR()
 
     key_rate = 7500;
     shmid_rate = shmget (7500, SHMSZRATE, IPC_CREAT | 0666);
-    if (shmid_cmd == -1) {
+    if (shmid_rate == -1) {
         qDebug()<<"[!] Shared memory allocation error"<<strerror(errno)<<'\n';
     }
     shared_memory_rate =(int *) shmat(shmid_rate, NULL, 0);
@@ -107,20 +107,20 @@ void MainWindow::SHM_CREATOR()
                     *(shared_memory_cmd+42)=0;                   /// Z Position (default=0)
                     *(shared_memory_cmd+43)=0;                   /// Integral[point] (default=0)
 
-                    *(shared_memory_cmd+50)=0;                   /// Xmin (default=0)
-                    *(shared_memory_cmd+51)=0;                   /// Xmax (default=0)
-                    *(shared_memory_cmd+52)=0;                   /// Ymin (default=0)
-                    *(shared_memory_cmd+53)=0;                   /// Ymax (default=0)
-                    *(shared_memory_cmd+54)=0;                   /// Zmin (default=0)
-                    *(shared_memory_cmd+55)=0;                   /// Zmax (default=0)
+                    *(shared_memory_cmd+50)=100000;                   /// Xmin (default=0)
+                    *(shared_memory_cmd+51)=110000;                   /// Xmax (default=0)
+                    *(shared_memory_cmd+52)=100000;                   /// Ymin (default=0)
+                    *(shared_memory_cmd+53)=110000;                   /// Ymax (default=0)
+                    //*(shared_memory_cmd+54)=0;                   /// Zmin (default=0)
+                    //*(shared_memory_cmd+55)=0;                   /// Zmax (default=0)
 
-                    *(shared_memory_cmd+60)=PassoX;              /// X step (default=0)
-                    *(shared_memory_cmd+61)=PassoY;              /// Y step (default=0)
-                    *(shared_memory_cmd+62)=PassoZ;              /// Z step (default=0)
+                    *(shared_memory_cmd+60)=pixel_Xstep;              /// X step (default=0)
+                    *(shared_memory_cmd+61)=pixel_Ystep;              /// Y step (default=0)
+                    //*(shared_memory_cmd+62)=PassoZ;              /// Z step (default=0)
                     *(shared_memory_cmd+64)=0;                   /// X movement (default=0)
                     *(shared_memory_cmd+65)=0;                   /// Y movement (default=0)
                     *(shared_memory_cmd+66)=0;                   /// Z movement (default=0)
-                    *(shared_memory_cmd+67)=1;                   /// Scan velocity (default=1 mm/s)
+                    *(shared_memory_cmd+67)=1000;                   /// Scan velocity (default=1 mm/s)
 
                     *(shared_memory_cmd+70)=0;                   /// VME/ADCXRF STATUS (default=0)
                     *(shared_memory_cmd+71)=0;                   /// XRF SPECTRUM STATUS (default=0)
@@ -172,7 +172,6 @@ void MainWindow::SHM_CREATOR()
 
 
 
-
                     *(shared_memory2+1)=0;    // Posiz X
                     *(shared_memory2+2)=0;    // Posiz Y
                     *(shared_memory2+3)=0;    // ontarget if 1
@@ -207,7 +206,14 @@ void MainWindow::SHM_CREATOR()
 
 }
 
+void MainWindow::SHM_delete() {
 
 
+    shmctl(shmid_rate, IPC_RMID, 0);
+    shmctl(shmid, IPC_RMID, 0);
+    shmctl(shmid2, IPC_RMID, 0);
+    shmctl(shmid3, IPC_RMID, 0);
+    shmctl(shmid4, IPC_RMID, 0);
+}
 
 

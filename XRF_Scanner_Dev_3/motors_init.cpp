@@ -19,7 +19,7 @@ extern int selected_Xmotor,selected_Ymotor,selected_Zmotor;
 
 // These are global functions used to commmunicate to the motors through the file descriptors.
 extern int send_command(int channel, const char *command, const char *parameter, int port);
-extern char *read_answer(int port);
+extern string read_answer(int port);
 
 int loadparam_M404_2pd(int port)
 {
@@ -586,6 +586,8 @@ void MainWindow::Init_Zmotor()
 
     pushButton_tab_2_2X->setEnabled(true); // re-enabling X and Y init button
     pushButton_tab_2_2Y->setEnabled(true);
+    tab_2->setEnabled(true);
+    INIT_Z_pushButton->setEnabled(false);
 }
 
 

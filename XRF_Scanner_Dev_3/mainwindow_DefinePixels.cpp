@@ -15,7 +15,7 @@ extern int ChMin, ChMax,Nshift,point,OffsetX, OffsetY,PixelX,PixelY,Pixeldim,i,j
 extern int Xmap[20000],Ymap[20000],MaxX,MaxY,MinX,MinY,Xminvero,Yminvero,MaxX_ori,MinX_ori,MaxY_ori,MinY_ori;
 extern double X[20000],Y[20000];
 extern double Integral[20000],MaxIntegral;
-extern int PassoX, PassoY;
+extern int pixel_Xstep, pixel_Ystep;
 extern int *(shared_memory3);
 extern QColor myColor;
 extern struct Pixel_BIG *Pointer;
@@ -74,20 +74,13 @@ bool Appartiene(int x,int y, struct Pixel_BIG *px) /////da true se x,y appartien
  return found;
 }
 
+void MainWindow::Define_Pixels() {
 
-
-
-void MainWindow::Define_Pixels()////per creare quelli che dovranno essere disegnati sulla myImage
-{
- //qDebug()<<"DEFINE PIXELS";
- //qDebug()<<"MaxX e MaxY all'inizio"<<MaxX<<MaxY<<"MinX e MinY all'inizio"<<MinX<<MinY<<'\n';
  struct Pixel_BIG *PixelsMappa[point];
  int caso=100;
- int shiftY=0;
  Pointer=(struct Pixel_BIG *)calloc(point,sizeof(struct Pixel_BIG));
 
- for(int z=0;z<point;z++)
-  {
+ for(int z=0;z<point;z++) {
    if(z==0 || Pixeldim==1) caso=1;   ////in questo caso funziona come prima con punti di 1 pixel
    if(Xmap[z]>Xmap[z-1] && Ymap[z]==Ymap[z-1] && z>0 && Pixeldim>1) caso=2;  ///si e mossa la x aumentando, la y e fissa, 
    if(Ymap[z]>Ymap[z-1] && Xmap[z]==Xmap[z-1] && z>0 && Pixeldim>1) caso=3;  ///si e mossa la y aumentando, la x e quella di prima,
@@ -191,14 +184,8 @@ void MainWindow::Define_Pixels()////per creare quelli che dovranno essere disegn
    }
 
    caso=1000;
-  //qDebug()<<"coordinate X Y "<<X[z]<<Y[z]<<"si devono colorare: "<<'\n';
- // for(int c=0;c<(Pixeldim*Pixeldim);c++)
- // qDebug()<<" x"<<Pointer[z].total[c].point_x<<"y"<<Pointer[z].total[c].point_y<<'\n';
+
  }
-
-
- //for(int g=0;g<point;g++)
- //qDebug()<<"Coordinata centro X"<<Pointer[g].centro[0]<<"Coordinata centro Y"<<Pointer[g].centro[1]<<'\n';
 
 }
        

@@ -88,9 +88,9 @@ void MainWindow::createActions()
 /// In menu ACQUISITION
 
 
-    SelTime = new QAction(tr("Select measurement time"), this);
-    SelTime->setStatusTip(tr("Select measurement time"));
-    connect(SelTime, SIGNAL(triggered()), this, SLOT(SelMeasTime()));
+    SelTime = new QAction(tr("Set acquisition time"), this);
+    SelTime->setStatusTip(tr("Set acquisition time"));
+    connect(SelTime, SIGNAL(triggered()), this, SLOT(set_PMAcquisitionTime()));
 
     DigitizerChannel0=new QAction(tr("Select Digitizer Channel 0"), this);
     DigitizerChannel0->setStatusTip(tr("Select Digitizer Channel 0"));
@@ -144,25 +144,11 @@ void MainWindow::createActions()
     TreDAct = new QAction(tr("3D map"), this);
     TreDAct->setStatusTip(tr("Shows sample surface"));
 
-    //TreDAct->setEnabled("False");
+
 
     connect(TreDAct, SIGNAL(triggered()), this, SLOT(TreD()));
 
-/// In menu PyMca
-
-    //PyMcaExpAct = new QAction(tr("Export spectrum for PyMca"), this);
-    //PyMcaExpAct->setStatusTip(tr("Exports the spectrum"));
-    //connect(PyMcaExpAct, SIGNAL(triggered()), this, SLOT(exportpymca()));
-
-    //RunPyMcaAct = new QAction(tr("Run PyMca"), this);
-    //RunPyMcaAct->setStatusTip(tr("Run PyMca"));
-    //connect(RunPyMcaAct, SIGNAL(triggered()), this, SLOT(RunPyMca()));
-
-    //InstallPyMcaAct = new QAction(tr("Install PyMca"), this);
-    //InstallPyMcaAct->setStatusTip(tr("Install PyMca"));
-    //connect(InstallPyMcaAct, SIGNAL(triggered()), this, SLOT(InstallPyMca()));
-
-/// In menu TOOLS
+    //In Menu tools
     Open_motor_test = new QAction(tr("PI: motors test"), this);
     Open_motor_test->setStatusTip(tr("Tool for testing Pi motors"));
     connect(Open_motor_test, SIGNAL(triggered()), this, SLOT(PI_motor_test()));
@@ -195,34 +181,7 @@ void MainWindow::createActions()
 
 
 
-/*
-/    ViewOnLineAct->setCheckable(true);
-
-
-/*     MapHideAct->setCheckable(true);
-     MapShowAct_SHM->setCheckable(true);
-     MapShowAct_SHM->setChecked(false);
-     MapHideAct->setChecked(true);
-     ViewOnLineAct->setChecked(false);
-*/
-
-
-//    QObject::connect(ui->RunDaq, SIGNAL(triggered()),this, SLOT(CallScan()));
-
-//    Digitiser = new QAction(tr("Open settings"), this);
-//    connect(Digitiser, SIGNAL(triggered()),this, SLOT(Digitiser2()));
-
-//    PixelCorrectionAct->setCheckable(true);
-
-//}
-
-
-
-
-void MainWindow::CREATE_MENU()
-{
-
-//    QMenuBar *fileMenu= new QMenuBar; 
+void MainWindow::builder_Menu() {
 
     fileMenu = menuBar()->addMenu(tr("File"));
     fileMenu->addAction(openAct1);
@@ -262,11 +221,6 @@ void MainWindow::CREATE_MENU()
     TreDMenu->addAction(DueDAct);
     TreDMenu->addAction(TreDAct);
 
-    //PyMcaMenu = menuBar()->addMenu(tr("PyMca"));
-    //PyMcaMenu->addAction(PyMcaExpAct);
-    //PyMcaMenu->addAction(RunPyMcaAct);
-    //PyMcaMenu->addAction(InstallPyMcaAct);
-
     TOOLMenu = menuBar()->addMenu(tr("Tools"));
     TOOLMenu->addAction(Open_motor_test);
     TOOLMenu->addAction(Open_PI_motor_parameter_table);
@@ -279,11 +233,6 @@ void MainWindow::CREATE_MENU()
     SoftWare->addAction(actionOpen_Info1_2);
     Kernel = HowToMenu->addMenu( "Kernel " );
     Kernel->addAction(actionOpen_Info2_1);
-
-
-//    HowToMenu->addAction(actionOpen_Info);
-//    HowToMenu->addAction(actionOpen_Info2);
-
 
 
 }

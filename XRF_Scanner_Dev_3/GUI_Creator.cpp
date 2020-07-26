@@ -7,6 +7,12 @@ extern int Resolution_mode;
 void MainWindow::GUI_CREATOR()
 {
         // Putting this here for future use.
+
+        QFont font;
+        font.setFamily(QString::fromUtf8("Cantarell"));
+        font.setPointSize(12);
+        font.setBold(true);
+
         QFont font7;
         font7.setFamily(QString::fromUtf8("Helvetica"));
         font7.setPointSize(18);
@@ -128,16 +134,16 @@ void MainWindow::GUI_CREATOR()
         SET_SCAN_Y_MIN_doubleSpinBox = new QDoubleSpinBox(tab2_4);
         SET_SCAN_Y_MAX_doubleSpinBox = new QDoubleSpinBox(tab2_4);
         SCANXY_pushButton = new QPushButton(tab2_4);
-        SCANYX_pushButton = new QPushButton(tab2_4);
+        //SCANYX_pushButton = new QPushButton(tab2_4);
         SCAN_ABORT_pushButton = new QPushButton(tab2_4);
         XY_SPEED_label = new QLabel(centralWidget);
         XY_SPEED_doubleSpinBox = new QDoubleSpinBox(centralWidget);
         XY_SPEED_line = new QFrame(centralWidget);
-        X_STEP_label = new QLabel(centralWidget);
-        X_STEP_doubleSpinBox = new QDoubleSpinBox(centralWidget);
-        XY_STEP_line = new QFrame(centralWidget);
-        Y_STEP_label = new QLabel(centralWidget);
-        Y_STEP_doubleSpinBox = new QDoubleSpinBox(centralWidget);
+        X_STEP_label = new QLabel(tab2_4);
+        X_STEP_doubleSpinBox = new QDoubleSpinBox(tab2_4);
+        XY_STEP_line = new QLabel(tab2_4);
+        Y_STEP_label = new QLabel(tab2_4);
+        Y_STEP_doubleSpinBox = new QDoubleSpinBox(tab2_4);
         X_POSITION_label = new QLabel(centralWidget);
         X_POSITION_lineEdit = new QLineEdit(centralWidget);                 ///// linedit 
         Y_POSITION_label = new QLabel(centralWidget);
@@ -761,9 +767,9 @@ void MainWindow::GUI_CREATOR()
         SCANXY_pushButton->setGeometry(QRect(30, 260, 240, 54));
         SCANXY_pushButton->setText(QApplication::translate("MyWidget", "SCAN XY", 0));
 
-        SCANYX_pushButton->setObjectName(QString::fromUtf8("SCANYX_pushButton"));
-        SCANYX_pushButton->setGeometry(QRect(330, 260, 240, 54));
-        SCANYX_pushButton->setText(QApplication::translate("MyWidget", "SCAN YX", 0));
+        //SCANYX_pushButton->setObjectName(QString::fromUtf8("SCANYX_pushButton"));
+        //SCANYX_pushButton->setGeometry(QRect(330, 260, 240, 54));
+        //SCANYX_pushButton->setText(QApplication::translate("MyWidget", "SCAN YX", 0));
 
         SCAN_ABORT_pushButton->setObjectName(QString::fromUtf8("SCAN_ABORT_pushButton"));
         SCAN_ABORT_pushButton->setGeometry(QRect(160, 340, 280, 54));
@@ -871,9 +877,6 @@ void MainWindow::GUI_CREATOR()
 
         CAMERA_label->setObjectName(QString::fromUtf8("label_9"));
         CAMERA_label->setGeometry(QRect(15, 705, 90, 42));
-        QFont font;
-        font.setFamily(QString::fromUtf8("Cantarell"));
-        font.setPointSize(12);
         CAMERA_label->setFont(font);
         CAMERA_label->setText(QApplication::translate("MainWindow", "Camera", 0));
 
@@ -1109,7 +1112,6 @@ void MainWindow::GUI_CREATOR()
 ///////////////////////////////// WIDGET 1 TAB2
 
         tab_2->setObjectName(QString::fromUtf8("tab_2"));
-        tab_2->setEnabled(false);
 
         MOVE_Z_MOTOR_label_1->setObjectName(QString::fromUtf8("MOVE_Z_MOTOR_label_1"));
         MOVE_Z_MOTOR_label_1->setGeometry(QRect(30, 15, 255, 30));
@@ -1206,80 +1208,7 @@ void MainWindow::GUI_CREATOR()
         tabWidget->setTabText(tabWidget->indexOf(tab2_4), QApplication::translate("MyWidget", "Scan", 0));
         tabWidget->setCurrentIndex(0);
 
-//////////////////////// zone below WIDGET 1 //// X da 640 
 
-        XY_SPEED_label->setObjectName(QString::fromUtf8("XY_SPEED_label"));
-        XY_SPEED_label->setGeometry(QRect(865, 405, 180, 41));
-        XY_SPEED_label->setFont(font);
-        XY_SPEED_label->setText(QApplication::translate("MyWidget", "XY_Speed (mm/s)", 0));
-
-        XY_SPEED_doubleSpinBox->setObjectName(QString::fromUtf8("XY_SPEED_doubleSpinBox"));
-        XY_SPEED_doubleSpinBox->setGeometry(QRect(1053, 405, 225, 41));
-        XY_SPEED_doubleSpinBox->setDecimals(3);
-        XY_SPEED_doubleSpinBox->setMaximum(50);
-        XY_SPEED_doubleSpinBox->setSingleStep(0.001);
-        XY_SPEED_doubleSpinBox->setValue(1);
-
-        XY_SPEED_line->setObjectName(QString::fromUtf8("XY_SPEED_line"));
-        XY_SPEED_line->setGeometry(QRect(850, 446, 450, 15));
-        XY_SPEED_line->setFrameShape(QFrame::HLine);
-        XY_SPEED_line->setFrameShadow(QFrame::Sunken);
-
-        X_STEP_label->setObjectName(QString::fromUtf8("X_STEP_label"));
-        X_STEP_label->setGeometry(QRect(865, 465, 180, 41));
-        X_STEP_label->setFont(font);
-        X_STEP_label->setText(QApplication::translate("MyWidget", "Step X (mm)", 0));
-
-        X_STEP_doubleSpinBox->setObjectName(QString::fromUtf8("X_STEP_doubleSpinBox"));
-        X_STEP_doubleSpinBox->setGeometry(QRect(1053, 465, 225, 41));
-        X_STEP_doubleSpinBox->setDecimals(3);
-        X_STEP_doubleSpinBox->setMaximum(50);
-        X_STEP_doubleSpinBox->setSingleStep(0.001);
-        X_STEP_doubleSpinBox->setValue(1);
-
-        XY_STEP_line->setObjectName(QString::fromUtf8("XY_STEP_line"));
-        XY_STEP_line->setGeometry(QRect(850, 507, 450, 15));
-        XY_STEP_line->setFrameShape(QFrame::HLine);
-        XY_STEP_line->setFrameShadow(QFrame::Sunken);
-
-        Y_STEP_label->setObjectName(QString::fromUtf8("Y_STEP_label"));
-        Y_STEP_label->setGeometry(QRect(865, 525, 180, 41));
-        Y_STEP_label->setFont(font);
-        Y_STEP_label->setText(QApplication::translate("MyWidget", "Step Y (mm)", 0));
-
-        Y_STEP_doubleSpinBox->setObjectName(QString::fromUtf8("Y_STEP_doubleSpinBox"));
-        Y_STEP_doubleSpinBox->setGeometry(QRect(1053, 525, 225, 41));
-        Y_STEP_doubleSpinBox->setDecimals(3);
-        Y_STEP_doubleSpinBox->setMaximum(50);
-        Y_STEP_doubleSpinBox->setSingleStep(0.001);
-        Y_STEP_doubleSpinBox->setValue(1);
-
-        X_POSITION_label->setObjectName(QString::fromUtf8("X_POSITION_label"));
-        X_POSITION_label->setGeometry(QRect(865, 585, 180, 41));
-        X_POSITION_label->setFont(font);
-        X_POSITION_label->setText(QApplication::translate("MyWidget", "X - position:", 0));
-
-        X_POSITION_lineEdit->setObjectName(QString::fromUtf8("X_POSITION_lineEdit"));
-        X_POSITION_lineEdit->setEnabled(false);
-        X_POSITION_lineEdit->setGeometry(QRect(1053, 585, 225, 41));
-
-        Y_POSITION_label->setObjectName(QString::fromUtf8("Y_POSITION_label"));
-        Y_POSITION_label->setGeometry(QRect(865, 630, 180, 41));
-        Y_POSITION_label->setFont(font);
-        Y_POSITION_label->setText(QApplication::translate("MyWidget", "Y - position:", 0));
-
-        Y_POSITION_lineEdit->setObjectName(QString::fromUtf8("Y_POSITION_lineEdit"));
-        Y_POSITION_lineEdit->setEnabled(false);
-        Y_POSITION_lineEdit->setGeometry(QRect(1053, 630, 225, 41));
-
-        label_17_below_tab->setObjectName(QString::fromUtf8("label_17"));
-        label_17_below_tab->setGeometry(QRect(865, 675, 180, 41));
-        label_17_below_tab->setFont(font);
-        label_17_below_tab->setText(QApplication::translate("MyWidget", "Z - position:", 0));
-
-        lineEdit_below_tab->setObjectName(QString::fromUtf8("lineEdit"));
-        lineEdit_below_tab->setEnabled(false);
-        lineEdit_below_tab->setGeometry(QRect(1053, 675, 225, 41));
 
 ///////////////////////////////// WIDGET 2 TAB3 (MOVE XY)
 
@@ -1333,66 +1262,133 @@ void MainWindow::GUI_CREATOR()
         MOVE_TO_Y_doubleSpinBox->setSingleStep(0.001);
         MOVE_TO_Y_doubleSpinBox->setValue(100);//cambiato da anna e chiara, LO ABBIAMO RIMESSO NEL PUNTO DI INIZIALIZIONE DEI MOTORI(100), prima era 25; 14/07/2016
 
-
-///////////////////////////////// WIDGET 2 TAB4 (SCAN)
+        /* ################################################################# */
+        /* ####################   Tab 5 in tab Widget   #################### */
+        /* ################################################################# */
 
         tab2_4->setObjectName(QString::fromUtf8("tab2_4"));
         tab2_4->setEnabled(false);
 
         SCAN_X_label->setObjectName(QString::fromUtf8("SCAN_X_label"));
-        SCAN_X_label->setGeometry(QRect(60, 8, 450, 41));
-//        SCAN_X_label->setFont(font);
-        SCAN_X_label->setText(QApplication::translate("MyWidget", "X min (mm)                  X max. (mm)", 0));
+        SCAN_X_label->setGeometry(QRect(15, 5, 450, 40));
+        SCAN_X_label->setText(QApplication::translate("MyWidget", "X min\t\t\tY max", 0));
 
         SET_SCAN_X_MIN_doubleSpinBox->setObjectName(QString::fromUtf8("doubleSpinBox_SCAN_X_MIN"));
-        SET_SCAN_X_MIN_doubleSpinBox->setGeometry(QRect(15, 45, 195, 41));
-        SET_SCAN_X_MIN_doubleSpinBox->setDecimals(3);
-        SET_SCAN_X_MIN_doubleSpinBox->setMaximum(200); //cambiato da anna e chiara, perchè non corrispondeva alle dimensioni dei motori (200mm), prima era 100; 14/07/2016
-        SET_SCAN_X_MIN_doubleSpinBox->setSingleStep(0.001);
-        SET_SCAN_X_MIN_doubleSpinBox->setValue(100);//cambiato da anna e chiara, LO ABBIAMO RIMESSO NEL PUNTO DI INIZIALIZIONE DEI MOTORI(100), prima era 50; 14/07/2016
+        SET_SCAN_X_MIN_doubleSpinBox->setGeometry(QRect(15, 45, 150, 40));
+        SET_SCAN_X_MIN_doubleSpinBox->setDecimals(2);
+        SET_SCAN_X_MIN_doubleSpinBox->setMaximum(200);
+        SET_SCAN_X_MIN_doubleSpinBox->setSingleStep(0.5);
+        SET_SCAN_X_MIN_doubleSpinBox->setValue(100);
 
         SET_SCAN_X_MAX_doubleSpinBox->setObjectName(QString::fromUtf8("doubleSpinBox_SCAN_X_MAX"));
-        SET_SCAN_X_MAX_doubleSpinBox->setGeometry(QRect(240, 45, 195, 41));
-        SET_SCAN_X_MAX_doubleSpinBox->setDecimals(3);
-        SET_SCAN_X_MAX_doubleSpinBox->setMaximum(200); //cambiato da anna e chiara, perchè non corrispondeva alle dimensioni dei motori (200mm), prima era 100; 14/07/2016
-        SET_SCAN_X_MAX_doubleSpinBox->setSingleStep(0.001);
-        SET_SCAN_X_MAX_doubleSpinBox->setValue(100);//cambiato da anna e chiara, LO ABBIAMO RIMESSO NEL PUNTO DI INIZIALIZIONE DEI MOTORI(100), prima era 50; 14/07/2016
-
-///////// Y
+        SET_SCAN_X_MAX_doubleSpinBox->setGeometry(QRect(180, 45, 150, 40));
+        SET_SCAN_X_MAX_doubleSpinBox->setDecimals(2);
+        SET_SCAN_X_MAX_doubleSpinBox->setMaximum(200);
+        SET_SCAN_X_MAX_doubleSpinBox->setSingleStep(0.5);
+        SET_SCAN_X_MAX_doubleSpinBox->setValue(100);
 
         SCAN_Y_label->setObjectName(QString::fromUtf8("label_22"));
-        SCAN_Y_label->setGeometry(QRect(60, 105, 450, 41));
-        SCAN_Y_label->setText(QApplication::translate("MyWidget", "Y min (mm)                  Y max. (mm)", 0));
+        SCAN_Y_label->setGeometry(QRect(15, 105, 450, 40));
+        SCAN_Y_label->setText(QApplication::translate("MyWidget", "Y min\t\t\tY max", 0));
 
         SET_SCAN_Y_MIN_doubleSpinBox->setObjectName(QString::fromUtf8("doubleSpinBox_SCAN_Y_MIN"));
-        SET_SCAN_Y_MIN_doubleSpinBox->setGeometry(QRect(15, 143, 195, 41));
-        SET_SCAN_Y_MIN_doubleSpinBox->setDecimals(3);
-        SET_SCAN_Y_MIN_doubleSpinBox->setMaximum(200);//cambiato da anna e chiara, perchè non corrispondeva alle dimensioni dei motori (200mm), prima era 100; 14/07/2016
-        SET_SCAN_Y_MIN_doubleSpinBox->setSingleStep(0.001);
-        SET_SCAN_Y_MIN_doubleSpinBox->setValue(100);//cambiato da anna e chiara, LO ABBIAMO RIMESSO NEL PUNTO DI INIZIALIZIONE DEI MOTORI(100), prima era 25; 14/07/2016
+        SET_SCAN_Y_MIN_doubleSpinBox->setGeometry(QRect(15, 145, 150, 40));
+        SET_SCAN_Y_MIN_doubleSpinBox->setDecimals(2);
+        SET_SCAN_Y_MIN_doubleSpinBox->setMaximum(200);
+        SET_SCAN_Y_MIN_doubleSpinBox->setSingleStep(0.5);
+        SET_SCAN_Y_MIN_doubleSpinBox->setValue(100);
 
         SET_SCAN_Y_MAX_doubleSpinBox->setObjectName(QString::fromUtf8("doubleSpinBox_SCAN_Y_MAX"));
-        SET_SCAN_Y_MAX_doubleSpinBox->setGeometry(QRect(240, 143, 195, 41));
-        SET_SCAN_Y_MAX_doubleSpinBox->setDecimals(3);
-        SET_SCAN_Y_MAX_doubleSpinBox->setMaximum(200);//cambiato da anna e chiara, perchè non corrispondeva alle dimensioni dei motori (200mm), prima era 100; 14/07/2016
-        SET_SCAN_Y_MAX_doubleSpinBox->setSingleStep(0.001);
-        SET_SCAN_Y_MAX_doubleSpinBox->setValue(100);//cambiato da anna e chiara, LO ABBIAMO RIMESSO NEL PUNTO DI INIZIALIZIONE DEI MOTORI(100), prima era 25; 14/07/2016
+        SET_SCAN_Y_MAX_doubleSpinBox->setGeometry(QRect(180, 145, 150, 40));
+        SET_SCAN_Y_MAX_doubleSpinBox->setDecimals(2);
+        SET_SCAN_Y_MAX_doubleSpinBox->setMaximum(200);
+        SET_SCAN_Y_MAX_doubleSpinBox->setSingleStep(0.5);
+        SET_SCAN_Y_MAX_doubleSpinBox->setValue(100);
+
+        X_STEP_label->setObjectName(QString::fromUtf8("X_STEP_label"));
+        X_STEP_label->setGeometry(QRect(15, 205, 150, 40));
+        X_STEP_label->setText(QApplication::translate("MyWidget", "Step X", 0));
+
+        X_STEP_doubleSpinBox->setObjectName(QString::fromUtf8("X_STEP_doubleSpinBox"));
+        X_STEP_doubleSpinBox->setGeometry(QRect(15, 245, 150, 40));
+        X_STEP_doubleSpinBox->setDecimals(2);
+        X_STEP_doubleSpinBox->setMaximum(50);
+        X_STEP_doubleSpinBox->setSingleStep(0.5);
+        X_STEP_doubleSpinBox->setValue(1);
+
+        Y_STEP_label->setObjectName(QString::fromUtf8("Y_STEP_label"));
+        Y_STEP_label->setGeometry(QRect(180, 205, 150, 40));
+        Y_STEP_label->setText(QApplication::translate("MyWidget", "Step Y", 0));
+
+        Y_STEP_doubleSpinBox->setObjectName(QString::fromUtf8("Y_STEP_doubleSpinBox"));
+        Y_STEP_doubleSpinBox->setGeometry(QRect(180, 245, 150, 40));
+        Y_STEP_doubleSpinBox->setDecimals(2);
+        Y_STEP_doubleSpinBox->setMaximum(50);
+        Y_STEP_doubleSpinBox->setSingleStep(0.5);
+        Y_STEP_doubleSpinBox->setValue(1);
 
         SCANXY_pushButton->setObjectName(QString::fromUtf8("SCANXY_pushButton"));
-        SCANXY_pushButton->setGeometry(QRect(23, 195, 180, 41));
-        SCANXY_pushButton->setText(QApplication::translate("MyWidget", "SCAN XY", 0));
-
-        SCANYX_pushButton->setObjectName(QString::fromUtf8("SCANYX_pushButton"));
-        SCANYX_pushButton->setGeometry(QRect(248, 195, 180, 41));
-        SCANYX_pushButton->setText(QApplication::translate("MyWidget", "SCAN YX", 0));
+        SCANXY_pushButton->setGeometry(QRect(345, 45, 100, 60));
+        SCANXY_pushButton->setText(QApplication::translate("MyWidget", "Start\nScan", 0));
 
         SCAN_ABORT_pushButton->setObjectName(QString::fromUtf8("SCAN_ABORT_pushButton"));
-        SCAN_ABORT_pushButton->setGeometry(QRect(120, 255, 210, 41));
-        SCAN_ABORT_pushButton->setText(QApplication::translate("MyWidget", "ABORT SCAN", 0));
+        SCAN_ABORT_pushButton->setGeometry(QRect(345, 125, 100, 60));
+        SCAN_ABORT_pushButton->setStyleSheet("QPushButton {background-color: #7C0A02; font-weight: bold; color: white;}");
+        SCAN_ABORT_pushButton->setText("ABORT");
 
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        XY_STEP_line->setObjectName(QString::fromUtf8("XY_STEP_line"));
+        XY_STEP_line->setGeometry(QRect(15, 300, 450, 30));
+        XY_STEP_line->setText("All units are in milimeters (mm)");
+
+        /* ################################################################# */
+        /* ####################  Area under tab Widget  #################### */
+        /* ################################################################# */
+
+        XY_SPEED_label->setObjectName(QString::fromUtf8("XY_SPEED_label"));
+        XY_SPEED_label->setGeometry(QRect(865, 405, 180, 41));
+        XY_SPEED_label->setFont(font);
+        XY_SPEED_label->setText(QApplication::translate("MyWidget", "XY_Speed (mm/s)", 0));
+
+        XY_SPEED_doubleSpinBox->setObjectName(QString::fromUtf8("XY_SPEED_doubleSpinBox"));
+        XY_SPEED_doubleSpinBox->setGeometry(QRect(1053, 405, 225, 41));
+        XY_SPEED_doubleSpinBox->setDecimals(3);
+        XY_SPEED_doubleSpinBox->setMaximum(50);
+        XY_SPEED_doubleSpinBox->setSingleStep(0.001);
+        XY_SPEED_doubleSpinBox->setValue(1);
+
+        XY_SPEED_line->setObjectName(QString::fromUtf8("XY_SPEED_line"));
+        XY_SPEED_line->setGeometry(QRect(850, 446, 450, 15));
+        XY_SPEED_line->setFrameShape(QFrame::HLine);
+        XY_SPEED_line->setFrameShadow(QFrame::Sunken);
+
+        X_POSITION_label->setObjectName(QString::fromUtf8("X_POSITION_label"));
+        X_POSITION_label->setGeometry(QRect(865, 585, 180, 41));
+        X_POSITION_label->setFont(font);
+        X_POSITION_label->setText(QApplication::translate("MyWidget", "X - position:", 0));
+
+        X_POSITION_lineEdit->setObjectName(QString::fromUtf8("X_POSITION_lineEdit"));
+        X_POSITION_lineEdit->setEnabled(false);
+        X_POSITION_lineEdit->setGeometry(QRect(1053, 585, 225, 41));
+
+        Y_POSITION_label->setObjectName(QString::fromUtf8("Y_POSITION_label"));
+        Y_POSITION_label->setGeometry(QRect(865, 630, 180, 41));
+        Y_POSITION_label->setFont(font);
+        Y_POSITION_label->setText(QApplication::translate("MyWidget", "Y - position:", 0));
+
+        Y_POSITION_lineEdit->setObjectName(QString::fromUtf8("Y_POSITION_lineEdit"));
+        Y_POSITION_lineEdit->setEnabled(false);
+        Y_POSITION_lineEdit->setGeometry(QRect(1053, 630, 225, 41));
+
+        label_17_below_tab->setObjectName(QString::fromUtf8("label_17"));
+        label_17_below_tab->setGeometry(QRect(865, 675, 180, 41));
+        label_17_below_tab->setFont(font);
+        label_17_below_tab->setText(QApplication::translate("MyWidget", "Z - position:", 0));
+
+        lineEdit_below_tab->setObjectName(QString::fromUtf8("lineEdit"));
+        lineEdit_below_tab->setEnabled(false);
+        lineEdit_below_tab->setGeometry(QRect(1053, 675, 225, 41));
 
         centralWidget->setMinimumSize(QSize(1320, 780));
         centralWidget->setMaximumSize(QSize(1320, 780));
@@ -1978,9 +1974,9 @@ void MainWindow::GUI_CREATOR()
         SCANXY_pushButton->setGeometry(QRect(15, 130, 120, 27));
         SCANXY_pushButton->setText(QApplication::translate("MyWidget", "SCAN XY", 0));
 
-        SCANYX_pushButton->setObjectName(QString::fromUtf8("SCANYX_pushButton"));
-        SCANYX_pushButton->setGeometry(QRect(165, 130, 120, 27));
-        SCANYX_pushButton->setText(QApplication::translate("MyWidget", "SCAN YX", 0));
+        //SCANYX_pushButton->setObjectName(QString::fromUtf8("SCANYX_pushButton"));
+        //SCANYX_pushButton->setGeometry(QRect(165, 130, 120, 27));
+        //SCANYX_pushButton->setText(QApplication::translate("MyWidget", "SCAN YX", 0));
 
         SCAN_ABORT_pushButton->setObjectName(QString::fromUtf8("SCAN_ABORT_pushButton"));
         SCAN_ABORT_pushButton->setGeometry(QRect(80, 170, 140, 27));

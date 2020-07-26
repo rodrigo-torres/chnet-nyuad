@@ -1,11 +1,15 @@
 #include <qmainwindow.h>
-#include<QPushButton>
-#include<QDialog>
+#include <QPushButton>
+#include <QDialog>
+#include <QLineEdit>
 #include <qtoolbutton.h>
 #include <qwt_counter.h>
 #include <plot.h>
 #include <QGridLayout>
+#include <QtGui>
+#include <QToolButton>
 #include <QCheckBox>
+#include <QSpinBox>
 #include <QRadioButton>
 #include <QGroupBox>
 
@@ -34,59 +38,35 @@ public:
     QPushButton *buttonCANC;
     QwtCounter *cntDamp;
     QwtCounter *cntDamp2;
+    QLineEdit *fileloaded;
 
     QToolButton *Log;
+    QToolButton *Energy;
 
-    QCheckBox *Energy_Channel;
     QCheckBox *AutoScale;
 
-
-//    QGridLayout *f_gridLayout;
     QCheckBox *OnTop;
-
-
-    QRadioButton *k4;
-    QRadioButton *k8;
-    QRadioButton *k16;
-
-//    QVBoxLayout *layout;
-//    QGroupBox *group;
-
 
 
 
 
 public Q_SLOTS:
-   void enableRunMode(bool run);
-     void enableAutoScale(bool);
-     void enableOnTop(bool); 
-     void showInfo();
-     void mousePressEvent(QMouseEvent *event);
-     void PreOpen();
-     void on_k4(bool);
-     void on_k8(bool);
-     void on_k16(bool);
-     void logSpace();
-    
+    void enableRunMode(bool run);
+    void update_fileStatus(QString filename);
+    void enableAutoScale(bool);
+    void enableOnTop(bool);
+    void showInfo();
+    void mousePressEvent(QMouseEvent *event);
+    void PreOpen();
+
+    void toggleLogScale();
+    void toggleEnergy(bool active);
+
 
 private Q_SLOTS:
-   // void moved( const QPoint & );
-   // void selected( const QPolygon & );
     void AutoCalibrate();
-    bool okClicked();
-    bool cancClicked();
-    
-
-/*
-#ifndef QT_NO_PRINTER
-    void print();
-#endif
-*/
-    //void exportDocument();
     void exportTxt();
     void enableZoomMode( );
-
-//    void enableZoom(bool);
 
 private:
 

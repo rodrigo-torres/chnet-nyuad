@@ -31,7 +31,7 @@ using std::endl;
 //using namespace std;
 
 #include "mainwindow.h"
-int Resolution_mode; // 0 if          WIDTH >  2400px
+int Resolution_mode = 1; // 0 if          WIDTH >  2400px
                        // 1 if 1750px < WIDTH <= 2400 
                        // 2 if          WIDTH <= 1750
 

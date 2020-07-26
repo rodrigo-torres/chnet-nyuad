@@ -17,82 +17,70 @@ char process_daq[30];
 //////////////////////////////////////////////////////////////////// DAQ START and STOP
 
 
-void MainWindow::StartVme()
-{
-if(*(shared_memory_cmd+70)==0) //INSERTED
-     {
-      if(DAQ_TYPE==1)
-       system("./ADCXRF_USB &");
-      if(DAQ_TYPE==0)
-       system("./ADCXRF_Optical_Link &");
-       *(shared_memory2+9)=1;//tells ADCXRF that it should run on point acquisition mode
-       *(shared_memory_cmd+70)=1; //INSERTED
-	printf("measuring_time:%d\n", measuring_time);
-       QTimer::singleShot(measuring_time*1000, this, SLOT(Stop_Vme()));     ///////////misura con una durata definita
-      }
- else qDebug()<<"Acquisizione già partita!!\n";
+void MainWindow::StartVme() {
+
+    if(*(shared_memory_cmd+70)==0) {
+
+        if(DAQ_TYPE==1) {
+            system("./ADCXRF_USB &");
+        }
+
+        if(DAQ_TYPE==0) {
+            system("./ADCXRF_Optical_Link &");
+        }
+
+        *(shared_memory2+9)=1;      // Tells the external program ADCXRF it should run on point acquisition mode
+        *(shared_memory_cmd+70)=1;
+
+        printf("... Measuring time:\t%d seconds\n", measuring_time);
+
+        QTimer::singleShot(measuring_time*1000, this, SLOT(Stop_Vme()));
+    }
+    else qDebug()<<"[!] Acquisition already running";
 }
 
-void MainWindow::Stop_Vme()
-{
-if(*(shared_memory_cmd+70)==1)
-     {
-       *(shared_memory_cmd+70)=0;//INSERTED
-       //int pidVme=*(shared_memory_cmd+80);	
-	*(shared_memory2+9)=0;
-       //sprintf(process_daq, "kill -s TERM %i &", pidVme);
-       //system(process_daq);
-     
+void MainWindow::Stop_Vme() {
 
-       QString percorso = QFileDialog::getSaveFileName(this,tr("Save as"), QDir::currentPath());
-       int eventi=*(shared_memory2+5);
-       qDebug()<<"Inizio creazione di Spettro.txt...\n";
+    if(*(shared_memory_cmd+70)==1) {
 
-      // qDebug()<<"ev="<<eventi<<"\n";
+        *(shared_memory_cmd+70)=0;
+        *(shared_memory2+9)=0;
 
-       QFile file2(percorso);
-       file2.remove();
-       file2.open(QIODevice::ReadWrite);
-       QTextStream out2(&file2);
+        // Somewhere here should be a clause telling  the QTimer in the function above to stop.
+        qDebug()<<"... Saving spectrum into a .txt file";
 
-     /*  for(int u=0;u<eventi;u++)
-          {
-	    if (*(shared_memory2+11+u)<16384)
-	      {
-               int h=*(shared_memory2+11+u);
-               *(shared_memory+100+h)= *(shared_memory+100+h)+1;
-               //qDebug()<<"evento numero="<<u<<"energia="<<h<<"\n";
-               }
-	   }*/
 
-		
-              for(int i=1;i<=16384;i++)
-              {      
-               out2<<*(shared_memory+100+i)<<"	"<<*(shared_memory+20000+i)<<'\n';
-              //if (*(shared_memory+100+i)!=0) {qDebug()<<"canale"<<i<<"conteggio"<<*(shared_memory+100+i)<<"\n";}
-              *(shared_memory+100+i)=0;
-		 *(shared_memory+20000+i)=0;
-              }
+        QString file_directory = QFileDialog::getSaveFileName(this,tr("Save as ..."), QDir::currentPath());
 
-       file2.close();
-       qDebug()<<"Spettro.txt pronto!\n"; 
-	}
+        QFile file2(file_directory);
+        file2.remove();
+        file2.open(QIODevice::ReadWrite);
+        QTextStream out2(&file2);
 
- else qDebug()<<"Vme gia' spento!!\n";
+        for(int i=1;i<=16384;i++) {
+            out2<<*(shared_memory+100+i)<<"\t"<<*(shared_memory+20000+i)<<"\t"<<*(shared_memory+40000+i)<<"\t\n";
+            *(shared_memory+100+i)=0;
+            *(shared_memory+20000+i)=0;
+            *(shared_memory+40000+i)=0;
+        }
 
+        file2.close();
+        qDebug()<<"... Spectrum succesfully saved";
+    }
+
+    else qDebug()<<"[!] Point mode acquisition already off";
 }
 
 
 //////////////////////////////////////////////////////////////////// HISTOGRAM
-void MainWindow::ShowHistogram()
-{
-if(*(shared_memory_cmd+71)==0)
- {
-  system("./XRF & ");
-  *(shared_memory_cmd+71)=1; // XRF
-}
-else
-qDebug()<<"Finestra istogramma gia' aperta!\n";
+void MainWindow::ShowHistogram() {
+    if ( *(shared_memory_cmd+71) == 0 ) {
+        system("./XRF & ");
+        *(shared_memory_cmd+71)=1; // XRF
+    }
+    else {
+        qDebug()<<"[!] XRF histogram window already opened";
+    }
 }
 //////////////////////////////////////////////////////////////////// RATEMETER
 void MainWindow::RateMeter()

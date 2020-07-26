@@ -4,11 +4,10 @@
 #include <qlabel.h>
 #include <qlayout.h>
 #include <qstatusbar.h>
-//#include <QtGui/QPrinter>
+
 #include <qpicture.h>
 #include <qpainter.h>
-//#include <QtGui/qprintdialog.h>
-//#include <QtGui/QPrintDialog>
+
 #include <qwt_counter.h>
 #include <qwt_picker_machine.h>
 #include <qwt_plot_zoomer.h>
@@ -36,9 +35,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-/// INSERIRE GLI EXTERN
-extern double min; extern double max;
-extern double mincal; extern double maxcal;
+extern double max;
+extern double channel_lowerbound; extern double channel_upperbound;
 extern int *shm, *shmCommand, shmid, shmidString; 
 extern key_t key; extern key_t keyString;
 extern int *shared_memory;
@@ -51,19 +49,19 @@ extern QString fileName;
 QString strSaveName; 
 QString extension;
 
+extern bool EnergyOn;
 extern bool aperto;
-extern double cal,offset;
+extern double cal_gradient,cal_offset;
 ///////////////////////////////////////
-bool calculate_cal=false;
-bool new_calibration_ready=false;
+
+
 bool logchecked=false;
 bool autoscaleOn=false;
 bool provaRun=false;
 
-int lenght=16384; int resolution=0;
+int length=16385; int resolution=0;
 /////////////////////////////////////////
 extern bool digichannel0sel, digichannel1sel, digichannel0and1sel;
-
 
 class Zoomer: public QwtPlotZoomer
 {
@@ -71,57 +69,48 @@ public:
     Zoomer( int xAxis, int yAxis, QWidget *canvas ):
         QwtPlotZoomer( xAxis, yAxis, canvas )
     {
-        setTrackerMode( QwtPicker::AlwaysOff );//AlwaysOff );
+        setTrackerMode( QwtPicker::AlwaysOff );
         setRubberBand( QwtPicker::NoRubberBand );
 
     }
 };
 
 
-MainWindow::MainWindow( QWidget *parent ):
-    QMainWindow( parent )
-{
-    int pid=getpid();
-    *(shared_memory_cmd+81)=pid;
+MainWindow::MainWindow( QWidget *parent ): QMainWindow( parent ) {
+
+    //int pid=getpid();
+    *(shared_memory_cmd+81) = getpid();
 
 
     d_plot = new Plot( this );
 
     const int margin = 5;
-    d_plot->setContentsMargins( margin, margin, margin, margin );
 
+    d_plot->setContentsMargins( margin, margin, margin, margin );
     setContextMenuPolicy( Qt::NoContextMenu );
 
 
-    d_zoomer[0] = new Zoomer( QwtPlot::xBottom, QwtPlot::yLeft,
-        d_plot->canvas() );
+    d_zoomer[0] = new Zoomer( QwtPlot::xBottom, QwtPlot::yLeft, d_plot->canvas() );
     d_zoomer[0]->setRubberBand( QwtPicker::RectRubberBand );
-    d_zoomer[0]->setRubberBandPen( QColor( Qt::green ) );
+    d_zoomer[0]->setRubberBandPen( QColor( Qt::red ) );
     d_zoomer[0]->setTrackerMode( QwtPicker::ActiveOnly );
-    d_zoomer[0]->setTrackerPen( QColor( Qt::white ) );
+    d_zoomer[0]->setTrackerPen( QColor( Qt::black ) );
 
-    d_zoomer[1] = new Zoomer( QwtPlot::xTop, QwtPlot::yRight,
-         d_plot->canvas() );
-
+    d_zoomer[1] = new Zoomer( QwtPlot::xTop, QwtPlot::yRight, d_plot->canvas() );
 
 
-    //d_panner = new QwtPlotPanner( d_plot->canvas() );
-    //d_panner->setMouseButton( Qt::MidButton );
+    // Shows plot coordinates next to cursor.
 
-
-    d_picker = new QwtPlotPicker( QwtPlot::xBottom, QwtPlot::yLeft,
-        QwtPlotPicker::CrossRubberBand, QwtPicker::AlwaysOn,
-        d_plot->canvas() );
+    d_picker = new QwtPlotPicker( QwtPlot::xBottom, QwtPlot::yLeft, QwtPlotPicker::CrossRubberBand, QwtPicker::AlwaysOn, d_plot->canvas() );
     d_picker->setStateMachine( new QwtPickerDragPointMachine() );
-    d_picker->setRubberBandPen( QColor( Qt::green ) );
+    d_picker->setRubberBandPen( QColor( Qt::red ) );
     d_picker->setRubberBand( QwtPicker::CrossRubberBand );
-    d_picker->setTrackerPen( QColor( Qt::white ) );
-
-
-// void QwtPicker::widgetMouseDoubleClickEvent 
+    d_picker->setTrackerPen( QColor( Qt::black ) );
 
 
     setCentralWidget( d_plot );
+
+    /* ##########   Menu    ########## */
 
     QToolBar *toolBar = new QToolBar( this );
     toolBar->setAllowedAreas(Qt::TopToolBarArea | Qt::RightToolBarArea);
@@ -135,19 +124,11 @@ MainWindow::MainWindow( QWidget *parent ):
     toolBar->addWidget( btnOpen );
     connect( btnOpen, SIGNAL( clicked() ), this, SLOT( PreOpen(  ) ) );
 
-#ifndef QT_NO_PRINTER
-    QToolButton *btnPrint = new QToolButton( toolBar );
-    btnPrint->setText( "Print" );
-    btnPrint->setIcon( QPixmap( print_xpm ) );
-    btnPrint->setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
-    toolBar->addWidget( btnPrint );
-    connect( btnPrint, SIGNAL( clicked() ), SLOT( print() ) );
-#endif
 
 //////////////salvare txt//////////////////////
 
     QToolButton *btnExportTxt = new QToolButton( toolBar );
-    btnExportTxt->setText( "Export file" );
+    btnExportTxt->setText( "Save" );
     btnExportTxt->setIcon( QPixmap( print_xpm ) );
     btnExportTxt->setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
     toolBar->addWidget( btnExportTxt );
@@ -155,23 +136,29 @@ MainWindow::MainWindow( QWidget *parent ):
 
     toolBar->addSeparator();
 
-////////////////////////////////////////////////////////////////
-
+    /*          Live acquisition trigger button         */
 
     QToolButton *AutoRefresh = new QToolButton( toolBar );
-    AutoRefresh->setText( "Online" );
-    AutoRefresh->setIcon( QPixmap( run_xpm ) );
+    AutoRefresh->setText( "Live" );
+    AutoRefresh->setIcon( QPixmap( live_xpm ) );
     AutoRefresh->setCheckable( true );
     AutoRefresh->setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
     toolBar->addWidget( AutoRefresh );
     connect( AutoRefresh, SIGNAL( toggled( bool ) ), SLOT ( enableRunMode( bool ) ));
 
-    toolBar->addSeparator();
+    QToolButton *refresh = new QToolButton( toolBar );
+    refresh->setText( "Refresh" );
+    refresh->setIcon( QPixmap(refresh_xpm) );
+    refresh->setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
+    toolBar->addWidget( refresh );
+    connect( refresh, SIGNAL( clicked( ) ), d_plot, SLOT(showPixelHisto()) );
+
+
+    /*          Zoom out button         */
 
     QToolButton *btnZoom = new QToolButton( toolBar );
-    btnZoom->setText( "ZoomAll" );
+    btnZoom->setText( "Zoom Out" );
     btnZoom->setIcon( QPixmap( zoom_xpm ) );
-//    btnZoom->setCheckable( true );
     btnZoom->setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
     toolBar->addWidget( btnZoom );
     connect( btnZoom, SIGNAL( clicked( ) ), SLOT( enableZoomMode(  ) ) );
@@ -180,7 +167,6 @@ MainWindow::MainWindow( QWidget *parent ):
 
     QCheckBox *OnTop = new QCheckBox( toolBar );
     OnTop->setText( "Win On Top" );
-//    OnTop->setIcon( QPixmap( run_xpm ) );
     OnTop->setCheckable( true );
     toolBar->addWidget( OnTop );
     connect( OnTop, SIGNAL( toggled( bool ) ), SLOT ( enableOnTop( bool ) ));
@@ -192,22 +178,16 @@ MainWindow::MainWindow( QWidget *parent ):
     AutoScale->setCheckable( true );
     toolBar->addWidget( AutoScale );
     connect( AutoScale, SIGNAL( toggled( bool ) ), SLOT ( enableAutoScale( bool ) ));
+    AutoScale->setChecked(true);
 
     toolBar->addSeparator();
 
-    QRadioButton *k4 = new QRadioButton("4k");
-    QRadioButton *k8 = new QRadioButton("8k");
-    QRadioButton *k16 = new QRadioButton("16k");
-    k16->setChecked(true);
 
-
-    toolBar->addWidget(k4);
-    toolBar->addWidget(k8);
-    toolBar->addWidget(k16);
-
-    connect(k4, SIGNAL(toggled(bool)), this, SLOT(on_k4(bool)));
-    connect(k8, SIGNAL(toggled(bool)), this, SLOT(on_k8(bool)));
-    connect(k16, SIGNAL(toggled(bool)), this, SLOT(on_k16(bool)));
+    fileloaded = new QLineEdit( this );
+    fileloaded->setEnabled(false);
+    fileloaded->setText("\tNo file loaded into memory");
+    fileloaded->setFixedWidth(500);
+    toolBar->addWidget(fileloaded);
 
 
     QDockWidget *dock = new QDockWidget(tr("DAQ and Calibration"), this);
@@ -216,14 +196,13 @@ MainWindow::MainWindow( QWidget *parent ):
     QWidget *DockBox = new QWidget(this);
 
     QGridLayout *layout = new QGridLayout( DockBox );
-    layout->setSpacing( 0 );
+    layout->setSpacing( 1 );
 
-    QCheckBox *Energy_Channel = new QCheckBox( this );
-    Energy_Channel->setText( "Channel/Energy" );
-//    OnTop->setIcon( QPixmap( run_xpm ) );
-    Energy_Channel->setCheckable( true );
-    layout->addWidget( Energy_Channel, 0, 0 );
-    connect( Energy_Channel, SIGNAL( toggled( bool ) ), d_plot, SLOT ( Energy_Channel_Choice ( bool ) ));
+    Energy = new QToolButton( this );
+    Energy->setText( "Toggle \nEnergy " );
+    Energy->setCheckable( true );
+    layout->addWidget( Energy, 0, 0 );
+    connect( Energy, SIGNAL( clicked( bool ) ), SLOT( toggleEnergy(bool) ) );
 
     Log = new QToolButton( this );
     Log->setText( "LogScale" );
@@ -231,17 +210,19 @@ MainWindow::MainWindow( QWidget *parent ):
     Log->setCheckable( true );
     Log->setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
     layout->addWidget( Log, 0, 1 );
-    connect( Log, SIGNAL( clicked( bool ) ), SLOT ( logSpace() ));
+    connect( Log, SIGNAL( clicked( bool ) ), SLOT ( toggleLogScale() ));
 
 
     layout->addWidget( new QLabel( "  keV/Ch  " ), 0,2 );
+
+
 
     cntDamp = new QwtCounter( this );
     cntDamp->setRange( 0.0, 5.0 );
     cntDamp->setSingleStep( 0.01 );
     cntDamp->setValue( 1.0 );
     layout->addWidget( cntDamp, 0,3 );
-    connect( cntDamp, SIGNAL( valueChanged( double ) ), d_plot, SLOT ( Calibration( double ) ));    
+    connect( cntDamp, SIGNAL( valueChanged(double)), d_plot, SLOT ( setGradient( double ) ));
 
     layout->addWidget( new QLabel( "  Offset  " ), 0,4 );
 
@@ -250,21 +231,18 @@ MainWindow::MainWindow( QWidget *parent ):
     cntDamp2->setSingleStep( 0.01 );
     cntDamp2->setValue( 0.0 );
     layout->addWidget( cntDamp2, 0, 5 );
-    connect( cntDamp2, SIGNAL( valueChanged( double ) ), d_plot, SLOT ( Offset( double ) ));
+    connect( cntDamp2, SIGNAL( valueChanged( double ) ), d_plot, SLOT ( setOffset( double ) ));
+
+
 
     QToolButton *AutoCal = new QToolButton( this );
     AutoCal->setText( "Calculate\nCalibration" );
-    layout->addWidget( AutoCal, 0, 6 );
+    layout->addWidget( AutoCal, 0, 7);
     connect( AutoCal, SIGNAL( clicked( bool ) ), this, SLOT ( AutoCalibrate() ));
 
 
     dock->setWidget(DockBox);
     addDockWidget(Qt::BottomDockWidgetArea, dock);
-
-
-
-//    ( void )toolBar->addWidget( hBox );
-
 
     addToolBar( toolBar );
 #ifndef QT_NO_STATUSBAR
@@ -284,177 +262,144 @@ MainWindow::MainWindow( QWidget *parent ):
     timer_Info = new QTimer(this);
     connect(timer_Info, SIGNAL(timeout()), this, SLOT(showInfo()));    //controlla se c'è uno spettro aperto x mostrarne il nome
     timer_Info->start(3000);
+
+    connect(d_plot, SIGNAL(filenameChanged(QString)), this, SLOT(update_fileStatus(QString)));
+    connect(d_plot, SIGNAL(calibrationActive(bool)), this, SLOT(toggleEnergy(bool)));
+
+    d_plot->loadCalibration();
+
+}
+
+
+void MainWindow::enableRunMode( bool run ) {
+    if(run) {
+        provaRun=true;
+        fileloaded->setText("Live acquisition on");
+    }
+    else {
+        provaRun= false;
+        fileloaded->setText("Live acquisition off");
+    }
+}
+
+
+void MainWindow::enableAutoScale(bool OnAuto) {
+    if (OnAuto) {
+        autoscaleOn=true;
+    }
+    else {
+        autoscaleOn=false;
+    }
+}
+
+void MainWindow::toggleLogScale() {
+
+    if ( Log->isChecked() ){
+        logchecked=true;
+        qDebug()<<"... Logarithmic scale toggled";
+    }
+    else {
+        logchecked=false;
+        qDebug()<<"... Linear scale toggled";
+    }
+  if (!provaRun) {
+      d_plot->showPixelHisto();
+  }
+}
+
+void MainWindow::toggleEnergy(bool active) {
+
+    if ( active )  {
+        EnergyOn=true;
+        Energy->setText(" Toggle \n Channels ");
+        Energy->setChecked(true);
+        cntDamp->setValue(cal_gradient);
+        cntDamp2->setValue(cal_offset);
+    }
+    else {
+        EnergyOn=false;
+        Energy->setText(" Toggle \n Energy ");
+        Energy->setChecked(false);
+    }
+    if (!provaRun) {
+        d_plot->showPixelHisto();
+    }
 }
 
 
 
+void MainWindow::enableOnTop(bool OnTp) {
 
-//////////////////////////////////////////////////// ARRAY SIZE
-
-void MainWindow::on_k4(bool On4)
-{
-if (On4) {qDebug()<<"4k"; *(shared_memory+99)=1; lenght= 4096; resolution=2;}
-}
-
-void MainWindow::on_k8(bool On8)
-{
-if (On8) {qDebug()<<"8k"; *(shared_memory+99)=1; lenght=8192; resolution=1;}
-}
-void MainWindow::on_k16(bool On16)
-{
-if (On16) {qDebug()<<"16k"; *(shared_memory+99)=1; lenght=16384; resolution=0;}
-}
-
-/////////////////////////////////////////////////////////////////
-void MainWindow::enableRunMode( bool run )
-{if(run) {provaRun=true; qDebug()<<"On"<<'\n'; }
-else {provaRun= false; qDebug()<<"Off"<<'\n'; }
-}
-
-
-void MainWindow::enableAutoScale(bool OnAuto)
-{
-if (OnAuto) autoscaleOn=true;
-else autoscaleOn=false;
-}
-
- void MainWindow::logSpace()
-
-{
-  if (Log->isChecked()){logchecked=true; printf("logchecked=true\n");}
-
-  else {logchecked=false;printf("logchecked=false\n");}
-  if (!provaRun){d_plot->showPixelHisto();}
-}
-
-
-
-void MainWindow::enableOnTop(bool OnTp)
-{ 
-    
     Qt::WindowFlags flags = this->windowFlags();
-    if (OnTp)
-    {
+    if ( OnTp ) {
        this->setWindowFlags(flags | Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint);
        this->show();
     }
-    else
-    {
+
+    else {
         this->setWindowFlags(flags ^ (Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint));
         this->show();
     }
-
-     
-
-//if(OnTp) 
-//{qDebug()<<"onTop";
-//this->setWindowFlags(Qt::WindowStaysOnTopHint);
-//}
 }
 
- 
-/*
-#ifndef QT_NO_PRINTER
 
-void MainWindow::print()
-{
-    QPrinter printer( QPrinter::HighResolution );
 
-    QString docName = d_plot->title().text();
-    if ( !docName.isEmpty() )
-    {
-        docName.replace ( QRegExp ( QString::fromLatin1 ( "\n" ) ), tr ( " -- " ) );
-        printer.setDocName ( docName );
+void MainWindow::PreOpen() {
+    if (Log->isChecked()) {
+        Log->setChecked(false);
+        logchecked=false;
     }
-
-    printer.setCreator( "Plot Histo" );
-    printer.setOrientation( QPrinter::Landscape );
-
-    QPrintDialog dialog( &printer );
-    if ( dialog.exec() )
-    {
-        QwtPlotRenderer renderer;
-
-        if ( printer.colorMode() == QPrinter::GrayScale )
-        {
-            renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground );
-            renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground );
-            renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame );
-            renderer.setLayoutFlag( QwtPlotRenderer::FrameWithScales );
-        }
-
-        renderer.renderTo( d_plot, printer );
-    }
-}
-
-#endif
-*/
-
-
-void MainWindow::PreOpen()
-{
-if(Log->isChecked()) {Log->setChecked(false); logchecked=false;}
-d_plot->Open();
+    d_plot->Open();
 }
 
 
 
-void MainWindow::exportTxt()
-{
+void MainWindow::exportTxt() {
 
-   QString percorso = QFileDialog::getSaveFileName(this,tr("Save as"), QDir::currentPath());
-   QFile file1(percorso);
-   //file2.remove();
-   file1.open(QIODevice::ReadWrite);
-   QTextStream out(&file1);
-     
-      for(int i=0;i<=16384;i++)
-      {      
-       out<<*(shared_memory+100+i)<<"	"<<*(shared_memory+20000+i)<<'\n';
-	//qDebug()<<*(shared_memory+100+i)<<'\n';
+    QString directory = QFileDialog::getSaveFileName(this,tr("Save as"), QDir::currentPath());
+    QFile file1(directory);
+    file1.open(QIODevice::ReadWrite);
+    QTextStream out(&file1);
+
+    for(int i=0;i<=16384;i++) {
+        out<<*(shared_memory+100+i)<<"\t"<<*(shared_memory+20000+i)<<"\t"<<*(shared_memory+40000+i)<<"\t\n";
         *(shared_memory+100+i)=0;
-	*(shared_memory+20000+i)=0;
-      }
-   file1.close();
-   qDebug()<<"file ready!\n";
+        *(shared_memory+20000+i)=0;
+        *(shared_memory+40000+i)=0;
+    }
 
+    file1.close();
+    qDebug()<<"... File ready!";
 }
 
 
 
 void MainWindow::enableZoomMode(  )
 {
-    d_plot->setAxisScale(QwtPlot::yLeft, min, max);
-    d_plot->setAxisScale(QwtPlot::xBottom, mincal,maxcal);
+    d_plot->setAxisScale(QwtPlot::yLeft, 0, max);
+    d_plot->setAxisScale(QwtPlot::xBottom, channel_lowerbound,channel_upperbound);
     d_plot->replot();
-    qDebug()<<"Zooming";
+    qDebug()<<"... Zooming";
 }
 
 
-void MainWindow::showInfo()
-{
+void MainWindow::showInfo() {
     if (aperto)
     {
      statusBar()->showMessage(fileName);
     }
-    if (new_calibration_ready)
-    {
-     cntDamp->setValue(cal);
-     cntDamp2->setValue(offset);
-     new_calibration_ready=false;
-     }
-//    if (EnergyOn) Energy_Channel->setChecked( true );
 
 }
 
 
-void MainWindow::AutoCalibrate()
-{
-dlg= new QDialog;
-dlg->resize(480,150);
-QGroupBox *groupBox = new QGroupBox( "Calibration" );
-QLabel *label = new QLabel( "First peak (ch)" );
-QwtCounter *cntDamp1 = new QwtCounter( groupBox );
+void MainWindow::AutoCalibrate() {
+
+    dlg = new QDialog;
+    dlg->resize(480,150);
+
+    QGroupBox *groupBox = new QGroupBox( "Calibration" );
+    QLabel *label = new QLabel( "First peak (ch)" );
+    QwtCounter *cntDamp1 = new QwtCounter( groupBox );
     cntDamp1->setRange( 0, 16384 );
     cntDamp1->setSingleStep( 1 );
     cntDamp1->setValue( 0 );
@@ -487,10 +432,14 @@ QwtCounter *cntDamp5 = new QwtCounter( groupBox );
 
 QDialogButtonBox *buttons = new QDialogButtonBox( Qt::Horizontal );
 buttonOK = new QPushButton( "Ok" );
-connect( buttonOK, SIGNAL(clicked()), this, SLOT(okClicked()) );
+
+
+connect( buttonOK, SIGNAL(clicked()), dlg, SLOT(close()) );
+connect( buttonOK, SIGNAL(clicked()), d_plot, SLOT(set_calibrationparam()) );
+
 buttons->addButton( buttonOK, QDialogButtonBox::AcceptRole );
 buttonCANC = new QPushButton( "Cancel" );
-connect( buttonCANC, SIGNAL(clicked()), this, SLOT(cancClicked()) );
+connect( buttonCANC, SIGNAL(clicked()), dlg, SLOT(close()) );
 buttons->addButton( buttonCANC, QDialogButtonBox::AcceptRole );
 
 
@@ -514,49 +463,9 @@ dlg->show();
 }
 
 
-bool MainWindow::okClicked()
-{
-calculate_cal=true;
-dlg->close();
-return calculate_cal;
-}
 
-bool MainWindow::cancClicked()
-{
-calculate_cal=false;
-dlg->close();
-return calculate_cal;
 
-}
 
-/*
-void MainWindow::showInfo( QString text )
-{
-    if ( text == QString::null )
-    {
-        if ( d_picker->rubberBand() )
-            text = "Cursor Pos: Press left mouse button in plot region";
-        else
-            text = "Zoom: Press mouse button and drag";
-    }
-
-#ifndef QT_NO_STATUSBAR
-    statusBar()->showMessage( text );
-#endif
-}
-
-void MainWindow::moved( const QPoint &pos )
-{
-    QString info;
-    info.sprintf( "Ch=%4.4g, Counts=%3.3g", d_plot->invTransform( QwtPlot::xBottom, pos.x() ), d_plot->invTransform( QwtPlot::yLeft, pos.y()) );
-    showInfo( info );
-}
-
-void MainWindow::selected( const QPolygon & )
-{
-    showInfo();
-}
-*/
 
 
  MainWindow::~MainWindow()
@@ -574,15 +483,15 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
   if (event->buttons() == Qt::RightButton) 
   {
    qDebug()<<"zooming -> last view";
-//   d_plot->
   }
 }
 
 
-
-
-
-
+// A QSlot to receive the signal from Plot::Open()
+void MainWindow::update_fileStatus (QString filename) {
+    qDebug()<<"About to change the filename in the line edit";
+    fileloaded->setText(filename);
+}
 
 
 

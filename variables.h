@@ -64,7 +64,7 @@ int SerialiStatus=0;
 
 //int Resolution_mode;
 
-int PixelX=395; int PixelY=395; int PassoX=1000, PassoY=1000, PassoZ=1000; double Px=1000; double Py=1000;
+int PixelX=395; int PixelY=395; int pixel_Xstep=1000, pixel_Ystep=1000, PassoZ=1000; double Px=1000; double Py=1000;
 
 double Integral[50000];
 int Xmap[50000], Ymap[50000]; 

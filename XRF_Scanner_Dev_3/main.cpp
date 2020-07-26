@@ -1,4 +1,4 @@
-/*  INFN CHNet - NYUAD (XRF_SCANNER version 10.x)
+/*  INFN CHNet - NYUAD (XRF_SCANNER version 10.0)
  *
  *  Change log with respect to versions 9.x
  *
@@ -31,9 +31,56 @@
  *
  *  8. Implemented the XRayTable external program, now the button in the mainwindow should lunch a pop-up with the X-ray energies
  *
+ *  INFN CHNet - NYUAD (XRF_SCANNER version 10.1)
+ *  Change log with respect to version 10.0
  *
+ *  1. Source code changes to ADCXRF.c in Digitizer_USB.
+ *      i.      Implemented a random number generator, ranqd1(), in the ADCXRF_USB data acquisition protocol. Now the multidetector software randomly allocates
+ *              events from larger non-unitary bins into smaller unitary bins, making histogram addition possible.
+ *      ii.     Implemented a seed function for this random number generator which calls for the system time to generate a seed after every
+ *              50000 calls to ranqd1
+ *  2. Various minor bugs inherited from 10.0 are now solved and addressed.
  *
+ *  INFN CHNet - NYUAD (XRF_SCANNER version 10.2)
+ *  Change log with respect to version 10.1
  *
+ *  1. In project Spectrum.pro
+ *      i.      Modified the ArraySize for the display channels from 16384 to 16385 to avoid undefined behavior
+ *      ii.     Added a shared memory array in *(shared_memory+30000+i) dedicated to the multidetector sum
+ *  2. In mainwindow_mouse.cpp
+ *      i.      Added a conditional statement in the pixel selection switch to pass the spectrum to the appropriate shared memory
+ *              as a function of the detector (or detector sum) that is chosen for visualization. (If only detector A is chosen, the
+ *              values found from the rectangle selection in the elemental map are passed to the shared memory for detector A).
+ *      ii.     The previous allows for visualization of summed spectra obtained directly from pixel selection in the elemental map.
+ *      ii.     Added a random number generator as in ADCXRF.c to permit the addition of spectra in map acquisition mode.
+ *  3. In ADCXRF.c
+ *      i.      Added the required architecture to automatically sum the spectra and pass them to the dedicated shared memory, i.e. now every
+ *              acquisition (in both map and point mode) writes the spectra sum automatically to *(shared_memory+30000+i)
+ *
+ *  INFN CHNet - NYUAS (XRF_SCANNER version 10.3)
+ *  Change log with respect to version 10.2
+ *
+ *  1. In mainwindow.cpp
+ *      i.      Modified the protocol to save .txt files for point mode acquisitions, so as to keep the file formats homogeneous
+ *  2. In project Spectrum
+ *      i.      Modified the protocol to load new .txt files for both point mode and scan mode acquisitions to allow for a multidetector sum format.
+ *      ii.     Modified the mode of display of the XRF specta to display an histogram as opposed to connected lines.
+ *      iii.    Changed the color of plot display from light blue agains a dark blue background to black agains white with a red marker, to facilitate
+ *              the visualization of the data.
+ *      iv.     Added a new QLineEdit on the bottom dock to display the name of the file currently loaded
+ *      v.      Added a refresh button on the menu to avoid having to reload the spectra if the mode of visualization is change (as in from detector 1 to
+ *              detector 2, or to the detector sum)
+ *      vi.     Remove the Print button on the menu and its associated print() function in the source code as they are legacy
+ *	vii.	Removed global variables which controlled signals to load and set calibration parameters, favoring a more natural approach based on signals and slots.
+ *      viii. 	Added the following signals to the class Mainwindow, toggleLog() and toggleEnergy(bool active)
+ *	ix.	Enable persistent calibration parameters, now previous calibration values will be automatically loaded every time the XRF spectra display window is opened.
+ * 	x. 	Display mode (as in Channels vs. Energy) is automatically toggled if calibration parameters other than 1 for the gradient and 0 for offset are found.
+ *
+ *  3. In SHM_Creator.cpp and Shm.h
+ *      i.      Updated the size of the shared memory segment with identifier shmid from size of 50 pages (204800 bytes) to 100 pages (409600 bytes) to avoid data overlapping between
+ *              the spectra of the second detector  and the detector sum. Overall, the total memory usage of this segment is under 0.5 Mbytes
+ * 4.  In various files
+ *	i.	Updated *(shared_memory+30000+i) to *(shared_memory+40000+i) to avoid overlap between spectra of different detectors (or detector sum)
  *
  */
 
@@ -84,20 +131,22 @@ int Resolution_mode;    // 0 if          WIDTH >  2400px
 
 int authentification()
 {
-    // Please do replace frao with your computer's username
+    // Please do replace rtorres with your computer's username
     /*switch (module) , calling for insmod has no effect in Fedora, the appropriate modules are automatically loaded if the digitizer is detected and the appropriate drivers are installed.
        {
-        case(0): {system("su -c 'sysctl -w kernel.shmmax=2000000000;sysctl -w kernel.shmall=720000000; chmod 777 /dev/ttyUSB*;  chmod 777 /dev/ttyACM*; chown frao:frao /dev/ttyACM*; chown frao:frao /dev/ttyUSB*; insmod Program_Data_Files/CAENUSBdrvB.ko.xz;'"); break;}
-        case(1): {system("su -c 'sysctl -w kernel.shmmax=2000000000;sysctl -w kernel.shmall=720000000; chmod 777 /dev/ttyUSB*;  chmod 777 /dev/ttyACM*; chown frao:frao /dev/ttyACM*; chown frao:frao /dev/ttyUSB*;'"); break;}
+        case(0): {system("su -c 'sysctl -w kernel.shmmax=2000000000;sysctl -w kernel.shmall=720000000; chmod 777 /dev/ttyUSB*;  chmod 777 /dev/ttyACM*; chown rtorres:rtorres /dev/ttyACM*; chown rtorres:rtorres /dev/ttyUSB*; insmod Program_Data_Files/CAENUSBdrvB.ko.xz;'"); break;}
+        case(1): {system("su -c 'sysctl -w kernel.shmmax=2000000000;sysctl -w kernel.shmall=720000000; chmod 777 /dev/ttyUSB*;  chmod 777 /dev/ttyACM*; chown rtorres:rtorres /dev/ttyACM*; chown rtorres:rtorres /dev/ttyUSB*;'"); break;}
        }
      */
 
-    int error_auth = system("su -c 'sysctl -w kernel.shmmax=2000000000;"
+    /*int error_auth = system("su -c 'sysctl -w kernel.shmmax=2000000000;"
                        "sysctl -w kernel.shmall=720000000;"
                        "chmod +rw /dev/ttyUSB*;"
                        "chmod +rw /dev/ttyACM*;"
-                       "chown frao:frao /dev/ttyACM*;"
-                       "chown frao:frao /dev/ttyUSB*;'");
+                       "chown rtorres:rtorres /dev/ttyACM*;"
+                       "chown rtorres:rtorres /dev/ttyUSB*;'");
+                       */
+	int error_auth=0;
     return error_auth;
 }
 
@@ -203,6 +252,7 @@ int checkcaenmodules()
     }
     return 0;
 }
+
 
 int main(int argc, char *argv[])
 {
