@@ -534,14 +534,14 @@ public:
   /// \brief Init overload initializes a named semaphore
   /// \param sem_name
   ///
-  void Init(std::string const & sem_name) {
+  void Init(std::string sem_name) {
     using namespace std::literals;
 
     auto ret =
         ::sem_open(sem_name.c_str(),  // Name of the semaphore
                    O_CREAT | O_EXCL,  // Create the semaphore
                    S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP,   // RW permissions
-                   1  // Initial value of the semaphore
+                   0  // Initial value of the semaphore
                    );
     // The semaphore exists so we try opening instead
     if (ret == SEM_FAILED && errno == EEXIST) {
@@ -560,6 +560,14 @@ public:
 
     // If we reach here, we have succesfully opened the semaphore
     sem_ptr_ = ret;
+  }
+
+  ///
+  /// \brief Init overload for C-strings to guarantee proper overload resolution
+  /// \param sem_name
+  ///
+  void Init(char const * sem_name) {
+    Init(std::string {sem_name});
   }
 
   ///

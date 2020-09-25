@@ -41,7 +41,7 @@ auto DataFileHander::GetFile(std::string filepath) -> std::shared_ptr<MAXRFDataF
   std::string line(kMaxSizeFirstLine, '\0');
   file.read(line.data(), kMaxSizeFirstLine);
 
-  line.erase(line.rfind('\n'), std::string::npos);
+  line.erase(line.find('\n'), std::string::npos);
 
   DataFormat format{DataFormat::kInvalid};
   auto it = formats_.find(line);
@@ -74,12 +74,12 @@ auto DataFileHander::GetFile(std::string filepath) -> std::shared_ptr<MAXRFDataF
   switch (format) {
   case DataFormat::kHypercube:
     return std::make_shared<HypercubeFile>(std::move(file));
+  case DataFormat::kMultiDetectorMaskedDump:
+    return std::make_shared<MaskedDumpFile>(std::move(file));
   case DataFormat::kHypercubeFiltered:
     // Fallthrough cases have not yet been implemented
     [[fallthrough]];
   case DataFormat::kEDF:
-    [[fallthrough]];
-  case DataFormat::kMultiDetectorMaskedDump:
     [[fallthrough]];
   case DataFormat::kXMLFile:
     [[fallthrough]];
@@ -102,7 +102,7 @@ auto DataFileHander::GetFileForDAQ(std::string path) -> std::shared_ptr<MAXRFDat
   }
   std::cout << std::filesystem::current_path() << std::endl;
   // Then we open after closure (guaranteeing the file is created)
-  std::fstream file {path, std::fstream::out | std::fstream::trunc };
+  std::fstream file {path, std::fstream::out | std::fstream::trunc | std::fstream::binary };
   if (file.is_open()) {
     return std::make_shared<HypercubeFile>(std::move(file));
   }
@@ -147,6 +147,11 @@ bool HypercubeFile::MakeDefaultHeader() {
   root.append_child("Tube_Voltage").append_attribute("units").set_value("keV");
   root.append_child("Tube_Current").append_attribute("units").set_value("uA");
 
+  root = root.parent().append_child("Image_Info");
+  root.append_child("Width");
+  root.append_child("Height");
+  root.append_child("Pixels");
+
   root = root.parent().append_child("Histogram");
   root.append_child("Detector_Identifier");
   root.append_child("Spectral_Bins");
@@ -167,31 +172,42 @@ bool HypercubeFile::WriteHeader() {
 }
 
 
-bool HypercubeFile::WritePixel(PixelData const & data) {
-  if (write_mode != WriteMode::kDAQPoint) {
+bool HypercubeFile::WritePixel(PixelData & data) {
+  static auto const first_datum_pos { file_.tellp() };
+
+  switch (write_mode) {
+  case WriteMode::kDAQInvalid :
     // The writing mode must be chosen first
     return false;
-  }
+  case WriteMode::kDAQPoint:
+    file_.seekp(first_datum_pos);
 
-  static auto const first_datum_pos { file_.tellp() };
-  file_.seekp(first_datum_pos);
-
-  for (auto & counts : data) {
-    file_ << counts << ',';
+    for (auto & counts : data.histogram) {
+      file_ << counts << ',';
+    }
+    file_.seekp(file_.tellp() - std::fstream::off_type {1});
+    file_ << '\n';
+    return true;
+  case WriteMode::kDAQScan :
+    writer->WriteDataToFiles(data);
+    return  true;
   }
-  file_.seekp(file_.tellp() - std::fstream::off_type {1});
-  file_ << '\n';
-  return true;
 }
 
-bool HypercubeFile::WritePixel(PixelData const & data, size_t x, size_t y) {
-
-  return false;
-}
 
 bool HypercubeFile::WriteFooter() {
-  std::cout << "Not yet implemented" << std::endl;
-  return false;
+  if (writer) {
+    file_ = writer->ReacquireFileOwnership();
+    writer.reset();
+    write_mode = WriteMode::kDAQInvalid;
+    file_ << "</Analysis_Data>\n";
+    // Perhaps write a footer
+    file_ << "</XRFAnalysis>\n";
+    return true;
+  }
+  else {
+    return false;
+  }
 }
 
 /// HEADER MANIPULATION API
@@ -241,6 +257,195 @@ auto HypercubeFile::CheckIntegrity() -> std::string {
   std::cout << "This functionality is not yet implemented"
             << std::endl;
   return "";
+}
+
+HypercubeFile::HypercubeFile(std::fstream && _f) {
+  SetFormat(DataFormat::kHypercube);
+  SetFileDevice(std::move(_f));
+}
+
+auto HypercubeFile::GetTokenValue(HeaderTokens token) -> std::string
+{
+  static struct SearchPredicate {
+    auto operator() [[maybe_unused]] (pugi::xml_node  _n) const -> bool {
+      return strcmp(_n.name(), search_token.c_str()) == 0;
+    }
+    std::string search_token;
+  } search;
+
+  switch (token)
+  {
+  case HeaderTokens::kImageWidth  :
+    search.search_token = "Width";
+    break;
+  case HeaderTokens::kImageHeight :
+    search.search_token = "Height";
+    break;
+  case HeaderTokens::kImagePixels :
+    search.search_token = "Pixels";
+    break;
+  case HeaderTokens::kDAQStartTimestamp :
+    search.search_token = "DAQ_Start_Timestamp";
+    break;
+  }
+
+  auto node = header_node_.find_node(search);
+  if (node.type() == pugi::xml_node_type::node_null) {
+    return "";
+  }
+  else {
+    return node.child_value();
+  }
+}
+
+auto HypercubeFile::GetTokenValue(std::string search_term) -> std::string
+{
+  static struct SearchPredicate {
+    auto operator() [[maybe_unused]] (pugi::xml_node  _n) const -> bool {
+      return strcmp(_n.name(), search_token.c_str()) == 0;
+    }
+    std::string search_token;
+  } search;
+
+  search.search_token = search_term;
+
+  auto node = header_node_.find_node(search);
+  if (node.type() == pugi::xml_node_type::node_null) {
+    return "";
+  }
+  else {
+    return node.child_value();
+  }
+}
+
+auto HypercubeFile::EditToken(HeaderTokens token, std::string val) -> bool {
+  static struct SearchPredicate {
+    auto operator() (pugi::xml_node  _n) const -> bool {
+      return strcmp(_n.name(), search_token.c_str()) == 0;
+    }
+    std::string search_token;
+  } search;
+
+  switch (token)
+  {
+  case HeaderTokens::kStartXCoordinate :
+    search.search_token = "Width";
+    break;
+  case HeaderTokens::kStartYCoordinate :
+    search.search_token = "Width";
+    break;
+  case HeaderTokens::kEndXCoordinate :
+    search.search_token = "Width";
+    break;
+  case HeaderTokens::kEndYCoordinate :
+    search.search_token = "Width";
+    break;
+  case HeaderTokens::kMotorStepX :
+    search.search_token = "Width";
+    break;
+  case HeaderTokens::kMotorStepY :
+    search.search_token = "Width";
+    break;
+  case HeaderTokens::kMotorVelocity :
+    search.search_token = "Width";
+    break;
+  case HeaderTokens::kImageWidth  :
+    search.search_token = "Width";
+    break;
+  case HeaderTokens::kImageHeight :
+    search.search_token = "Height";
+    break;
+  case HeaderTokens::kImagePixels :
+    search.search_token = "Pixels";
+    break;
+  case HeaderTokens::kDAQStartTimestamp :
+    search.search_token = "DAQ_Start_Timestamp";
+    break;
+  }
+
+  auto node = header_node_.find_node(search);
+  if (node.type() == pugi::xml_node_type::node_null) {
+    return false;
+  }
+  else {
+    node.text().set(val.c_str());
+    return true;
+  }
+}
+
+auto HypercubeFile::EditToken(std::string search_term, std::string val) -> bool {
+  static struct SearchPredicate {
+    auto operator() (pugi::xml_node  _n) const -> bool {
+      return strcmp(_n.name(), search_token.c_str()) == 0;
+    }
+    std::string search_token;
+  } search;
+  search.search_token = search_term;
+
+  auto node = header_node_.find_node(search);
+  if (node.type() == pugi::xml_node_type::node_null) {
+    return false;
+  }
+  else {
+    node.text().set(val.c_str());
+    return true;
+  }
+}
+
+auto HypercubeFile::ExtractHeader() -> std::string
+{
+  static std::string const kDataNodeStartTag = "<Analysis_Data>";
+
+  file_.seekg(0, std::ios::beg);
+  // Ignore the XML declaration
+  file_.ignore(std::numeric_limits<char>::max(), '\n');
+  // Ignore the root element
+  file_.ignore(std::numeric_limits<char>::max(), '\n');
+  // Local variables for header extraction
+  std::string line;
+  std::stringstream header;
+
+  file_ >> std::skipws;
+  while (file_ >> line)
+  {
+    if (line.compare(kDataNodeStartTag) == 0) {
+      break;
+    }
+    header << line << '\n';
+  }
+  // The >> operator does not extract trailing whitespace
+  file_.ignore();
+  first_datum_pos_ = file_.tellg();
+
+  auto parse_result = header_node_.load(header);
+  if (parse_result.status != pugi::xml_parse_status::status_ok) {
+    // The header is not valid. We could generate a report
+  }
+
+  return header.str();
+}
+
+auto HypercubeFile::ComputeLookupTable() -> std::shared_ptr<LookupTable>
+{
+  std::vector<LUTEntry> lut_data;
+
+  file_.seekg(first_datum_pos_);
+  while (file_.peek() != '<')
+  {
+    lut_data.emplace_back().datum_pos = file_.tellg();
+    file_.ignore(std::numeric_limits<short>::max(), '\n');
+  }
+
+  size_t const width  = std::stoul(GetTokenValue(HeaderTokens::kImageWidth));
+  size_t const height = std::stoul(GetTokenValue(HeaderTokens::kImageHeight));
+
+  try {
+    lut = std::make_shared<LookupTable>(std::move(lut_data), width, height);
+    return lut;
+ //   return LookupTable{std::move(lut_data), width, height};
+  } catch (...) {
+    std::rethrow_exception(std::current_exception());
+  }
 }
 
 

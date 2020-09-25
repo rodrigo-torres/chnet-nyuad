@@ -13,7 +13,7 @@
 # Name of the application or library
 TARGET = MAXRF_DAQ_Daemon
 TEMPLATE = app
-VERSION = 1.0.0
+VERSION = 1.0.3
 
 
 PROJECT_DIR = $$(DEV_XRF)

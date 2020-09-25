@@ -59,7 +59,7 @@ UI_DIR      = $$PWD/build
 # List of source, header, Qt Designer form, and Qt Resource files
 # ---------------------------------------------------------------------------- #
 
-INCLUDEPATH += PROJECT_DIR/Local/include
+INCLUDEPATH += $$PROJECT_DIR/Local/include
 
 SOURCES += \
   src/ipc_methods.cpp

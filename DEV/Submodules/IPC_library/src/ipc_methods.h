@@ -21,6 +21,7 @@
 #include <array>
 #include <csignal>
 #include <cstring>    //memcpy and the lik
+#include <functional>
 #include <iostream>
 #include <string>
 #include <type_traits>
@@ -34,15 +35,21 @@
 #include <fcntl.h>           // For O_* constants
 #include <sys/mman.h>
 #include <sys/stat.h>        // For mode constants
+
+// FOR System V SHM
+// TODO don't use System V SHM and POSIX SHM together. Deprecate System V use
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
 // FOR UNIX Domain sockets
 #include <sys/socket.h>
 #include <sys/un.h>          // UNIX socket address struct
-// FOR System V POSIX SHM
-#include <sys/ipc.h>
-#include <sys/shm.h>
+// For POSIX sempahores
+#include <semaphore.h>
 // FOR FD management
 #include <sys/types.h>
 #include <unistd.h>
+
 
 #include <QtCore/qglobal.h>
 
@@ -55,6 +62,98 @@
 #include "ipc_shm_mapping.h"
 
 namespace maxrf::ipc {
+
+class SHMHandle;
+
+namespace // implementation detail
+{
+    // build R (*)(Args...) from R (Args...)
+    // compile error if signature is not a valid function signature
+    template <typename, typename>
+    struct build_free_function;
+
+    template <typename F, typename R, typename ... Args>
+    struct build_free_function<F, R (Args...)>
+    { using type = R (*)(Args...); };
+
+    // build R (C::*)(Args...) from R (Args...)
+    //       R (C::*)(Args...) const from R (Args...) const
+    //       R (C::*)(Args...) volatile from R (Args...) volatile
+    // compile error if signature is not a valid member function signature
+    template <typename, typename>
+    struct build_class_function;
+
+    template <typename C, typename R, typename ... Args>
+    struct build_class_function<C, R (Args...)>
+    { using type = R (C::*)(Args...); };
+
+    template <typename C, typename R, typename ... Args>
+    struct build_class_function<C, R (Args...) const>
+    { using type = R (C::*)(Args...) const; };
+
+    template <typename C, typename R, typename ... Args>
+    struct build_class_function<C, R (Args...) volatile>
+    { using type = R (C::*)(Args...) volatile; };
+
+    // determine whether a class C has an operator() with signature S
+    template <typename C, typename S>
+    struct is_functor_with_signature
+    {
+        typedef char (& yes)[1];
+        typedef char (& no)[2];
+
+        // helper struct to determine that C::operator() does indeed have
+        // the desired signature; &C::operator() is only of type
+        // R (C::*)(Args...) if this is true
+        template <typename T, T> struct check;
+
+        // T is needed to enable SFINAE
+        template <typename T> static yes deduce(check<
+            typename build_class_function<C, S>::type, &T::operator()> *);
+        // fallback if check helper could not be built
+        template <typename> static no deduce(...);
+
+        static bool constexpr value = sizeof(deduce<C>(0)) == sizeof(yes);
+    };
+
+    // determine whether a free function pointer F has signature S
+    template <typename F, typename S>
+    struct is_function_with_signature
+    {
+        // check whether F and the function pointer of S are of the same
+        // type
+        static bool constexpr value = std::is_same<
+            F, typename build_free_function<F, S>::type
+        >::value;
+    };
+
+    // C is a class, delegate to is_functor_with_signature
+    template <typename C, typename S, bool>
+    struct is_callable_impl
+        : std::integral_constant<
+            bool, is_functor_with_signature<C, S>::value
+          >
+    {};
+
+    // F is not a class, delegate to is_function_with_signature
+    template <typename F, typename S>
+    struct is_callable_impl<F, S, false>
+        : std::integral_constant<
+            bool, is_function_with_signature<F, S>::value
+          >
+    {};
+}
+
+// Determine whether type Callable is callable with signature Signature.
+// Compliant with functors, i.e. classes that declare operator(); and free
+// function pointers: R (*)(Args...), but not R (Args...)!
+template <typename Callable, typename Signature>
+struct is_callable
+    : is_callable_impl<
+        Callable, Signature,
+        std::is_class<Callable>::value
+      >
+{};
 
 enum class SocketOptions
 {
@@ -173,7 +272,20 @@ class Queue
 class IPCSocket
 {
 public:
-  IPCSocket(std::string const & _path, SocketOptions opt) : socket_path{_path} {
+  IPCSocket() = default;
+  IPCSocket(std::string const & _path) : socket_path{_path} {
+    address_.sun_family = AF_UNIX;
+    strncpy(address_.sun_path, _path.c_str(), sizeof (address_.sun_path) - 1);
+  }
+  ~IPCSocket() {
+    ReleaseSocket();
+  }
+
+  auto GetFD() {
+    return connection_fd_;
+  }
+
+  void StartSocket(SocketOptions opt) {
     switch (opt) {
     case SocketOptions::kServer:
       CreateServer();
@@ -183,68 +295,128 @@ public:
       CreateClient();
       break;
     }
+    if (socket_fd == -1) {
+      throw std::runtime_error("Error configuring socket");
+    }
   }
 
-  ~IPCSocket() {
-    ReleaseSocket();
+  void StartSocket(pid_t pid, int fd) {
+    char fd_path[64];  // actual maximal length: 37 for 64bit systems
+    snprintf(fd_path, sizeof(fd_path), "/proc/%d/fd/%d", pid, fd);
+    connection_fd_ = open(fd_path, O_RDWR);
+    if (connection_fd_ == -1) {
+      std::cout << strerror(errno) << std::endl;
+    }
   }
 
   inline void ReleaseSocket() {
+    if (connection_fd_ != -1) {
+      shutdown(connection_fd_, SHUT_RDWR);
+    }
     if (socket_fd != -1) {
-//      close(socket_fd);
+      shutdown(socket_fd, SHUT_RDWR);
     }
     if (is_server) {
-      shutdown(connection_fd_, SHUT_RDWR);
-      shutdown(socket_fd, SHUT_RDWR);
-      unlink(socket_path.c_str());
+      unlink(address_.sun_path);
     }
   }
 
-  void EstablishConnectionWithClient() {
+  bool EstablishConnectionWithClient() {
+    bool connected {false};
+
     if (is_server) {
-      auto ret = accept(socket_fd, nullptr, nullptr);
-      if (ret == -1) {
-        std::cout << strerror(errno) << std::endl;
-        return;
+      // Drop previous connection
+      if (connection_fd_ != -1) {
+        shutdown(connection_fd_, SHUT_RDWR);
       }
- //     shutdown(socket_fd, SHUT_RDWR);
+
+      // Block until there's a connection
+      connection_fd_ = accept(socket_fd, nullptr, nullptr);
+      if (connection_fd_ == -1) {
+        std::cout << strerror(errno) << std::endl;
+      }
+      else {
+        connected = true;
+      }
+    }
+    return connected;
+  }
+
+  ///
+  /// \brief AttemptConnectionToServer
+  /// \param timeout is the specified timeout for the operation in seconds
+  /// \return
+  ///
+  bool AttemptConnectionToServer(double _seconds) {
+    using namespace std::chrono;
+    auto timeout = duration<double> {_seconds};
+    auto micros  = duration_cast<microseconds>(timeout - floor<seconds>(timeout));
+
+    auto ret = connect(socket_fd,
+                       reinterpret_cast<sockaddr *>(&address_),
+                       sizeof (address_));
+    if (ret == -1 && errno == EINPROGRESS) {
+
+      fd_set wfd;
+      FD_ZERO(&wfd);
+      FD_SET(socket_fd, &wfd);
+
+      struct timeval timeoutv;
+      timeoutv.tv_sec   = static_cast<long>(timeout.count());
+      timeoutv.tv_usec  = static_cast<long>(micros.count());
+
+      ret = select(socket_fd + 1, nullptr, &wfd, nullptr, &timeoutv);
+      if (ret > 0) {
+        // Connection succesful
+        connection_fd_ = socket_fd;
+        return true;
+      }
+      else if (ret == 0) {
+        std::cout << "Attempt to connect timed out" << std::endl;
+        return false;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
       connection_fd_ = socket_fd;
-      socket_fd = ret;
+      return true;
     }
   }
 
   template <class T>
   void ReceiveFromSocket(T * buff) {
-    recv(socket_fd, buff, sizeof (T), 0);
+    recv(connection_fd_, buff, sizeof (T), 0);
   }
 
   void ReceiveFromSocket(char * buff) {
     do {
-      recv(socket_fd, buff, 1, 0); // Read character by character
+      recv(connection_fd_, buff, 1, 0); // Read character by character
     } while (*(buff++) != '\0');
   }
 
   void ReceiveFromSocket(char & buff) {
-    recv(socket_fd, &buff, 1, 0);
+    recv(connection_fd_, &buff, 1, 0);
   }
 
   template<class T>
   void SendThroughSocket(T const * data) {
     // TODO enable only for arithmetic, enum types and trivial classes
-    send(socket_fd, data, sizeof(T), 0);
+    send(connection_fd_, data, sizeof(T), 0);
   }
 
 
   void SendThroughSocket(char const * data) {
     // TODO enable only for arithmetic, enum types and trivial classes
     for (uint off = 0; off < strlen(data) + 1; ++off) {
-      send(socket_fd, data + off, 1, 0);
+      send(connection_fd_, data + off, 1, 0);
     }
   }
 
   void SendCharThroughSocket(char c) {
     char buff = c;
-    send(socket_fd, &buff, 1, 0);
+    send(connection_fd_, &buff, 1, 0);
   }
 
 
@@ -259,7 +431,7 @@ private:
 
     struct sockaddr_un address;
     address.sun_family = AF_UNIX;
-    strncpy(address.sun_path, socket_path.c_str(), 108); // UNIX_PATH_MAX is 108
+    strncpy(address.sun_path, socket_path.c_str(), 108 - 1); // UNIX_PATH_MAX is 108
 
     int rc = bind(socket_fd, reinterpret_cast<struct sockaddr *>(&address),
                   sizeof (address));
@@ -287,22 +459,25 @@ private:
       return;
     }
 
-    struct sockaddr_un address;
-    address.sun_family  = AF_UNIX;
-    strncpy(address.sun_path, socket_path.c_str(), 108);
-
     auto ret = connect(socket_fd,
-                       reinterpret_cast<sockaddr *>(&address), sizeof (address));
+                       reinterpret_cast<sockaddr *>(&address_),
+                       sizeof (address_));
+
     if (ret == -1) {
-      std::cout << "Couldn't connect to socket: "
-                << strerror(errno) << std::endl;
-      close(socket_fd);
-      socket_fd = -1;
+      std::cout << "Couldn't connect to server: " << strerror(errno)
+                << std::endl;
+      return;
     }
+    connection_fd_ = socket_fd;
+
+//    // Put the socket in non-blocking mode
+//    int flags = fcntl(socket_fd, F_GETFL, 0);
+//    fcntl(socket_fd, F_SETFL, flags | O_NONBLOCK);
   }
 
 
-  std::string const socket_path;
+  std::string const socket_path {};
+  struct sockaddr_un address_ {};
   int socket_fd {-1};
   int connection_fd_ {-1};
   bool is_server {false};
@@ -331,95 +506,332 @@ private:
   void (*clean_up_callback)(int) {nullptr};
 };
 
+class POSIXSemaphore
+{
+  bool is_unnamed_  {false};
+  bool destroy_on_exit_ {false};
+  sem_t * sem_ptr_ {nullptr};
+  std::string sem_name {};
+
+  friend SHMHandle;
+
+protected:
+  void MarkForDestruction() {
+    destroy_on_exit_ = true;
+  }
+
+public:
+  ~POSIXSemaphore() {
+    if (sem_ptr_ && !is_unnamed_) {
+      ::sem_close(sem_ptr_);
+      if (destroy_on_exit_) {
+        ::sem_unlink(sem_name.c_str());
+      }
+    }
+  }
+
+  ///
+  /// \brief Init overload initializes a named semaphore
+  /// \param sem_name
+  ///
+  void Init(std::string sem_name) {
+    using namespace std::literals;
+
+    auto ret =
+        ::sem_open(sem_name.c_str(),  // Name of the semaphore
+                   O_CREAT | O_EXCL,  // Create the semaphore
+                   S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP,   // RW permissions
+                   0  // Initial value of the semaphore
+                   );
+    // The semaphore exists so we try opening instead
+    if (ret == SEM_FAILED && errno == EEXIST) {
+      ret = ::sem_open(sem_name.c_str(), 0);
+      if (ret == SEM_FAILED) {
+        // Couldn't open the semaphore
+        throw std::runtime_error("Could not open semaphore: "s +
+                                 ::strerror(errno));
+      }
+    }
+    else if (ret == SEM_FAILED) {
+      // Couldn't open the semaphore
+      throw std::runtime_error("Could not open semaphore: "s +
+                               ::strerror(errno));
+    }
+
+    // If we reach here, we have succesfully opened the semaphore
+    sem_ptr_ = ret;
+  }
+
+  ///
+  /// \brief Init overload for C-strings to guarantee proper overload resolution
+  /// \param sem_name
+  ///
+  void Init(char const * sem_name) {
+    Init(std::string {sem_name});
+  }
+
+  ///
+  /// \brief Init overload initilaizes an unnamed semaphore
+  /// \param unnamed_sem
+  ///
+  void Init(sem_t * unnamed_sem) {
+    using namespace std::literals;
+
+    if (::sem_init(unnamed_sem, 0, 1) == -1) {
+      // Couldn't open the semaphore
+      throw std::runtime_error("Could not open semaphore: "s +
+                               ::strerror(errno));
+    }
+    sem_ptr_ = unnamed_sem;
+    is_unnamed_ = true;
+  }
+
+  void operator= (sem_t * unnamed_sem) {
+    sem_ptr_    = unnamed_sem;
+    is_unnamed_ = true;
+  }
+
+  inline void Post() {
+    ::sem_post(sem_ptr_);
+  }
+
+  inline bool TryWait() {
+    return ::sem_trywait(sem_ptr_) == 0 ? true : false;
+  }
+
+//  inline bool TimedWait() {
+
+//  }
+
+  inline void Wait() {
+    ::sem_wait(sem_ptr_);
+  }
+};
+
+
+enum class SHMOperations : char
+{
+  kSum    = 0,
+  kMinus,
+  kMultiplies,
+  kDivides,
+  kModulus,
+  kNegate
+};
+
 class SHMHandle
 {
-//  SHMMap        shm_map_ {};
-  SHMStructure * segment_start_ {nullptr};
-  int shm_fd_ { -1 };
+  POSIXSemaphore  shm_sem_ {};
+  SHMStructure    * shm_ptr_ {nullptr};
 
 public:
   ~SHMHandle() {
-    if (segment_start_) {
-      munmap(segment_start_, sizeof (SHMStructure));
-      close(shm_fd_);
+    if (shm_ptr_) {
+      WriteVariable(&SHMStructure::mappings, SHMOperations::kMinus, 1);
+      if (GetVariable(&SHMStructure::mappings) == 0) {
+        ::sem_destroy(&shm_ptr_->segment_semaphore);
+        ::munmap(shm_ptr_, sizeof (SHMStructure));
+        ::shm_unlink("/maxrf_control");
+      }
+      else {
+        ::munmap(shm_ptr_, sizeof (SHMStructure));
+      }
+
     }
   }
 
-  void Create() {
-    shm_fd_ = shm_open("/maxrf_daq", O_RDWR | O_CREAT | O_EXCL,
-                       S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP );
-    if (shm_fd_ == -1) {
-      shm_unlink("/maxrf_daq");
-      perror(strerror(errno));
-      return;
+  void Init() {
+    using namespace std::literals;
+
+
+    // Attempt to create the segment
+    auto fd = ::shm_open("/maxrf_control", O_RDWR | O_CREAT | O_EXCL,
+                         S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP );
+    if (fd == -1) {
+      switch (errno) {
+      case EEXIST: {
+        // The SHM object exists already. So we attempt to access it
+        auto fd = ::shm_open("/maxrf_control", O_RDWR, 0);
+        if (fd == -1) {
+          // Couldn't open the segment
+          throw std::runtime_error("Could not open shared memory object: "s +
+                                   ::strerror(errno));
+        }
+
+        // The segment is open, we only have to map the memory addresses
+        auto ptr = static_cast<SHMStructure *>(
+              ::mmap(nullptr,                // Let the kernel choose the address
+                     sizeof (SHMStructure),  // Size of the segment to map
+                     PROT_READ | PROT_WRITE, // Allow read and write of pages
+                     MAP_SHARED,             // Changes are seen by all processes
+                     fd,                     // FD of the shared memory object
+                     0                       // Offset of mapping
+                     ));
+
+        if (ptr == MAP_FAILED) {
+          // Couldn't open the segment
+          ::close(fd);
+          throw std::runtime_error("Could not map shared memory object: "s +
+                                   ::strerror(errno));
+        }
+
+        // Mapping is valid, we put the class in a valid sate
+        ::close(fd);
+        shm_ptr_ = ptr;
+        shm_sem_ = &shm_ptr_->segment_semaphore;
+        WriteVariable(&SHMStructure::mappings, SHMOperations::kSum, 1);
+        return;
+      }
+      default:
+        throw std::runtime_error("Could not open shared memory object: "s +
+                                 ::strerror(errno));
+      }
     }
 
-    auto  ret = ftruncate(shm_fd_, sizeof (SHMStructure));
-    if (ret == -1) {
-      close(shm_fd_);
-      shm_unlink("/maxrf_daq");
-      perror(strerror(errno));
-      return;
+    // We have create the segment, we truncate to the right size and attach
+    if (::ftruncate(fd, sizeof (SHMStructure)) == -1) {
+      // Truncating failed. We cleanup resources and throw
+      ::close(fd);
+      ::shm_unlink("/maxrf_control");
+      throw std::runtime_error("Could not truncate shared memory object: "s +
+                               ::strerror(errno));
     }
 
-    segment_start_ = static_cast<SHMStructure *>(mmap(nullptr, sizeof (SHMStructure),
-                          PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd_, 0));
-    if (segment_start_ == MAP_FAILED) {
-      close(shm_fd_);
-      shm_unlink("/maxrf_daq");
-      segment_start_ =  nullptr;
-      perror(strerror(errno));
-      return;
+    auto ptr = static_cast<SHMStructure *>(::mmap(nullptr,
+                                                  sizeof (SHMStructure),
+                                                  PROT_READ | PROT_WRITE,
+                                                  MAP_SHARED, fd, 0));
+    if (ptr == MAP_FAILED) {
+      // Couldn't open the segment
+      ::close(fd);
+      ::shm_unlink("/maxrf_control");
+      throw std::runtime_error("Could not map shared memory object: "s +
+                               ::strerror(errno));
     }
 
+    // We populate the address space with the default values
     SHMStructure default_values {};
-    memcpy(segment_start_, &default_values, sizeof (SHMStructure));
+    memcpy(ptr, &default_values, sizeof (SHMStructure));
 
-    shm_unlink("/maxrf_daq");
+    try {
+      shm_sem_.Init(&ptr->segment_semaphore);
+    } catch (std::runtime_error &) {
+      ::close(fd);
+      ::munmap(ptr, sizeof (SHMStructure));
+      ::shm_unlink("/maxrf_control");
+      throw ;
+    }
+
+    // Valid state
+    shm_ptr_ = ptr;
+    WriteVariable(&SHMStructure::mappings, SHMOperations::kSum, 1);
   }
 
-  void Open() {
-    shm_fd_ = shm_open("/maxrf_daq", O_RDWR, 0);
-    if (shm_fd_ == -1) {
-      shm_unlink("/maxrf_daq");
-      perror(strerror(errno));
-      return;
-    }
 
-    auto  ret = ftruncate(shm_fd_, sizeof (SHMStructure));
-    if (ret == -1) {
-      close(shm_fd_);
-      shm_unlink("/maxrf_daq");
-      perror(strerror(errno));
-      return;
-    }
-
-    segment_start_ = static_cast<SHMStructure *>(mmap(nullptr, sizeof (SHMStructure),
-                          PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd_, 0));
-    if (segment_start_ == MAP_FAILED) {
-      close(shm_fd_);
-      shm_unlink("/maxrf_daq");
-      segment_start_ =  nullptr;
-      perror(strerror(errno));
-      return;
-    }
-
-    shm_unlink("/maxrf_daq");
+  template <class T>
+  T GetVariable(T SHMStructure::* shm_structure_member) {
+    T temp {};
+    GetVariable(shm_structure_member, temp);
+    return temp;
   }
 
   template <class T>
-  auto GetVariable(T SHMStructure::* shm_structure_member) {
-    return (*segment_start_).*shm_structure_member;
+  void GetVariable(T SHMStructure::* shm_structure_member, T & in) {
+    typename decltype (shm_ptr_->seq_number)::value_type read_seq_number { };
+    while (true) {
+      if ((read_seq_number  = shm_ptr_->seq_number.load()) % 2 == 1) {
+        // Sequence number is odd so a writer acquired the lock
+        continue;
+      }
+      in = (*shm_ptr_).*shm_structure_member;
+      if (read_seq_number != shm_ptr_->seq_number.load()) {
+        // A writer updated the value while we were reading, we try again
+        continue;
+      }
+      break;
+    }
   }
 
   template <class T>
-  void GetVariable(T SHMStructure::* shm_structure_member, SHMStructure & in) {
-    in.*shm_structure_member = (*segment_start_).*shm_structure_member;
+  inline void CheckAccessRights(T SHMStructure::* shm_member) {
+    static SHMStructure obj{};
+
+    static_assert (!std::is_same_v<T, sem_t>,
+                   "Don't use the WriteVariable and GetVariable methods to "
+                   "modify or open semaphores. Use the OpenSemaphore and "
+                   "InitSemaphore instead!");
+
+//    static_assert (&(obj.*shm_member) != &obj.segment_semaphore,
+//                   "The segment semaphore is a restricted access variable");
+
+
   }
 
   template <class T>
   void WriteVariable(T SHMStructure::* shm_structure_member, T const & val) {
-    (*segment_start_).*shm_structure_member = val;
+    shm_sem_.Wait();
+    shm_ptr_->seq_number.fetch_add(1);
+    (*shm_ptr_).*shm_structure_member = val;
+    shm_ptr_->seq_number.fetch_add(1);
+    shm_sem_.Post();
+  }
+
+  ///
+  /// \brief WriteVariable overload reads a variable, performs an operation
+  /// and writes back the result of that operation in a single lock
+  /// \param shm_member
+  /// \param operation
+  template <class T, class Functor>
+  void WriteVariable(T SHMStructure::* shm_member, Functor op, T op_arg) {
+    static_assert (is_callable<Functor, T (T const &, T const &) const>::value,
+                   "The operation must have signature: "
+                   " T (T const &, T const &) const");
+    shm_sem_.Wait();
+    shm_ptr_->seq_number.fetch_add(1);
+    (*shm_ptr_).*shm_member = op((*shm_ptr_).*shm_member, op_arg);
+    shm_ptr_->seq_number.fetch_add(1);
+    shm_sem_.Post();
+  }
+
+
+  ///
+  /// \brief WriteVariable overload reads a variable, performs an operation
+  /// and writes back the result of that operation in a single lock
+  /// \param shm_member
+  /// \param operation
+  template <class T>
+  void WriteVariable(T SHMStructure::* shm_member, SHMOperations op, T op_arg) {
+    static_assert (std::is_arithmetic_v<T>,
+                   "This WriteVariable overload can only be used for SHM"
+                   "variables that are of arithmetic type!");
+    shm_sem_.Wait();
+    shm_ptr_->seq_number.fetch_add(1);
+    // Critical section
+    switch (op) {
+    case SHMOperations::kSum:
+      (*shm_ptr_).*shm_member = (*shm_ptr_).*shm_member + op_arg;
+      break;
+    case SHMOperations::kMinus:
+      (*shm_ptr_).*shm_member = (*shm_ptr_).*shm_member - op_arg;
+      break;
+    case SHMOperations::kNegate:
+      (*shm_ptr_).*shm_member = -1 * (*shm_ptr_).*shm_member;
+      break;
+    case SHMOperations::kDivides:
+      if (op_arg != 0) {
+        (*shm_ptr_).*shm_member = (*shm_ptr_).*shm_member / op_arg;
+      }
+      break;
+    case SHMOperations::kModulus:
+      (*shm_ptr_).*shm_member = (*shm_ptr_).*shm_member % op_arg;
+      break;
+    case SHMOperations::kMultiplies:
+      (*shm_ptr_).*shm_member = (*shm_ptr_).*shm_member * op_arg;
+      break;
+    }
+    shm_ptr_->seq_number.fetch_add(1);
+    shm_sem_.Post();
+ //   (*shm_ptr_).*shm_member = op((*shm_ptr_).*shm_member, op_arg);
   }
 
 };

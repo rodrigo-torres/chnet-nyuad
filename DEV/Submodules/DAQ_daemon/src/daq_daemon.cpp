@@ -19,6 +19,53 @@
 
 namespace maxrf::daq {
 
+class ScanDimensions
+{
+protected:
+  friend class DAQSession;
+  static uint width;
+  static uint height;
+  static uint pixels;
+
+  void static ComputeDimensions(DAQModeParameters const & params) {
+    auto val = params.x_end_coordinate - params.x_start_coordinate;
+    val /= params.x_motor_step;
+
+    width = static_cast<uint>(val);
+
+    val = params.y_end_coordinate - params.y_start_coordinate;
+    val /= params.y_motor_step;
+
+    height = static_cast<uint>(val) + 1;
+    pixels = width *  height;
+  }
+
+public:
+  static inline auto PixelToXCoord(uint pixel) {
+    return pixel % width;
+  }
+  static inline auto PixelToYCoord(uint pixel) {
+    return pixel / width;
+  }
+
+  static inline auto Width() noexcept {
+    return width;
+  }
+
+  static inline auto Height() noexcept {
+    return height;
+  }
+
+  static inline auto Pixels() noexcept {
+    return pixels;
+  }
+
+};
+
+uint ScanDimensions::width  {0};
+uint ScanDimensions::height {0};
+uint ScanDimensions::pixels {0};
+
 bool DAQSession::SetupDAQSession(DAQInitParameters const & config) {
   bool status {false};
 
@@ -27,6 +74,7 @@ bool DAQSession::SetupDAQSession(DAQInitParameters const & config) {
   }
 
   try {
+    ScanDimensions::ComputeDimensions(config.mode_parameters);
     caen_handle_ = std::make_unique<CAENLibraryHandle>();
 
     auto writer_ = std::make_shared<FileWriter>();
@@ -53,14 +101,12 @@ void DAQSession::StartDAQSession() {
 
   switch (session_params_.mode) {
   case DAQMode::kDAQScan :
-    // Set up the extra stuff for the scan
-    image_dimensions_[0] =
-        session_params_.x_end_coordinate - session_params_.x_start_coordinate;
-    image_dimensions_[0] /= session_params_.x_motor_step;
-    image_dimensions_[1] =
-        session_params_.y_end_coordinate - session_params_.y_start_coordinate;
-    image_dimensions_[1] /= session_params_.y_motor_step;
-    image_dimensions_[2] = image_dimensions_[0] * image_dimensions_[1];
+    std::cout << "Initing semaphores... " << std::endl;
+    sem_probe_.Init("/daq_probe");
+    sem_reply_.Init("/daq_reply");
+    std::cout << "Semaphores inited... " << std::endl;
+    sem_reply_.Post();
+    sem_probe_.Wait();
 
 //    sem_probe = sem_open("/daq_probe", 0);
 //    sem_reply = sem_open("/daq_reply", 0);
@@ -77,16 +123,12 @@ void DAQSession::StartDAQSession() {
 void DAQSession::EnterDAQLoop() {
   using namespace std::chrono;
 
-  int32_t pixel {0};
-  auto & width = image_dimensions_[0];
-  auto & height = image_dimensions_[1];
-  auto & total_pixels = image_dimensions_[2];
+  uint32_t pixel {0};
   auto daq_duration   = std::chrono::duration<double> {session_params_.timeout};
 
 
   int32_t samples {0};
   microseconds micros {0};
-
 
   pipes_.front().OpenPipe();
   auto start_timestamp = steady_clock::now();
@@ -113,13 +155,17 @@ void DAQSession::EnterDAQLoop() {
       //              <<  duration_cast<microseconds>(t2  - t1).count() << std::endl;
       ++pixel;
 
-      if (pixel == total_pixels) {
+      if (pixel == ScanDimensions::Pixels()) {
+        pipes_.front().ClosePipe();
+        sem_reply_.Post();  // One last post to let know app we've finished
         break;
       }
 
-      if ( (pixel % width) == 0) {
+      if ( (pixel % ScanDimensions::Width()) == 0) {
         // Synchronize with the motors at the end of each scan line
         pipes_.front().ClosePipe();
+        sem_reply_.Post();
+        sem_probe_.Wait();
         //      sem_post(sem_probe);
         //      sem_wait(sem_reply);
         pipes_.front().OpenPipe();
@@ -147,12 +193,12 @@ void DAQSession::CleanupEverything() {
   pipes_.clear();
 
   // Handle semaphores
-  if (sem_reply) {
-    sem_close(sem_reply);
-  }
-  if (sem_probe) {
-    sem_close(sem_probe);
-  }
+//  if (sem_reply) {
+//    sem_close(sem_reply);
+//  }
+//  if (sem_probe) {
+//    sem_close(sem_probe);
+//  }
 
   caen_handle_.reset(nullptr);
 }
@@ -166,8 +212,10 @@ void DAQPipe::SendDataDownPipe() {
   for (auto & channel : producer_->GetHandles()) {
     auto packet = consumer_->GetEmptyDataPacket();
     packet.channel_id = pipe_id + channel_id;
-    packet.pixel_no = pixel++;
-    packet.m_buffer.swap(channel.histogram);
+    packet.pixel.coord_x = ScanDimensions::PixelToXCoord(pixel);
+    packet.pixel.coord_y = ScanDimensions::PixelToYCoord(pixel);
+    packet.pixel.histogram.swap(channel.histogram);
+    ++pixel;
 
     consumer_->PushDataPacketToQueue(std::move(packet));
     ++channel_id;
@@ -175,6 +223,7 @@ void DAQPipe::SendDataDownPipe() {
 }
 
 FileWriter::FileWriter() {}
+
 
 
 void FileWriter::Initialize(DAQInitParameters const & config) {
@@ -215,26 +264,25 @@ void FileWriter::Initialize(DAQInitParameters const & config) {
 
       file->EditToken("Calibration_Param_0", "0.00");
       file->EditToken("Calibration_Param_1", "0.0113");
-      file->EditToken("Calibration_Param_2", "0.00");
-
-      WriteMode mode = static_cast<WriteMode>(static_cast<int>(config.mode_parameters.mode));
-      file->SetWriteMode(mode);
+      file->EditToken("Calibration_Param_2", "0.00");    
+      file->EditToken("Width", std::to_string(ScanDimensions::Width()));
+      file->EditToken("Height", std::to_string(ScanDimensions::Height()));
+      file->EditToken("Pixels", std::to_string(ScanDimensions::Pixels()));
     }
   }
+
+ mode_ = static_cast<WriteMode>(static_cast<int>(config.mode_parameters.mode));
+// file->SetWriteMode(mode, ScanDimensions::Width());
+
 
   constexpr int kEmptyBuffersSize = 10;
   for (auto _ = kEmptyBuffersSize; _--; ) {
     DataPacket packet {};
-    packet.m_buffer.resize(kSpectralBins, 0);
+    packet.pixel.histogram.resize(kSpectralBins, 0);
     empty_packets_pool.push(std::move(packet));
   }
 
-  mode_ = config.mode_parameters.mode;
-
-  scan_line_width_ =
-      static_cast<uint32_t>( ( config.mode_parameters.x_end_coordinate -
-                              config.mode_parameters.x_start_coordinate ) /
-                              config.mode_parameters.x_motor_step);
+  TimestampFiles();
   BeginWritingTask();
 }
 
@@ -248,6 +296,7 @@ void FileWriter::TimestampFiles() {
   for (auto & file : files_) {
     file->EditToken(HeaderTokens::kDAQStartTimestamp, sstream.str());
     file->WriteHeader();
+    file->SetWriteMode(mode_, ScanDimensions::Width());
   }
 }
 
@@ -258,7 +307,15 @@ void FileWriter::WriteTask() {
     if (pending_jobs.try_pop(current_job)) {
 //      using namespace std::chrono;
 //      auto t1 = high_resolution_clock::now();
-      WriteDataToFiles(current_job);
+//      WriteDataToFiles(current_job);
+
+      files_.at(current_job.channel_id)->WritePixel(current_job.pixel);
+      // We have already zeroed the packet buffer
+      current_job.pixel.coord_x   = std::numeric_limits<int32_t>::max();
+      current_job.pixel.coord_y   = std::numeric_limits<int32_t>::max();
+      current_job.channel_id = std::numeric_limits<int32_t>::max();
+
+      empty_packets_pool.push(std::move(current_job));
 //      auto t2 = high_resolution_clock::now();
 //      std::cout << "Writing to file took (ms): "
 //                << duration_cast<microseconds>(t2 - t1).count() << std::endl;
@@ -269,223 +326,8 @@ void FileWriter::WriteTask() {
   }
 
   for (auto & file_handle : files_) {
-    auto & file = file_handle->DataFile();
-    file << "</Analysis_Data>\n";
-    // Perhaps write a footer
-    file << "</XRFAnalysis>\n";
+    file_handle->WriteFooter();
   }
-}
-
-void FileWriter::WriteDataToFiles(Job & packet)
-{
-  using PixelBuffer = std::vector<uchar>;
-  thread_local std::vector<PixelBuffer> buffer {};
-  thread_local std::vector<FileStats>   stats  {};
-//  thread_local std::vector<std::byte>   single_call_buffer {};
-  thread_local bool call_once {true};
-  if (call_once) {
-    // Each data file has it's own file stats data structure
-    stats.resize(files_.size());
-    // The buffer holds the pixel data of one line for every data file
-    buffer.resize(files_.size() * scan_line_width_);
-    // The buffer is arranged as such:
-    // pos 0 -> buffer of pixel 0 of data file 0
-    // pos 1 -> buffer of pixel 1 of data file 0
-    // ...
-    // pos scan_width - 1 -> buffer of pixel scan_width - 1 of data file 0
-    // pos scan_width     -> buffer of pixel 0 of data file 1
-    // pos scan_width + 1 -> buffer of pixel scan_width + 1 of data file 1
-    // ...
-    // pos (scan_width * no_of_files) - 1
-    //        -> buffer of pixel scan_width - 1 of data file no_of_files - 1
-    // pos (scan_width * no_of_files) -> end iterator of buffer
-    for (auto & pixel_buff : buffer) {
-      // Every pixel buffer reserves at first 2 pages of memory (tipically ~8K)
-      pixel_buff.resize(0x1U << 12, 0);
-    }
-//    single_call_buffer.reserve(0x1U << 12);
-    call_once = false;
-  }
-
-  // A useful lambda to reset Queue data packets back to 'zero' state
-  auto thread_local ResetDataPacket = [] (Job & _p) {
-    _p.pixel_no   = std::numeric_limits<int32_t>::max();
-    _p.channel_id = std::numeric_limits<int32_t>::max();
-
-    // Casting the pointers to char * and filling with '\0' forces the
-    // memcpy template resolution of std::fill
-    auto begin = reinterpret_cast<char *>(&(*_p.m_buffer.begin()));
-    auto end   = reinterpret_cast<char *>(&(*_p.m_buffer.end()));
-    std::fill(begin, end, '\0');
-  };
-
-
-  auto & call_buffer = buffer.at((packet.pixel_no % scan_line_width_)
-                                 * (packet.channel_id + 1));
-
-  // For now we only write channel 0 of the MCA
-//  auto & file_object = files_.at(packet.channel_id);
-//  auto & file  = file_object->DataFile();
-//  int32_t bin {0}, expected_bin {0};
-  std::size_t bin {0};
-  constexpr uint16_t zero_block_flag {std::numeric_limits<uint16_t>::max()};
-
-  switch (mode_) {
-  case DAQMode::kDAQScan : {
-    auto ptr = call_buffer.begin();
-    auto end = call_buffer.end();
-    // The x-coordinate is the modulus of the pixel number over the scan width
-    uint32_t coord = packet.pixel_no % scan_line_width_;
-    memcpy(ptr.base(), &coord, sizeof (coord));
-    ptr += 4;
-    coord = packet.pixel_no / scan_line_width_;
-    memcpy(ptr.base(), &coord, sizeof (coord));
-    ptr += 4;
-    for (auto & counts : packet.m_buffer) {
-      if (counts == 0) {
-        ++bin;
-        continue;
-      }
-      // Checks the size of the buffer is enough
-      if (end.base() - ptr.base() < 100) {
-        auto offset = ptr - call_buffer.begin();
-        call_buffer.resize(call_buffer.size() * 2);
-        ptr = call_buffer.begin() + offset;
-      }
-
-
-      if (bin != 0) {
-        // Write preceding zeroes
-        if (bin < 3) {
-         memset(ptr.base(), 0, bin * 2);  // Zeroes use two bytes
-         ptr += (bin * 2);
-        }
-        else {
-          memcpy(ptr.base(), &zero_block_flag, sizeof (zero_block_flag));
-          ptr += sizeof(zero_block_flag);
-          memcpy(ptr.base(), &bin, 2);
-          ptr += 2;
-        }
-        bin = 0;
-      }
-      // Write value
-      memcpy(ptr.base(), &counts, 2);
-      ptr += 2;
-
-      // Zeroes the packet after reading the value
-      counts = 0;
-    }
-    // Mark the end of pixel with 32 bits set to 1
-    coord = std::numeric_limits<uint32_t>::max();
-    memcpy(ptr.base(), &coord, 4);
-    ptr += 4;
-
-    // Wrote the buffer
-    auto & ch_stats = stats.at(packet.channel_id);
-
-    // If there are exactly scan_width pixels in the buffer, flush the
-    // data in the correct order to the data file
-    if (++ch_stats.pixels_in_buffer == scan_line_width_) {
-      // Trigger writing into file in the correct order
-      auto begin = buffer.begin() + scan_line_width_ * packet.channel_id;
-      auto & file = files_.at(packet.channel_id)->DataFile();
-      file << std::hex << std::uppercase;
-      uint32_t bytes_read_4;
-      uint16_t bytes_read_2;
-
-
-      for (auto it = begin; it != begin + scan_line_width_; ++it) {
-        ptr = it->begin();
-        memcpy(&bytes_read_4, ptr.base(), 4);
-        ptr += 4;
-
-        file << bytes_read_4 << ',';  // Write the x coordinate
-        memcpy(&bytes_read_4, ptr.base(), 4);
-        ptr += 4;
-        file << bytes_read_4; // Write the y coordinate
-
-        bool enable {true};
-        while (enable) {
-          memcpy(&bytes_read_2, ptr.base(), 2);
-          ptr += 2;
-          switch (bytes_read_2) {
-          case std::numeric_limits<uint16_t>::max() :
-            // This is either a zero block flag or a pixel stop flag
-            bytes_read_4 = static_cast<uint32_t>(bytes_read_2 << 16);
-            memcpy(&bytes_read_2, ptr.base(), 2);
-            ptr += 2;
-            bytes_read_4 |= bytes_read_2;
-            if (bytes_read_4 == std::numeric_limits<uint32_t>::max()) {
-              // This is a pixel stop flag
-              file << std::endl;
-              enable = false;
-            }
-            else {
-              // This a zero block flag, the last 2 bytes read tell us the
-              // number of zeroes to write
-              file << ',' << bytes_read_2 << 'R';
-            }
-            break;
-          case 0:
-            // Two zeroes
-            file << ',' << 0;
-            file << ',' << 0;
-            break;
-          default:
-            // This a normal value
-            file << ',' << bytes_read_2;
-            break;
-          }
-        }
-
-        ++ch_stats.pixels_written;
-        --ch_stats.pixels_in_buffer;
-      }
-
-      // We'll read the data in blocks of 2 bytes
-
-    }
-
-    // After this monster of an operation we should be done
-
-    //    file << std::hex << std::uppercase;
-    //    file << packet.pixel_no << ',';
-    //    for (auto & counts : packet.m_buffer) {
-    //      if (counts == 0) {
-    //        ++bin;
-    //        continue;
-    //      }
-    //      if (bin != expected_bin) {
-    //        file << bin - 1 << "R,";
-    //        expected_bin = bin;
-    //      }
-    //      file << counts << ',';
-    //      ++bin;
-    //      ++expected_bin;
-    //    }
-    //    file.seekp(file.tellp() - std::fstream::off_type {1});
-    //    file << '\n';
-    break;
-  }
-  case DAQMode::kDAQPoint :
-    files_.at(packet.channel_id)->WritePixel(packet.m_buffer);
-    break;
-  case DAQMode::kDAQInvalid :
-    break;
-  }
-
-//  constexpr auto size = sizeof (std::vector<std::byte>);
-//  std::vector<std::byte> buffer;  // Reserve two pages of memory ~8Kbytes
-//  // 8 bytes begin scan
-  // 3 bytes pixel coord, 3 bytes pixel coord, 2 bytes val, 2 bytes val, 1 byte zero, 1 byte zero, 2 bytes stop + 2 bytes number of zeroes following, 3 bytes pixel
-  // 8 bytes end scan
-
-//  ResetDataPacket(packet);
-  // We have already zeroed the packet buffer
-  packet.pixel_no   = std::numeric_limits<int32_t>::max();
-  packet.channel_id = std::numeric_limits<int32_t>::max();
-
-  empty_packets_pool.push(std::move(packet));
 }
 
 

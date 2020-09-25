@@ -7,13 +7,13 @@
 
 TEMPLATE = app
 TARGET = XRF_image
-VERSION = 0.0.5
+VERSION = 0.0.6
 
-DEFINES += XRF_IMAGE_WIDGET_LIBRARY
-
+DEFINES += MAXRF_DEBUG
 # This gets the value of the DEV_XRF environment variable
 # Make sure its set to the root directory of the MAXRF application!
 PROJECT_DIR = $$(DEV_XRF)
+DEFINES += PROJECT_LOCAL_FOLDER=\\\"$$PROJECT_DIR/Local\\\"
 
 # ---------------------------------------------------------------------------- #
 # QT MODULES CONFIGURATION
@@ -54,16 +54,18 @@ UI_DIR      = $$PWD/build
 # External libraries configuration and search paths
 # ---------------------------------------------------------------------------- #
 
+QMAKE_LFLAGS += -Wl,-rpath,"$$PROJECT_DIR/Local/lib"
+
 # API headers search path for shared and static libraries
-INCLUDEPATH += $$PROJECT_DIR/include
+INCLUDEPATH += $$PROJECT_DIR/Local/include
 # Search path for dynamically linked libraries
-DEPENDPATH += $$PROJECT_DIR/libs
+DEPENDPATH += $$PROJECT_DIR/Local/lib
 
 unix:!macx {
   # Shared and static libraries search directory
-  LIBS += -L$$PROJECT_DIR/libs
+  LIBS += -L$$PROJECT_DIR/Local/lib
   # Libraries used in the project (and dynamically linked)
-  LIBS += -lsharedmemory -lqcustomplot -lpugixml -lfileconverter -lfilemanagement
+  LIBS += -lmaxrfipc -lqcustomplot -lpugixml -lfilemanagement
 }
 
 # ---------------------------------------------------------------------------- #
@@ -75,21 +77,15 @@ unix:!macx {
 INCLUDEPATH += $$PWD/include
 
 HEADERS += \
-  include/MAXRF/types.h \
-  include/MAXRF/image_display.h \
-  include/MAXRF/utility.hpp \
-  include/MAXRF/xrf_image_plot.h \
-  include/MAXRF/xrf_image_widget.h \
-  include/MAXRF/xrfimage.h \
+  src/renderer.h \
+  src/widgets.h \
   src/palettes.h
 SOURCES += \
+  src/image_plot.cpp \
   src/main.cpp \
-  src/mouse_events_handle.cpp \
-  src/processing_algorithms.cpp \
-  src/xrf_image_plot.cpp \
-  src/xrfimage_data.cpp \
-  src/xrfimage_qlabel.cpp \
-  src/xrfimage_widget.cpp
+  src/mediator.cpp \
+  src/renderer.cpp \
+  src/widgets.cpp
 RESOURCES += \
   resources/resource.qrc
 

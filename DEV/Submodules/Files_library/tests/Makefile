@@ -14,10 +14,10 @@ EQ            = =
 
 CC            = gcc
 CXX           = g++
-DEFINES       = -DQT_DEPRECATED_WARNINGS -DQT_DISABLE_DEPRECATED_BEFORE=0x060000 -DQT_GUI_LIB -DQT_TESTLIB_LIB -DQT_CORE_LIB -DQT_TESTCASE_BUILDDIR='"/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/MAXRF_file/tests"' -DQT_QML_DEBUG
+DEFINES       = -DQT_DEPRECATED_WARNINGS -DQT_DISABLE_DEPRECATED_BEFORE=0x060000 -DQT_GUI_LIB -DQT_TESTLIB_LIB -DQT_CORE_LIB -DQT_TESTCASE_BUILDDIR='"/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/Files_library/tests"' -DQT_QML_DEBUG
 CFLAGS        = -pipe -g -D_REENTRANT -Wall -W -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -g -std=gnu++1z -D_REENTRANT -Wall -W -fPIC $(DEFINES)
-INCPATH       = -I. -I../../../include -I. -isystem /usr/include/qt5 -isystem /usr/include/qt5/QtGui -isystem /usr/include/qt5/QtTest -isystem /usr/include/qt5/QtCore -I. -isystem /usr/include/libdrm -I/usr/lib64/qt5/mkspecs/linux-g++
+INCPATH       = -I. -I../../../Local/include -I. -isystem /usr/include/qt5 -isystem /usr/include/qt5/QtGui -isystem /usr/include/qt5/QtTest -isystem /usr/include/qt5/QtCore -I. -isystem /usr/include/libdrm -I/usr/lib64/qt5/mkspecs/linux-g++
 QMAKE         = /usr/local/bin/qmake
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -37,10 +37,10 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = test1.0.0
-DISTDIR = /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/MAXRF_file/tests/.tmp/test1.0.0
+DISTDIR = /home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Submodules/Files_library/tests/.tmp/test1.0.0
 LINK          = g++
-LFLAGS        = -Wl,-rpath,/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/libs
-LIBS          = $(SUBLIBS) -L/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/libs/ -lpugixml -lpthread /usr/lib64/libQt5Gui.so /usr/lib64/libQt5Test.so /usr/lib64/libQt5Core.so /usr/lib64/libGL.so   
+LFLAGS        = -Wl,-rpath,/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Local/lib
+LIBS          = $(SUBLIBS) -L/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Local/lib -lpugixml -lpthread /usr/lib64/libQt5Gui.so /usr/lib64/libQt5Test.so /usr/lib64/libQt5Core.so /usr/lib64/libGL.so   
 AR            = ar cqs
 RANLIB        = 
 SED           = sed
@@ -626,20 +626,21 @@ compiler_clean: compiler_moc_predefs_clean
 
 ####### Compile
 
-main.o: main.cpp ../../../include/MAXRF/file_management.hpp \
-		../../../include/MAXRF/maxrf_libraries_config.h
+main.o: main.cpp ../../../Local/include/MAXRF/file_management.hpp \
+		../../../Local/include/MAXRF/maxrf_libraries_config.h \
+		../../../Local/include/pugi/pugixml.hpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 file_formats.o: ../src/file_formats.cpp ../src/file_formats.hpp \
 		../src/file_management.hpp \
 		../src/maxrf_libraries_config.h \
-		../../../include/pugi/pugixml.hpp
+		../../../Local/include/pugi/pugixml.hpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o file_formats.o ../src/file_formats.cpp
 
 file_management.o: ../src/file_management.cpp ../src/file_management.hpp \
 		../src/maxrf_libraries_config.h \
-		../src/file_formats.hpp \
-		../../../include/pugi/pugixml.hpp
+		../../../Local/include/pugi/pugixml.hpp \
+		../src/file_formats.hpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o file_management.o ../src/file_management.cpp
 
 ####### Install

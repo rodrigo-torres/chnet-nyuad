@@ -45,6 +45,13 @@
  enum class MAXRF_LIBRARIES_SHARED_EXPORT HeaderTokens : int
  {
    kDAQStartTimestamp,
+   kStartXCoordinate,
+   kStartYCoordinate,
+   kEndXCoordinate,
+   kEndYCoordinate,
+   kMotorStepX,
+   kMotorStepY,
+   kMotorVelocity,
    kImageWidth,
    kImageHeight,
    kImagePixels
@@ -140,6 +147,101 @@
    size_type y_len_;
  };
 
+ struct PixelData
+ {
+   uint32_t coord_x;
+   uint32_t coord_y;
+   std::vector<uint16_t> histogram;
+ };
+
+ ///
+ /// \brief The FileWriter class takes spectral data from consecutive pixels of
+ /// an XRF scan line and outputs it to a file in the correct order and with the
+ /// correct format
+ ///
+ /// The ordering of the pixels on an MAXRF scan depends on the number of the
+ /// scan line. Pixels on even lines increase to the right, while pixels on
+ /// odd lines increase to the left.
+ ///
+ /// The FileWriter class uses two buffers to accomplish is task: a pixel buffer,
+ /// and a scan line buffer. The scan line buffer is merely a list of pixel
+ /// buffers arranged in the correct order. The pixel with column coordinate 0
+ /// will be at the index 0 of the scan line buffer, and so on.
+ ///
+ /// The pixel buffer has the following format:
+ /// Begins with 4 bytes for the pixel x coord, then 4 bytes for the y coord
+ /// Then all data following can have a layout of either:
+ ///  - 2 bytes (not equal to 0xFFFFU) for the event counts
+ ///  - 2 bytes command flag (0xFFFFU) followed by 2 bytes coding the number
+ ///    of consecutive zeroes in the histogram
+ /// Finally a 4 byte flag marks the end of pixel (0xFFFF FFFFU)
+ ///
+ /// The FileWriter class takes the pixel spectral data and codes it in the pixel
+ /// buffer with the format described above. Then, the FileWriter class writes
+ /// all the pixel data to the file only when all the pixel buffers in a given
+ /// line have been written.
+ ///
+ /// Data can be written to the file in binary or ASCII mode. In case of the
+ /// former, the data will have the format described above. In case of the latter
+ /// the format will be the following;
+ ///
+ /// - All numbers are written in their ASCII uppercase hexadecimal representation
+ /// - pixel column coordinate followed by a comma
+ /// - pixel row coordinate followed by a comma, or in case there is no spectral
+ ///   data in the pixel, followed by a std::endl
+ /// - bin event counts (which can be zero)
+ /// - should there be more than two consecutive zeroes in the data histogram,
+ /// they are written as:
+ ///   - number of consecutive zeroes, followed by an 'R', followed by a comma
+ /// - the end of the pixel is marked by replacing the trailing comma with a
+ ///   std::endl
+ ///
+ class MAXRF_LIBRARIES_SHARED_EXPORT FileWriter
+ {
+
+ public:
+   using Histogram   = std::vector<uint16_t>;
+   using PixelBuffer = std::vector<uchar>;
+
+   ///
+   /// \brief FileWriter constructor takes ownership of a file descriptor
+   /// (managed by a file stream class instance) and setups the scan line
+   /// buffer to the specified with
+   /// \param f
+   /// \param width
+   ///
+   FileWriter(std::fstream && f, uint32_t width) {
+     file_ = std::move(f);
+     scan_line_width_ = width;
+
+     SetUpBuffers(width);
+   }
+
+
+ //  void AddOutputFile(std::shared_ptr<HypercubeFile> file) {
+ //    file_ = file;
+ //  }
+   void SetUpBuffers(uint scan_line_width);
+
+   void WriteDataToFiles(PixelData & data);
+
+   auto ReacquireFileOwnership() {
+     return std::move(file_);
+   }
+
+ private:
+ //  std::shared_ptr<HypercubeFile> file_ {nullptr};
+   std::fstream file_ ;
+   std::vector<PixelBuffer> buffer {};
+   uint32_t scan_line_width_;
+
+   struct FileStats {
+     uint32_t pixels_in_buffer;  ///< No. of pixels in buffer but not written
+     uint32_t pixels_written;    ///< No. of pixels written
+     Histogram  sum_spectrum;    ///< Detector sum spectrum of scan
+   } stats {};
+ };
+
  class MAXRF_LIBRARIES_SHARED_EXPORT DataFileHander
  {
 
@@ -175,6 +277,7 @@ protected:
     file_ = std::move(_file);
   }
 
+  std::unique_ptr<FileWriter> writer {nullptr};
   DataFormat format_ { DataFormat::kInvalid };
   std::fstream file_ {};
 
@@ -199,7 +302,6 @@ class MAXRF_LIBRARIES_SHARED_EXPORT HypercubeFile : public MAXRFDataFile
   friend DataFileHander;
 
 public:
-  using PixelData   = std::vector<uint32_t>;
 
   HypercubeFile(std::fstream && f);
 
@@ -213,8 +315,21 @@ public:
   ///
   /// \brief SetWriteMode sets the write mode to either Scan DAQ, or Point DAQ
   ///
-  inline void SetWriteMode(WriteMode mode) {
+  inline void SetWriteMode(WriteMode mode, uint width) {
     write_mode = mode;
+    switch (write_mode) {
+    case WriteMode::kDAQInvalid :
+      [[fallthrough]];
+    case WriteMode::kDAQPoint :
+      if (writer) {
+        file_ = writer->ReacquireFileOwnership();
+        writer.reset();
+      }
+      break;
+    case WriteMode::kDAQScan :
+      writer = std::make_unique<FileWriter>(std::move(file_), width);
+      break;
+    }
   }
   ///
   /// \brief MakeDefaultHeader looks at the configuration file and tries to fill
@@ -231,20 +346,14 @@ public:
   /// such as \see EditToken, to confirm the changes and write the header
   ///
   bool WriteHeader();
+
   ///
   /// \brief WritePixel write a single spectrum in the specified format
   /// \param data
   /// \return
   ///
-  bool WritePixel(PixelData const & data);
-  ///
-  /// \brief WritePixel overload specific for writing XRF scan data
-  /// \param data
-  /// \param x
-  /// \param y
-  /// \return
-  ///
-  bool WritePixel(PixelData const & data, size_t x, size_t y);
+  bool WritePixel(PixelData & data);
+
   ///
   /// \brief MakeDefaultFooter
   /// \return
@@ -313,7 +422,7 @@ public:
         ++bin;
         break;
       case 'R':
-        bin = value;
+        bin += value; // We skip the number of consecutive zeroes
         // Extract the trailing comma
         file_ >> character;
         break;
@@ -334,7 +443,6 @@ public:
 private:
   WriteMode write_mode  { WriteMode::kDAQInvalid };
 
-//  std::fstream file_;
   std::fstream::pos_type first_datum_pos_;
 
   pugi::xml_document header_node_;

@@ -80,11 +80,14 @@ auto shmarray<T>::initialize(Segments segment) noexcept -> bool
     init.size = 409600;
   }
 
+
   shmid_ = shmget(init.key, init.size, Flags::ACCESS);
-  if (errno == ENOENT)  {
+  if (shmid_ == -1 && errno == ENOENT) {
+    // Segment doesn't exist, we attempt to create it
     shmid_ = shmget(init.key, init.size, Flags::CREATE);
   }
   if (shmid_ == -1) {
+    // Segment couldn't be created, or it exists and we can't access it
     std::cout << "[!] Can't access SHM: " << strerror(errno) << std::endl;
     return false;
   }

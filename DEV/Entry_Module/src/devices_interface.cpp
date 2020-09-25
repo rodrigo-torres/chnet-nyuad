@@ -136,88 +136,77 @@ void tty_agent::abort() {
     *(shared_memory_cmd+200) = 0;
 }
 
-//void StageMotor::init()
-//{
-//    load_conf();
-//    SendData("VEL 1 " + params[1]);
-//    SendData("SVO 1 1");
-//    SendData("FNL 1");
-//    if (wait())
-//        throw "[!] Initialization aborted";
-
-//    SendData("MOV 1 " + params[2]);
-//    if (wait())
-//        throw "[!] Initialization aborted";
-
-//    is_inited = true;
-//}
+#include <QMessageBox>
 
 
 void tty_agent::timer_event() {
-    /* Check for abort flag */
-    if (*(shared_memory_cmd+200) == 1) {
-        abort();
-        if (servo_active) servo_active = false;
-        if (scanning) scanning = false;
-        return;
-    }
+  using maxrf::ipc::SHMStructure;
 
-    /* Check motors on target */
-    if (stage_x_ != nullptr) {
-      if (stage_x_->IsInited()) {
-        stage_x_->check_ont();
-        stage_x_->SendCommand(MotorCommands::kGetPosition);
-        emit update_monitor(stage_x_->get_message(), style_green, 0);
-      }
+  // Check for abort flag
+  if (shared_memory_cmd[200]) {
+    abort();
+    if (servo_active) {
+      servo_active = false;
     }
-
-    if (stage_y_ != nullptr) {
-      if (stage_y_->IsInited()) {
-        stage_y_->check_ont();
-        stage_y_->SendCommand(MotorCommands::kGetPosition);
-        emit update_monitor(stage_y_->get_message(), style_green, 1);
-      }
+    if (scan_handle_) {
+      scan_handle_->AbortScan();
+      scan_handle_->TakeBackOwnership(stage_x_, stage_y_);
+      scan_handle_.reset(nullptr);
     }
+  }
 
-    if (stage_z_ != nullptr && !laser_active) {
-      if (stage_z_->IsInited()) {
-        stage_z_->check_ont();
-        stage_z_->SendCommand(MotorCommands::kGetPosition);
-        emit update_monitor(stage_z_->get_message(), style_green, 2);
-      }
+  // Check ongoing scan
+  if (scan_handle_) {
+    // There's an active scan
+    scan_handle_->UpdateEvent();
+
+    if (scan_handle_->IsDone()) {
+      scan_handle_->TakeBackOwnership(stage_x_, stage_y_);
+      scan_handle_.reset(nullptr);
     }
-
-
-    /* Check scan */
-    if (scanning) {
-      scan_loop();
+  }
+  else {
+    // Update the position motors manually
+    if (stage_x_) {
+      emit update_monitor(stage_x_->TriggerPositionUpdate(), style_green, 0);
     }
-    else if (shm.GetVariable(&maxrf::ipc::SHMStructure::daq_request_scan_from_motors)){
-      shm.WriteVariable(&maxrf::ipc::SHMStructure::daq_scan_request_acknowledged, true);
-      shm.WriteVariable(&maxrf::ipc::SHMStructure::daq_request_scan_from_motors, false);
-      scan();
+    if (stage_y_) {
+      emit update_monitor(stage_y_->TriggerPositionUpdate(), style_green, 1);
     }
-//    else if () {
+  }
 
-//    }
+  // Check position of z stage if servo is not active
+  if (laser_active) {
+    // Reserved for future use
+  }
+  else if (stage_z_) {
+    emit update_monitor(stage_z_->TriggerPositionUpdate(), style_green, 2);
+  }
+
+  if (shm.GetVariable(&SHMStructure::daq_request_scan_from_motors)) {
+    // The signal requests the UI to produce a warning dialog asking the user
+    // to either accept or cancel the DAQ request
+    emit TriggerDAQPrompt();
+
+    // Wait for a response
+    while (daq_req_input_ready == false) {
+      QThread::msleep(100); // Sleep for 0.1 seconds
+    }
+    daq_req_input_ready = false;
+
+    if (daq_req_accepted) {
+      // Transfer ownership of stages to ScanManager and begin scan
+      scan_handle_ = std::make_unique<ScanManager>(std::move(stage_x_),
+                                                   std::move(stage_y_),
+                                                   this);
+    }
+    else {
+      // Default action is to ignore the request
+      shm.WriteVariable(&SHMStructure::daq_request_scan_from_motors, false);
+    }
+  }
 }
 
-//void tty_agent::set_target(int id, double target) {
-//  switch (id) {
-//  case 0:
-//    stage_x_->tar = target;
-//    break;
-//  case 1:
-//    stage_y_->tar = target;
-//    break;
-//  case 2:
-//    stage_z_->tar = target;
-//    break;
-//  default:
-//    qDebug() << "Unknown case";
-//    break;
-//  }
-//}
 
 void tty_agent::move_stage(int id, double pos) {
     switch (id) {
@@ -256,7 +245,7 @@ void tty_agent::move_stage(int id, double pos) {
     case 8: {
       auto & motor = HandleOfMotorID((id - 4) / 2);
       if (motor != nullptr) {
-        motor->SendCommand(MotorCommands::kStepIncrease);
+        motor->SendCommand(MotorCommands::kStepDecrease);
       }
       break;
     }
@@ -279,18 +268,12 @@ void tty_agent::start_servo(bool active) {
     servo_active = active;
 }
 
-void tty_agent::set_velocity(double vel) {
-    s_vel = vel;
- //   scan_parameters.motor_velocity = vel;
- //   *(shared_memory5+6) = vel;
-
-    stage_x_->SendCommand(MotorCommands::kSetSpeed, vel);
-    stage_z_->SendCommand(MotorCommands::kSetSpeed, vel);
-}
 
 void tty_agent::servo() {
   using namespace std::literals;
-  auto pos = stage_z_->SendCommand(MotorCommands::kGetPosition);
+  stage_z_->SendCommand(MotorCommands::kGetPosition);
+  auto pos = stage_z_->pos;
+
   emit update_monitor(stage_z_->get_message(), style_green, 2);
 
   double value = laser_->ReadDistanceOffset();
@@ -319,27 +302,25 @@ void tty_agent::servo() {
   }
 }
 
-ScanManager::ScanManager(MotorHandle x, MotorHandle y) :
+ScanManager::ScanManager(MotorHandle x, MotorHandle y, tty_agent * handle) :
   stage_x_ {std::move(x)}, stage_y_ {std::move(y)} {
 
-  // Let's check there's a request for a scan first
-  if (!shm.GetVariable(&SHMStructure::daq_request_scan_from_motors)) {
-    // There's no request
-    return;
-  }
+  connect(this, &ScanManager::UpdatePositionMonitors,
+          handle, &tty_agent::update_monitor);
 
-  // There is such request
   params = shm.GetVariable(&SHMStructure::daq_session_params);
 
-  shm.CheckAccessRights(&SHMStructure::segment_semaphore);
-  // TODO Some sanity checks
+  sem_probe.Init("/daq_probe");
+  sem_reply.Init("/daq_reply");
 
-  //    sem_probe = sem_open("/daq_probe", O_CREAT, 0644, 0);
-  //    sem_reply = sem_open("/daq_reply", O_CREAT, 0644, 0);
+
+  // We acknowledge the scan request
+  shm.WriteVariable(&SHMStructure::daq_request_scan_from_motors, false);
+  shm.WriteVariable(&SHMStructure::daq_scan_request_acknowledged, true);
 
   // Adjust the scan limits to compensate for acceleration
-  // Motor acceleration is  specifieda s 200m/s^2
-  auto accel_dist = 0.5 * 200 * std::pow(params.motor_velocity, 2);
+  // Motor acceleration is  specifieda s 200mm/s^2
+  auto accel_dist = 0.5 * (1 / 200.) * std::pow(params.motor_velocity, 2);
   params.x_start_coordinate -= accel_dist;
   params.x_end_coordinate   += accel_dist;
 
@@ -373,107 +354,74 @@ ScanManager::ScanManager(MotorHandle x, MotorHandle y) :
   stage_x_->SendCommand(MotorCommands::kMoveToPosition,
                         params.x_end_coordinate);
   sem_probe.Post();
-  //      update_timer->start(250);
 }
 
-
-void tty_agent::scan() {
-    // Disable conflicting widgets
-    update_timer->stop();
-
-    auto params = shm.GetVariable(&maxrf::ipc::SHMStructure::daq_session_params);
-
-
-
-    x_min   = params.x_start_coordinate;
-    x_max   = params.x_end_coordinate;
-    x_step  = params.x_motor_step;
-    y_min   = params.y_start_coordinate;
-    y_max   = params.y_end_coordinate;
-    y_step  = params.y_motor_step;
-    s_vel   = params.motor_velocity;
-
-//    sem_probe = sem_open("/daq_probe", O_CREAT, 0644, 0);
-//    sem_reply = sem_open("/daq_reply", O_CREAT, 0644, 0);
-
-    /* Calculating the compensation variables */
-
-    double accel_time = s_vel / 200; // Motor acceleration specified as 200 mms-2
-    double accel_dist = 0.5 * 100 * (accel_time * accel_time); // units are in um
-
-    x_min -= accel_dist;
-    x_max += accel_dist;
-
-    /* Moving to beginning coordinates of the scan */
-
-    do {
-        stage_x_->check_ont();
-        stage_y_->check_ont();
-    } while (!stage_x_->IsOnTarget() || !stage_y_->IsOnTarget());
-
-    stage_x_->SendCommand(MotorCommands::kSetSpeed, 10.);
-    stage_y_->SendCommand(MotorCommands::kSetSpeed, 10.);
-//    stage_x_->SetStageTarget(x_min);
-//    stage_y_->SetStageTarget(y_min);
-    stage_x_->SendCommand(MotorCommands::kMoveToPosition, x_min);
-    stage_y_->SendCommand(MotorCommands::kMoveToPosition, y_min);
-  //  stage_y_->move_totarget();
-
-    /* Waiting for both motors on target */
-
-    do {
-        stage_x_->check_ont();
-        stage_y_->check_ont();
-    } while (!stage_x_->IsOnTarget() || !stage_y_->IsOnTarget());
-
-    /* Setting scan velocity and scanning flag to true */
-    scanning = true;
-    stage_x_->SendCommand(MotorCommands::kSetSpeed, s_vel);
-
-    // Request prompt dialogue from MainWindow
-//    shared_memory_cmd[300] = 2;
-//    system("./digitizer &");
-    /* Synchronize */
-    /* Sending X motor to 1st limit */
- //   sem_wait(sem_reply);
-    stage_x_->SendCommand(MotorCommands::kMoveToPosition, x_max);
-//    stage_x_->SetMotorSpeed(x_max);
-//    stage_x_->move_totarget();
-//    sem_post(sem_probe);
-    update_timer->start(250);
-}
-
-void tty_agent::scan_loop() {
-  if (next_line)
-  {
-    //sem_wait(sem_reply);
-    auto tar = fabs(stage_x_->pos - x_min) < x_min * 0.01 ?
-          x_max : x_min;
-    stage_x_->SendCommand(MotorCommands::kMoveToPosition, tar);
-    //sem_post(sem_probe);
-    next_line = false;
+void ScanManager::UpdateEvent() {
+  if (scan_done_) {
+    return;
   }
-  else if (stage_x_->IsOnTarget() && !next_line)
-  {
-    double delta = fabs(stage_y_->pos - y_max);
-    if (delta > y_max * 0.001)
-    { // Pass to the next line
-      auto tar = stage_y_->pos + y_step;
-//      stage_y_->tar += y_step;
-      stage_y_->SendCommand(MotorCommands::kMoveToPosition, tar);
+
+  emit UpdatePositionMonitors(stage_x_->TriggerPositionUpdate(),
+                              QString::fromStdString(kStyleGreen), 0);
+  emit UpdatePositionMonitors(stage_y_->TriggerPositionUpdate(),
+                              QString::fromStdString(kStyleGreen), 1);
+
+//  stage_x_->TriggerPositionUpdate();  // Update the position monitors
+//  stage_y_->TriggerPositionUpdate();
+
+  // TODO implement some method in the scan UpdateEvent to check if the
+  // motors are moving at all
+
+  // The TriggerPositionUpdate method of the StageMotor class updates the
+  // value of the internal on_target_ field
+
+  if (stage_x_->IsOnTarget()) {
+    // Synchronize with the DAQ daemon and start the new line
+    sem_reply.Wait();
+
+    // Either the scan is done, or the next scan line is coming up
+    if (fabs(params.y_end_coordinate - stage_y_->pos)
+        > params.y_motor_step * 0.5) {
+      // The scan is not done, we pass to the next line
+      stage_y_->SendCommand(MotorCommands::kMoveToPosition,
+                            stage_y_->pos + params.y_motor_step);
+
+      // Wait for Y stage to be on target
       do {
         stage_y_->check_ont();
       } while (!stage_y_->IsOnTarget());
-      next_line = true;
+
+      stage_x_->SendCommand(MotorCommands::kMoveToPosition,
+                            fabs(stage_x_->pos - params.x_start_coordinate)
+                            < params.x_motor_step * 0.5 ?
+                              params.x_end_coordinate :
+                              params.x_start_coordinate);
+      sem_probe.Post();
     }
-    else
-    { // The scan is done
-      scanning = false;
-      //            sem_wait(sem_reply);
-      //            sem_close(sem_probe);
-      //            sem_close(sem_reply);
-      //            sem_unlink("/daq_probe");
-      //            sem_unlink("/daq_reply");
+    else {
+      // The scan is done
+      scan_done_ = true;
+      // TODO some methods to garbage collect the scan semaphores
     }
   }
+  else {
+    // Currently scanning a line. Do nothing
+    // TODO perhaps update the UI while the scan line is ongoing to show
+    // the application has not hanged up.
+  }
 }
+
+void ScanManager::AbortScan() {
+
+}
+
+void ScanManager::TakeBackOwnership(MotorHandle &x, MotorHandle &y) {
+  x = std::move(stage_x_);
+  y = std::move(stage_y_);
+}
+
+bool ScanManager::IsDone() {
+  return scan_done_;
+}
+
+

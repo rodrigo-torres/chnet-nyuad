@@ -115,6 +115,31 @@ private:
 };
 
 
+//class DeviceMonitor : public QWidget {
+
+//  QLineEdit * line_edit_ { nullptr };
+
+//  static constexpr auto kStyleGreen { "QLineEdit {background-color: #2DC937; "
+//                                     "font-weight: bold; color: white;}" };
+//  static constexpr auto kStyleYellow{ "QLineEdit {background-color: #E7B416; "
+//                                     "font-weight: bold; color: white;}" };
+
+//public:
+//  explicit DeviceMonitor(QWidget * parent = nullptr) : QWidget { parent } {
+//    line_edit_ = new QLineEdit {this};
+
+//    auto font = line_edit_->font();
+//    font.setBold(true);
+
+//    line_edit_->setFont()
+//  }
+//  ~DeviceMonitor();
+
+
+
+
+//};
+
 #endif
 
 

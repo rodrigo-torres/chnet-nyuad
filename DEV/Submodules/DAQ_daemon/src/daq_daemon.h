@@ -28,7 +28,7 @@
 #include <semaphore.h>	// Semaphore with main program
 
 #include "MAXRF/ipc_methods.h"
-#include "daq_types.h"
+#include "./daq_types.h"
 #include "mca.h"
 
 namespace maxrf::daq {
@@ -70,14 +70,15 @@ private:
   std::unique_ptr<CAENLibraryHandle> caen_handle_ {nullptr};
 
   DAQModeParameters session_params_  {};
-  std::array<int, 3> image_dimensions_ {};
 
   // DAQ flags
   std::atomic_bool daq_enable {false};
 
   // DAQ semaphores for the scan daq mode
-  sem_t * sem_reply {nullptr};
-  sem_t * sem_probe {nullptr};
+  maxrf::ipc::POSIXSemaphore sem_reply_;
+  maxrf::ipc::POSIXSemaphore sem_probe_;
+//  sem_t * sem_reply {nullptr};
+//  sem_t * sem_probe {nullptr};
 };
 
 class DAQPipe
@@ -127,17 +128,10 @@ public:
   }
 };
 
-struct FileStats {
-//  int32_t width;  ///< Scan width in pixels
-//  int32_t height; ///< Scan height in pixels
-  uint32_t pixels_in_buffer;   ///< No. of pixels in buffer but not written
-  uint32_t pixels_written;     ///< No. of pixels written
-  SpectralData sum_spectrum;  ///< Sum spectrum of the scan for this detector
-};
-
 class FileWriter
 {
-  using Job = DataPacket;
+  using Job       = DataPacket;
+  using Queue     = maxrf::ipc::Queue<Job>;
   using FileHande = std::shared_ptr<maxrf::HypercubeFile>;
 
 public:
@@ -170,12 +164,10 @@ public:
 private:
   void TimestampFiles();
   void WriteTask();
-  void WriteDataToFiles(Job & packet);
 
   inline auto BeginWritingTask() {
     daq_enable = true;
     if (!writing_task_.joinable()) {
-      TimestampFiles();
       writing_task_ = std::thread(&FileWriter::WriteTask, this);
     }
   }
@@ -187,15 +179,13 @@ private:
     }
   }
 
-
+  maxrf::WriteMode mode_ { maxrf::WriteMode::kDAQInvalid };
   std::thread writing_task_;
   std::atomic_bool daq_enable;
-  maxrf::ipc::Queue<Job> pending_jobs;
-  maxrf::ipc::Queue<Job> empty_packets_pool;
+  Queue pending_jobs;
+  Queue empty_packets_pool;
 
-  DAQMode mode_ {DAQMode::kDAQInvalid};
   std::vector<FileHande> files_;
-  uint32_t scan_line_width_;
 };
 
 

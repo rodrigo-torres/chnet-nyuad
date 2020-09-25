@@ -145,36 +145,70 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow( parent ) {
     Log->setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
     layout->addWidget( Log, 0, 1 );
 
-    QLabel *gradLabel = new QLabel(this);
-    gradLabel->setText("Calibration grad. (keV / ch)");
-    gradLabel->setMaximumHeight(20);
-    layout->addWidget(gradLabel, 1, 0, 1, 2, Qt::AlignHCenter);
 
-    QLabel *offLabel = new QLabel(this);
-    offLabel->setText("Calibration off. (channels)");
-    offLabel->setMaximumHeight(20);
-    layout->addWidget(offLabel, 3, 0, 1, 2, Qt::AlignHCenter);
+    auto calibration_group  = new QGroupBox { "Calibration" };
+    auto cal_group_layout   = new QVBoxLayout {};
 
-    cntDamp = new QwtCounter( this );
-    cntDamp->setValue(1.0);
-    cntDamp->setRange(0.0, 5.0);
+    cntDamp = new QDoubleSpinBox {};
+    cntDamp->setValue(0);
+    cntDamp->setDecimals(5);
     cntDamp->setSingleStep(0.01);
-    cntDamp->setMinimumWidth(160);
-    cntDamp->setMinimumHeight(40);
-    layout->addWidget(cntDamp, 2, 0, 1, 2, Qt::AlignHCenter);
 
+    cal_group_layout->addWidget(new QLabel {"Zeroth Order (keV)"});
+    cal_group_layout->addWidget(cntDamp);
 
-    cntDamp2 = new QwtCounter( this );
-    cntDamp2->setValue(0.0);
+    cntDamp2  = new QDoubleSpinBox {};
+    cntDamp2->setValue(1);
+    cntDamp2->setDecimals(5);
     cntDamp2->setSingleStep(0.01);
-    cntDamp2->setMinimumHeight(40);
-    cntDamp2->setMinimumWidth(160);
-    cntDamp2->setRange(-10.0, 10.0);
-    layout->addWidget(cntDamp2, 4, 0, 1, 2, Qt::AlignHCenter);
+
+    cal_group_layout->addWidget(new QLabel {"First Order (keV/ch)"});
+    cal_group_layout->addWidget(cntDamp2);
+
+    auto double_spinbox     = new QDoubleSpinBox {};
+    double_spinbox->setValue(0);
+    double_spinbox->setDecimals(5);
+    double_spinbox->setSingleStep(0.01);
+
+
+    cal_group_layout->addWidget(new QLabel {"Second Order (keV/(ch^2))"});
+    cal_group_layout->addWidget(double_spinbox);
+
+//    QLabel *gradLabel = new QLabel(this);
+//    gradLabel->setText("Calibration grad. (keV / ch)");
+//    gradLabel->setMaximumHeight(20);
+//    layout->addWidget(gradLabel, 1, 0, 1, 2, Qt::AlignHCenter);
+
+//    QLabel *offLabel = new QLabel(this);
+//    offLabel->setText("Calibration off. (keV)");
+//    offLabel->setMaximumHeight(20);
+//    layout->addWidget(offLabel, 3, 0, 1, 2, Qt::AlignHCenter);
+
+//    cntDamp = new QwtCounter( this );
+//    cntDamp->setValue(1.0);
+//    cntDamp->setRange(0.0, 5.0);
+//    cntDamp->setSingleStep(0.01);
+//    cntDamp->setMinimumWidth(160);
+//    cntDamp->setMinimumHeight(40);
+//    layout->addWidget(cntDamp, 2, 0, 1, 2, Qt::AlignHCenter);
+
+
+//    cntDamp2 = new QwtCounter( this );
+//    cntDamp2->setValue(0.0);
+//    cntDamp2->setSingleStep(0.01);
+//    cntDamp2->setMinimumHeight(40);
+//    cntDamp2->setMinimumWidth(160);
+//    cntDamp2->setRange(-10.0, 10.0);
+//    layout->addWidget(cntDamp2, 4, 0, 1, 2, Qt::AlignHCenter);
 
     QToolButton *AutoCal = new QToolButton( this );
     AutoCal->setText("Calculate calibration");
-    layout->addWidget(AutoCal, 5, 0, 1, 2, Qt::AlignHCenter);
+
+    cal_group_layout->addWidget(AutoCal);
+
+    calibration_group->setLayout(cal_group_layout);
+    layout->addWidget(calibration_group, 1, 0, 1, 2);
+//    layout->addWidget(AutoCal, 5, 0, 1, 2, Qt::AlignHCenter);
 
     connect( Energy, SIGNAL( clicked( bool ) ), SLOT( toggleEnergy(bool) ) );
     connect( Log, SIGNAL( clicked( bool ) ), SLOT ( toggleLogScale() ));
@@ -197,21 +231,31 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow( parent ) {
     timer_SHM->start(400);
 
     connect(timer_SHM, SIGNAL(timeout()), d_plot, SLOT(Check_SHM()));
-    connect(d_plot, SIGNAL(calibrationActive(bool)), this, SLOT(toggleEnergy(bool)));
+//    connect(d_plot, SIGNAL(calibrationActive(bool)), this, SLOT(toggleEnergy(bool)));
 
     connect(timerRefresh, SIGNAL(timeout()), d_plot, SLOT(showPixelHisto()));
     //We also want toggleLogScale to be mapped to showPixelHisto
     d_plot->loadCalibration();
 
 
+//    connect(cntDamp, &QwtCounter::valueChanged, this, [=] () {
+//      cal_gradient = cntDamp->value();
+//      d_plot->Calibration(cal_gradient, cal_offset);
+//    });
+//    connect(cntDamp2, &QwtCounter::valueChanged, this, [=] () {
+//      cal_offset = cntDamp->value();
+//      d_plot->Calibration(cal_gradient, cal_offset);
+//    });
 
-    QSignalMapper *plotMapper = new QSignalMapper(this);
-    plotMapper->setMapping(cntDamp, 0);
-    plotMapper->setMapping(cntDamp2, 1);
+    connect(cntDamp, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+            this, [=] () {
+      d_plot->Calibration(cal_gradient, cntDamp->value());
+    });
 
-    connect(cntDamp, SIGNAL(valueChanged(double)), plotMapper, SLOT(map()));
-    connect(cntDamp2, SIGNAL(valueChanged(double)), plotMapper, SLOT(map()));
-    connect(plotMapper, SIGNAL(mapped(int)), d_plot, SLOT(setCalParam(int)));
+    connect(cntDamp2, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+            this, [=] () {
+      d_plot->Calibration(cntDamp2->value(), cal_offset);
+    });
 
 }
 
@@ -253,25 +297,18 @@ void MainWindow::liveHistogram(bool run) {
 }
 
 void MainWindow::toggleEnergy(bool active) {
-    if (active)  {
-        EnergyOn = active;
-        Energy->setText("Toggle\nChannels");
-        Energy->setChecked(true);
-
-        *(shared_memory+24) = 1;
-        cntDamp->blockSignals(true); cntDamp->setValue(cal_gradient);
-        cntDamp->blockSignals(false);
-        cntDamp2->blockSignals(true); cntDamp2->setValue(cal_offset);
-        cntDamp2->blockSignals(false);
-    }
-    else {
-        EnergyOn = active;
-        Energy->setText("Toggle\nEnergy");
-        Energy->setChecked(false);
-
-        *(shared_memory+24) = 0;
-    }
-    if (!liveOn) d_plot->showPixelHisto();
+  EnergyOn = active;
+  if (active)  {
+    Energy->setText("Toggle\nChannels");
+    Energy->setChecked(true);
+  }
+  else {
+    Energy->setText("Toggle\nEnergy");
+    Energy->setChecked(false);
+  }
+  if (!liveOn) {
+    d_plot->showPixelHisto();
+  }
 }
 
 void MainWindow::enableOnTop(bool OnTp) {
@@ -356,21 +393,29 @@ void MainWindow::dlgCalibration() {
     buttons->addButton(buttonOK, QDialogButtonBox::AcceptRole);
     buttons->addButton(buttonCANC, QDialogButtonBox::AcceptRole);
 
-    QSignalMapper *dlgMapper = new QSignalMapper(this);
-    dlgMapper->setMapping(cntDamp1, 0);
-    dlgMapper->setMapping(cntDamp3, 1);
-    dlgMapper->setMapping(cntDamp4, 2);
-    dlgMapper->setMapping(cntDamp5, 3);
 
-    connect(cntDamp1, SIGNAL(valueChanged(double)), dlgMapper, SLOT(map()));
-    connect(cntDamp3, SIGNAL(valueChanged(double)), dlgMapper, SLOT(map()));
-    connect(cntDamp4, SIGNAL(valueChanged(double)), dlgMapper, SLOT(map()));
-    connect(cntDamp5, SIGNAL(valueChanged(double)), dlgMapper, SLOT(map()));
-    connect(dlgMapper, SIGNAL(mapped(int)), d_plot, SLOT(writeCalParam(int)));
+    connect(cntDamp1, &QwtCounter::valueChanged, this, [=] () {
+      channel1_cal = cntDamp1->value();
+    });
+    connect(cntDamp3, &QwtCounter::valueChanged, this, [=] () {
+      energy1_cal = cntDamp3->value();
+    });
+    connect(cntDamp4, &QwtCounter::valueChanged, this, [=] () {
+      channel2_cal = cntDamp4->value();
+    });
+    connect(cntDamp5, &QwtCounter::valueChanged, this, [=] () {
+      energy2_cal = cntDamp5->value();
+    });
 
     connect(buttonOK, SIGNAL(clicked()), dlg, SLOT(close()));
     connect(buttonCANC, SIGNAL(clicked()), dlg, SLOT(close()));
-    connect(buttonOK, SIGNAL(clicked()), d_plot, SLOT(setCalParam()));
+
+    connect(buttonOK, &QPushButton::clicked, [&](){
+      cntDamp2->setValue((energy2_cal - energy1_cal) /
+                         (channel2_cal - channel1_cal));  // Gradient
+      cntDamp->setValue(energy1_cal - channel1_cal * cntDamp2->value());
+    });
+//    connect(buttonOK, SIGNAL(clicked()), d_plot, SLOT(setCalParam()));
 
     QGridLayout *Layout = new QGridLayout( groupBox );
     Layout->setSpacing(1);

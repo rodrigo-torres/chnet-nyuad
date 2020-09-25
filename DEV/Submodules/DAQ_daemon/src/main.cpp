@@ -59,7 +59,8 @@ int main()
 //  } while (counter < 5);
 
 //  return 0;
- return HardcodedValues();
+// return HardcodedValues();
+  return StartFromSocket();
 }
 
 int StartFromSocket() {
@@ -69,6 +70,7 @@ int StartFromSocket() {
   using namespace std::chrono_literals;
 
   std::cout << "Daemon started" << std::endl;
+  shm.Init();
   shm.WriteVariable(&maxrf::ipc::SHMStructure::daq_daemon_active, true);
 
 
@@ -178,7 +180,7 @@ int HardcodedValues() {
 //  do {
     DAQSession daq{};
 //    params.base_filename = "test"s + std::to_string(counter);
-    if (daq.SetupDAQSession(params)) {
+      if (daq.SetupDAQSession(params)) {
       daq.StartDAQSession();
     }
 //    ++counter;

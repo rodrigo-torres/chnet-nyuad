@@ -190,7 +190,7 @@ void MAXRF_UI::CreateGUI() {
         //spinboxTab3[i]->setSuffix(" mm");
 
         //connect(spinboxTab3[i], SIGNAL(valueChanged(double)), this, SLOT(tab3_set_target()));
-        connect(dspinboxes.at(i), SIGNAL(valueChanged(double)), this, SLOT(tab3_set_target()));
+        //connect(dspinboxes.at(i), SIGNAL(valueChanged(double)), this, SLOT(tab3_set_target()));
 
         //moveTabLayout->addWidget(spinboxTab3[i], i + 2, 1, 1, 2);
         moveTabLayout->addWidget(dspinboxes.at(i), i + 2, 1, 1, 2);

@@ -32,6 +32,31 @@ void MAXRF_UI::StartThreadTTY() {
     connect(tty_ptr, &tty_agent::toggle_widgets, this, &MAXRF_UI::toggle_widgets);
     connect(tty_ptr, &tty_agent::update_monitor, this, &MAXRF_UI::update_monitor);
 
+    QObject::connect(tty_ptr, &tty_agent::TriggerDAQPrompt,
+                     this, [=] () {
+      constexpr auto kWarningMessage
+      { "A DAQ request was received. MAKE SURE IT'S SAFE to move the measuring "
+        "head to the scan start position. Press cancel to ignore the request." };
+
+      auto selected = QMessageBox::warning(this, "DAQ Request Received",
+                                           kWarningMessage,
+                                           QMessageBox::Ok | QMessageBox::Cancel,
+                                           QMessageBox::Cancel);
+
+      switch (selected) {
+      case QMessageBox::Ok :
+        // Transfer ownership of stages to ScanManager and begin scan
+        tty_ptr->DAQRequestRespond(true);
+        break;
+      case QMessageBox::Cancel :
+        [[fallthrough]];
+      default:
+        // Default action is to ignore the request
+        tty_ptr->DAQRequestRespond(false);
+        break;
+      }
+    });
+
 //    connect(this, &MAXRF_UI::set_target, tty_ptr, &tty_agent::set_target);
     connect(this, &MAXRF_UI::keyence_reading, tty_ptr, &tty_agent::enable_servo);
     connect(this, &MAXRF_UI::start_servo, tty_ptr, &tty_agent::start_servo);

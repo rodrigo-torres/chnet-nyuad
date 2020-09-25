@@ -61,8 +61,8 @@ void Wrapper::StartDAQ()
     }
     std::cout << "Connection Accepted" << std::endl;
 
-  //  shm.WriteVariable(&SHMStructure::daq_session_params, params.mode_parameters);
-  //  shm.WriteVariable(&SHMStructure::daq_request_scan_from_motors, true);
+  shm.WriteVariable(&SHMStructure::daq_session_params, params.mode_parameters);
+  shm.WriteVariable(&SHMStructure::daq_request_scan_from_motors, true);
 
     for (auto & board : params.boards_config) {
       socket_.SendCharThroughSocket('B');
@@ -84,11 +84,11 @@ void Wrapper::StartDAQ()
     socket_.SendCharThroughSocket('E');
     socket_.SendThroughSocket(&params.mode_parameters);
     socket_.SendThroughSocket(params.output_path.c_str());
-    params.base_filename = "gui"s + std::to_string(counter);
+//    params.base_filename = "gui"s + std::to_string(counter);
     socket_.SendThroughSocket(params.base_filename.c_str());
 
     ++counter;
-  } while (counter < 5);
+  } while (counter < 1);
 
   // Use a semaphore to indicate the process is running
 
@@ -413,19 +413,19 @@ void DAQParamWidget::MakeWidget() {
 
     auto & scan_params = config.mode_parameters;
     scan_params.x_start_coordinate =
-        static_cast<int>(scan_fields[0]->text().toDouble() * 1000);
+        static_cast<int>(scan_fields[0]->text().toDouble() );
     scan_params.y_start_coordinate =
-        static_cast<int>(scan_fields[1]->text().toDouble() * 1000);
+        static_cast<int>(scan_fields[1]->text().toDouble() );
     scan_params.x_end_coordinate =
-        static_cast<int>(scan_fields[2]->text().toDouble() * 1000);
+        static_cast<int>(scan_fields[2]->text().toDouble() );
     scan_params.y_end_coordinate =
-        static_cast<int>(scan_fields[3]->text().toDouble() * 1000);
+        static_cast<int>(scan_fields[3]->text().toDouble() );
     scan_params.x_motor_step =
-        static_cast<int>(scan_fields[4]->text().toDouble() * 1000);
+        static_cast<int>(scan_fields[4]->text().toDouble() );
     scan_params.y_motor_step =
-        static_cast<int>(scan_fields[5]->text().toDouble() * 1000);
+        static_cast<int>(scan_fields[5]->text().toDouble() );
     scan_params.motor_velocity =
-        static_cast<int>(scan_fields[6]->text().toDouble() * 1000);
+        static_cast<int>(scan_fields[6]->text().toDouble() );
   };
 
 }

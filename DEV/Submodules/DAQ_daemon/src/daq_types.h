@@ -27,7 +27,8 @@ namespace maxrf::daq {
 /// SpectralData is an alias guaranteeing data packets shared across threads
 /// have the same data type, in this case std::vector<int32_t>
 ///
-using SpectralData  = HypercubeFile::PixelData;
+using PixelData    = maxrf::PixelData;
+using SpectralData = decltype (PixelData::histogram);
 
 constexpr static int kSpectralBins {16384};
 
@@ -192,9 +193,10 @@ struct DAQInitParameters {
 };
 
 struct DataPacket {
-  int32_t pixel_no;
+//  int32_t pixel_no;
   int32_t channel_id;
-  SpectralData m_buffer;
+//  SpectralData m_buffer;
+  PixelData pixel;
 };
 
 

@@ -37,28 +37,25 @@ public:
 
   /// INTEGRITY CHECKS
   auto CheckIntegrity() -> std::string override;
-private:
-  std::fstream file_;
 };
 
 class MAXRF_LIBRARIES_SHARED_EXPORT MaskedDumpFile : public MAXRFDataFile
 {
 public:
-  MaskedDumpFile() {}
+  MaskedDumpFile(std::fstream && f) {
+    SetFormat(DataFormat::kMultiDetectorMaskedDump);
+    SetFileDevice(std::move(f));
+  }
 
   /// HEADER MANIPULATION API
-  auto ExtractHeader() -> std::string override;
-//  auto GetTokenValue(HeaderTokens token) -> std::string override;
+  auto ExtractHeader() -> std::string override {return std::string {};}
 
   /// FILE CONVERSION API
   auto ConvertToHypercube() -> bool override;
-  auto ExtractHistograms() -> bool override;
+  auto ExtractHistograms() -> bool override { return false; }
 
   /// INTEGRITY CHECKS
-  auto CheckIntegrity() -> std::string override;
-
-private:
-  std::fstream file_;
+  auto CheckIntegrity() -> std::string override {return std::string {};}
 };
 
 //class MAXRF_LIBRARIES_SHARED_EXPORT HypercubeFile : public MAXRFDataFile

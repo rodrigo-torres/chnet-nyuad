@@ -17,7 +17,18 @@ SPA 1 8 0.5
 SPA 1 10 50
 # Maximum allowed acceleration in physical units
 SPA 1 11 200
-# Numerator of counts per physical unit factor -> affects transmission ratio and stage resolution
+
+# The M404.xPD motor has a drive screw pitch of 1mm, and a resolution of 4000
+# counts per screw revolution.
+
+# To convert from motor counts to physical units, the following formula is used
+# PHYSICAL UNIT = COUNTS / (CpuN / CpuD)
+
+# Where CpuN and CpuD are the counts per physical unit numerator and denominator
+# respectively. So, to get a physical unit of millimeter, an option is to match
+# the numerator to the number of counts per screw revolution, given that the
+# the screw pitch is 1mm... Thus
+# Numerator of counts per physical unit factor
 SPA 1 14 4000
 # Denominator of counts per physical unit factor
 SPA 1 15 1

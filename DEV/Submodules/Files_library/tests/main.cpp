@@ -13,41 +13,46 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-#include <chrono>
+
+#include <filesystem>
 
 #include "MAXRF/file_management.hpp"
 
+//#define DEBUG
+
 int main (int argc, char * argv[])
 {
-  static std::string const filename =
-      "/home/frao/Documents/Workspaces/MAXRF/Data/LAD/LAD_2014_024/LAD-2014-024-middle/original/LAD_2014_024_20191125_1703_30kV80uA_190x176y_middle_det0.hyperc";
+  using namespace maxrf;
 
-  auto file = maxrf::DataFileHander::GetFile(filename);
-  if (file->GetFormat() == maxrf::DataFormat::kInvalid) {
+#ifndef DEBUG
+  if (argc < 2) {
+    std::cout << "This program takes a filepath as its first argument.\n"
+                 "No other arguments are accepted." << std::endl;
     return 1;
   }
 
-  file->ExtractHeader();
+  std::error_code err;
+  std::filesystem::path filepath { argv[1] };
+  if (std::filesystem::is_regular_file(filepath, err) == false) {
+    std::cout << "The file you selected is not a regular file: "
+              << err.message() << std::endl;
+    return 1;
+  }
+#else
+  std::filesystem::path filepath {"mao1_XY_camp9_25kV_100uA_Pompei.txt"};
+#endif
 
-  using namespace std::chrono;
-  auto t1 = high_resolution_clock::now();
+  auto file = DataFileHander::GetFile(filepath.string());
 
-  try {
-    // Temporary object is moved by copy elision
-    maxrf::LookupTable lut = file->ComputeLookupTable();
-  } catch (...) {
+  if (file->GetFormat() == DataFormat::kMultiDetectorMaskedDump) {
+    file->ConvertToHypercube();
+  }
+  else {
+    std:: cout << "You have selected a file with a format whose conversion"
+                  " is not yet supported" << std::endl;
     return 1;
   }
 
-  auto t2 = high_resolution_clock::now();
-  auto duration = duration_cast<milliseconds>(t2 - t1);
-  std::cout << duration.count() << std::endl;
-
-  auto width = std::stoi(file->GetTokenValue(maxrf::HeaderTokens::kImageWidth));
-  auto height= std::stoi(file->GetTokenValue(maxrf::HeaderTokens::kImageHeight));
-  auto pixels= std::stoi(file->GetTokenValue(maxrf::HeaderTokens::kImagePixels));
-  pixels = width * height;
-
-  return 1;
+  return 0;
 }
 

@@ -38,20 +38,13 @@ public slots:
     void Check_SHM();
     void showPixelHisto();
     void loadCalibration();
-
-    void setCalParam();
-    void setCalParam(int data);
-    void writeCalParam(int data);
-
 signals:
-    void calibrationActive(bool active);
     void statusChanged(QString filename);
     
 private:
     QwtPlotCurve *d_curve1;
     QwtPlotMarker *d_marker1;
     QwtPlotMarker *d_marker2;
-    QSignalMapper *d_mapper;
 
 };
 

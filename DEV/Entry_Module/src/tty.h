@@ -31,6 +31,7 @@
 #include <cmath>
 
 #include <QDebug>
+#include <QLineEdit>
 #include <QMutex>
 #include <QMutexLocker>
 #include <QObject>
@@ -38,6 +39,14 @@
 #include <QTimer>
 
 #include "MAXRF/ipc_methods.h"
+
+
+static constexpr auto kStyleGreen { "QLineEdit {background-color: #2DC937; "
+                                   "font-weight: bold; color: white;}" };
+static constexpr auto kStyleYellow{ "QLineEdit {background-color: #E7B416; "
+                                   "font-weight: bold; color: white;}" };
+
+class tty_agent;
 
 ///
 /// \brief The MotorCommands enum lists the available commands that can be sent
@@ -108,6 +117,12 @@ protected:
 };
 
 
+enum class MonitorStyles : uint8_t {
+  kRed    = 0x01,
+  kYellow = 0x02,
+  kGreen  = 0x04,
+};
+
 ///
 /// \brief The StageMotor class derives from the \see TTYHandle class and
 /// provides additional functionality to control a stepper motor on a
@@ -115,11 +130,23 @@ protected:
 ///
 class StageMotor : protected TTYHandle {
 
-  //friend class keyence;
-
 public:
     StageMotor(std::string);
-    ~StageMotor() {}
+    ~StageMotor();
+
+
+
+    QString TriggerPositionUpdate() {
+      if (is_inited) {
+        check_ont();
+        SendCommand(MotorCommands::kGetPosition);
+      }
+      else {
+        status_message_ = " Disconnected";
+      }
+
+      return QString::fromStdString(status_message_);
+    }
 
 
     double SendCommand(MotorCommands command, double argument = -1.);
@@ -128,28 +155,13 @@ public:
       return QString::fromStdString(status_message_);
     }
 
-//    void init();
     bool wait();
-    void load_conf();
+    void ConfigureStage();
 
- //   void stop();
     void check_ont();
-
-//    void get_pos();
- //   void move_totarget();
- //   void move_step(bool);
-
-//    ///
-//    /// \brief SetMotorSpeed
-//    /// \param speed of motor desired in units of mm/s
-//    ///
-//    void SetMotorSpeed(double speed);
-
-//    void SetStageTarget(double val);
     bool IsInited() const;
     bool IsOnTarget() const;
 
- //   double tar = 0;
     double pos = 0;
 private:
     std::map<MotorCommands, std::string> command_list_ {};
@@ -197,18 +209,33 @@ public:
 /// \brief The ScanManager class takes ownership of two stepper motor handles,
 /// \see StageMotor, and begins a scan session when constructed
 ///
-class ScanManager
-{
+class ScanManager : public QObject {
+    Q_OBJECT
+
 public:
+
   using SHMStructure  = maxrf::ipc::SHMStructure;
   using MotorHandle   = std::unique_ptr<StageMotor>;
 
-  ScanManager(MotorHandle x, MotorHandle y);
+  ScanManager(MotorHandle x, MotorHandle y, tty_agent * handle);
   ~ScanManager() = default;
 
-  void TakeBackOwnership(MotorHandle x, MotorHandle y);
+  void TakeBackOwnership(MotorHandle & x, MotorHandle & y);
+
+
+  void UpdateEvent();
+  void AbortScan();
+
+  bool IsDone();
+
+signals:
+  void UpdatePositionMonitors(QString, QString, int);
+
+
 
 private:
+  bool scan_done_ { false };
+
   maxrf::daq::DAQModeParameters params {};
   maxrf::ipc::POSIXSemaphore sem_probe {};
   maxrf::ipc::POSIXSemaphore sem_reply {};
@@ -226,25 +253,34 @@ class tty_agent : public QObject {
 public:
   explicit tty_agent(QObject * parent = nullptr);
 
-
 public slots:
     void relay_command(int, QString = "");
 
- //   void set_target(int, double);
-    void set_velocity(double);
     void move_stage(int, double);
     void enable_servo(bool);
     void start_servo(bool);
     void abort();
 
+    void DAQRequestRespond(bool accept) {
+      daq_req_input_ready = true;
+      daq_req_accepted    = accept;
+    }
+
 signals:
+    void TriggerDAQPrompt();
+
     void toggle_tab1(bool);
     void update_statbar(QString);
     void update_monitor(QString, QString, int);
     void toggle_widgets(int);
 
 private:
+    std::atomic_bool daq_req_input_ready { false };
+    std::atomic_bool daq_req_accepted    { false };
+
+
     std::unique_ptr<StageMotor> & HandleOfMotorID(int id);
+    std::unique_ptr<ScanManager>  scan_handle_ { nullptr };
 
     void servo();
     void scan();
@@ -260,16 +296,14 @@ private:
 
     bool scanning {false};      ///< Tracks if there's an ongoing scan
     bool laser_active {false};  ///< Tracks whether the laser is reading
-    bool servo_active {false};  ///< Tracks wheter the distance-correcting serve is active
+    bool servo_active {false};  ///< Tracks whether the distance-correcting serve is active
     bool next_line = false;
-
-    double x_min = 100., x_max = 110., y_min = 100., y_max = 110., x_step = 1, y_step = 1, s_vel = 1;
 
     static constexpr int servo_interval {250}; ///< Update interval for laser tracking
     static constexpr double servo_threshold {200.0}; ///< Expressed in micrometers
 
 
-
+    std::array<QLineEdit *, 4>     monitors_;
 
     std::unique_ptr<StageMotor> stage_x_ {nullptr};
     std::unique_ptr<StageMotor> stage_y_ {nullptr};

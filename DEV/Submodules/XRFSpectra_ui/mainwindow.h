@@ -1,27 +1,27 @@
-#include <qmainwindow.h>
-#include <QPushButton>
-#include <QDialog>
-#include <QLineEdit>
-#include <qtoolbutton.h>
-#include <qwt_counter.h>
-//#include <plot.h>
-#include <QGridLayout>
-#include <QtGui>
-#include <QToolButton>
-#include <QCheckBox>
-#include <QSpinBox>
-#include <QRadioButton>
-#include <QGroupBox>
+/** MAXRF_Spectrum: Display XRF spectra
+ *  Copyright (C) 2020 Rodrigo Torres and contributors
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-#include <qregexp.h>
-#include <qtoolbar.h>
-#include <qtoolbutton.h>
-#include <qlabel.h>
-#include <qlayout.h>
-#include <qstatusbar.h>
+#include <iostream>
+#include <string>
 
-#include <qpicture.h>
-#include <qpainter.h>
+#include <QApplication>
+#include <QDebug>
+#include <QFile>
+#include <QtWidgets>
 
 #include <qwt_counter.h>
 #include <qwt_picker_machine.h>
@@ -30,24 +30,10 @@
 #include <qwt_plot_renderer.h>
 #include <qwt_text.h>
 #include <qwt_math.h>
-#include "pixmaps.h"
-#include <QTimer>
-#include <QFile>
-#include<QGroupBox>
-#include<QLabel>
-#include<QLineEdit>
-#include<QDialogButtonBox>
-#include<QHBoxLayout>
-#include<QVBoxLayout>
-#include<QPushButton>
-#include <QMouseEvent>
-#include <QFileDialog>
-#include <QDockWidget>
-#include <QString>
-#include <string.h>
-#include <sys/types.h>
-#include <unistd.h>
 
+
+#include "MAXRF/ipc_methods.h"
+#include "pixmaps.h"
 
 class QwtCounter;
 class QwtPlotZoomer;
@@ -57,22 +43,25 @@ class Plot;
 class QPolygon;
 
 
+extern template class maxrf::ipc::shmarray<int>;
+
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    explicit MainWindow( QWidget *parent = 0 );
+    explicit MainWindow( QWidget *parent = nullptr);
      ~MainWindow();
     virtual void closeEvent(QCloseEvent *event);
 
     QTimer *timerRefresh;
     QTimer *timer_SHM;
-    QTimer *timer_Info;
     QDialog *dlg;
     QPushButton *buttonOK;
     QPushButton *buttonCANC;
-    QwtCounter *cntDamp;
-    QwtCounter *cntDamp2;
+//    QwtCounter *cntDamp;
+//    QwtCounter *cntDamp2;
+    QDoubleSpinBox *cntDamp;
+    QDoubleSpinBox *cntDamp2;
     QToolButton *Log;
     QToolButton *Energy;
     QStatusBar *status;

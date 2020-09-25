@@ -17,6 +17,7 @@
 
 #include <QXmlStreamReader>
 #include "tty.h"
+#include "pugi/pugixml.hpp"
 
 extern int *shared_memory_cmd;
 
@@ -151,6 +152,107 @@ StageMotor::StageMotor(std::string s) try : TTYHandle(s) {
   std::cout << "error occured: " << e.what() << std::endl;
 } // implicit throw
 
+StageMotor::~StageMotor() {
+  // Empty constructor
+}
+
+//StageMotor::StageMotor(std::string s) try : TTYHandle(s) {
+//  using namespace std::literals;
+
+//  auto conf_file_path = std::string { PROJECT_LOCAL_FOLDER };
+//  conf_file_path.append("/etc/maxrf/user_conf.xml");
+
+//  pugi::xml_document doc {};
+
+//  auto parse_result = doc.load_file(conf_file_path.c_str());
+//  if (parse_result != pugi::xml_parse_status::status_ok) {
+//    std::cout << "[!] Error parsing user configuration file." << std::endl;
+//    throw std::runtime_error(parse_result.description());
+//  }
+
+//  std::string search_term {};
+//  switch (std::stoi(s.substr(0, s.find(" ")))) {
+//  case 0:
+//    search_term = "StageXConfig"s;
+//    stage_name_ = "Stage X"s;
+//    break;
+//  case 1:
+//    search_term = "StageYConfig"s;
+//    stage_name_ = "Stage Y"s;
+//    break;
+//  case 2:
+//    search_term = "StageZConfig"s;
+//    stage_name_ = "Stage Z"s;
+//    break;
+//  default:
+//    throw std::runtime_error("[!] Error initializing stage: Unknown stage");
+//  }
+
+
+
+////  auto num = std::stoi(s.substr(0, s.find(" ")));
+////  switch (num) {
+////  case 0:
+////    stage_id_   = 'x';
+////    stage_name_ = "Stage X";
+////    break;
+////  case 1:
+////    stage_id_   = 'y';
+////    stage_name_ = "Stage Y";
+////    break;
+////  case 2:
+////    stage_id_   = 'z';
+////    stage_name_ = "Stage Z";
+////    break;
+////  default:
+////    stage_id_   = 'u';
+////    stage_name_ = "Unknown";
+////    break;
+////  }
+////  status_message_ = stage_name_ + ": "s + df_path;
+
+
+
+//  SendData("*IDN?");
+//  std::cout << "[I] Device identified as:  "
+//            << ReadAvailableData().c_str() << std::endl;
+
+//  std::ifstream file {conf_file_path};
+////  if (file.is_open()) {
+////    // Read the whole file onto a  string buffer
+////    std::ostringstream sstream;
+////    sstream << file.rdbuf();
+
+////    QXmlStreamReader xmldoc {sstream.str().c_str()};
+////    std::string search {"stage"s + stage_id_ + "_par"s};
+
+////    int counter {0};
+////    while (!xmldoc.atEnd()) {
+////      if (xmldoc.readNext() != QXmlStreamReader::StartElement) {
+////        continue;
+////      }
+////      auto attrib = xmldoc.attributes();
+////      if (attrib.value("name").toString().toStdString() ==
+////          search + std::to_string(counter)) {
+////        auto node = xmldoc.readElementText();
+////        if (!xmldoc.isEndElement())  {
+////          throw std::runtime_error("[!] Error parsing  motor configuration file");
+////        }
+////        params.push_back(node.toStdString());
+////        ++counter;
+////      }
+////    }
+////    if (xmldoc.hasError()) {
+////      throw std::runtime_error("[!] Error parsing  motor configuration file");
+////    }
+
+////  }
+////  else {
+////    throw std::runtime_error("[!] Could not open motor configuration file");
+////  }
+//} catch (std::runtime_error & e) {
+//  std::cout << "error occured: " << e.what() << std::endl;
+//} // implicit throw
 
 std::vector<std::string> split(const std::string& s, char delimiter)
 {
@@ -164,7 +266,11 @@ std::vector<std::string> split(const std::string& s, char delimiter)
    return tokens;
 }
 
-void StageMotor::load_conf() {
+// TODO report bugs
+// The order of the load stage parameters matters, specifically the denominator
+// and numerator of the physical units
+
+void StageMotor::ConfigureStage() {
     if (!isatty(dev_fd))
     {
         throw "[!] This interface has not yet been configured";
@@ -241,18 +347,6 @@ void StageMotor::check_ont() {
     else on_target = false;
 }
 
-//void StageMotor::stop() {
-//  SendData("HLT");
-//  SendData("ERR?");
-
-//  auto reply_code = ReadAvailableData();
-//  if (reply_code.compare("10") != 0) {
-//    qDebug() << "[!] " << stage_name_.c_str()
-//             << " stopped. But  the error code was different from expected: "
-//             << reply_code.c_str();
-
-//  }
-//}
 
 double StageMotor::SendCommand(MotorCommands command, double argument) {
   using namespace std::literals;
@@ -261,7 +355,7 @@ double StageMotor::SendCommand(MotorCommands command, double argument) {
   switch (command) {
   case MotorCommands::kInitSequence :
     if (is_inited == false) {
-      load_conf();
+      ConfigureStage();
       SendData("VEL 1 " + params[1]);
       SendData("SVO 1 1");
       SendData("FNL 1");
@@ -301,19 +395,19 @@ double StageMotor::SendCommand(MotorCommands command, double argument) {
     break;
   }
   case MotorCommands::kMoveToPosition :
-    this->SendData("MOV 1" + std::to_string(argument));
+    this->SendData("MOV 1 " + std::to_string(argument));
     on_target = false;
     break;
   case MotorCommands::kStepIncrease :
     if (on_target) {
       this->SendCommand(MotorCommands::kGetPosition);
-      this->SendData("MOV 1"s + std::to_string(pos + 1));
+      this->SendData("MOV 1 "s + std::to_string(pos + 1));
     }
     break;
   case MotorCommands::kStepDecrease :
     if (on_target) {
       this->SendCommand(MotorCommands::kGetPosition);
-      this->SendData("MOV 1"s + std::to_string(pos - 1));
+      this->SendData("MOV 1 "s + std::to_string(pos - 1));
     }
     break;
   case MotorCommands::kGentleStop : {
@@ -346,56 +440,6 @@ double StageMotor::SendCommand(MotorCommands command, double argument) {
   return ret;
 }
 
-
-//void StageMotor::get_pos()
-//{
-//  SendData("POS?");
-
-//  std::string ans;
-//  try {
-//    ans = ReadAvailableData();
-//  } catch (const std::runtime_error& e) {
-//    qDebug()<<e.what();
-//  }
-
-//  pos = atof((ans.substr(2)).c_str());
-//  status_message_ = stage_name_ + ": " + ans.substr(2, 6) + " mm";
-//}
-
-//void StageMotor::move_totarget() {
-//    std::string command = "MOV 1 " + std::to_string(tar);
-
-//    SendData(command);
-//    on_target = false;
-//}
-
-//void StageMotor::move_step(bool direction) {
-//    if (on_target) {
-//        get_pos();
-//        direction == true ? tar = pos + 1  : tar = pos - 1;
-//        move_totarget();
-//    }
-//    else return;
-//}
-
-//void StageMotor::SetMotorSpeed(double speed) {
-//  using namespace std::literals;
-
-//  /// Check the speed is within the allowed limits (i.e not negative, not
-//  /// zero, and not an excessive value).
-//  if (std::signbit(speed) == true) {
-//    return;
-//  }
-//  if (speed > 15.) {
-//    return;
-//  }
-//  this->SendData("VEL 1 "s + std::to_string(speed));
-//}
-
-/* Setter functions */
-//void StageMotor::SetStageTarget(double val) {
-//    tar = val;
-//}
 
 
 bool StageMotor::IsInited() const {

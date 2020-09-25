@@ -26,8 +26,8 @@
 #include <mutex>
 #include <functional>
 
-#include <CAENDPPLib.h>
-#include "daq_types.h"
+#include <CAEN/CAENDPPLib.h>
+#include "./daq_types.h"
 
 namespace maxrf::daq {
 

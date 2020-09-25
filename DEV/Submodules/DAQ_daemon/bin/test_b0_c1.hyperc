@@ -10,13 +10,18 @@
 	<Analysis_Metadata>
 		<Analysis_Identifier />
 		<Analysis_Type />
-		<DAQ_Start_Timestamp>2020-07-24 00-29-38</DAQ_Start_Timestamp>
+		<DAQ_Start_Timestamp>2020-09-07 12-06-18</DAQ_Start_Timestamp>
 	</Analysis_Metadata>
 	<Device_Info>
 		<Tube_Anode>Molybdenum</Tube_Anode>
 		<Tube_Voltage units="keV" />
 		<Tube_Current units="uA" />
 	</Device_Info>
+	<Image_Info>
+		<Width />
+		<Height />
+		<Pixels />
+	</Image_Info>
 	<Histogram>
 		<Detector_Identifier />
 		<Spectral_Bins />
@@ -76,5 +81,15 @@
 7,4
 8,4
 9,4
+0,5
+1,5
+2,5
+3,5
+4,5
+5,5
+6,5
+7,5
+8,5
+9,5
 </Analysis_Data>
 </XRFAnalysis>

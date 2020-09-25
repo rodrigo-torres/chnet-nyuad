@@ -59,16 +59,16 @@ UI_DIR      = $$PWD/build
 # External libraries configuration and search paths
 # ---------------------------------------------------------------------------- #
 #Embed the dependent binaries directories in the executable
-QMAKE_LFLAGS += -Wl,-rpath,"$$PROJECT_DIR/libs"
+QMAKE_LFLAGS += -Wl,-rpath,"$$PROJECT_DIR/Local/lib"
 
 # API headers search path for shared and static libraries
-INCLUDEPATH += $$PROJECT_DIR/include $$PWD
+INCLUDEPATH += $$PROJECT_DIR/Local/include $$PWD
 # Search path for dynamically linked libraries
-DEPENDPATH += $$PROJECT_DIR/libs
+DEPENDPATH += $$PROJECT_DIR/Local/lib
 
 unix:!macx {
   #Shared and static libraries search directory
-  LIBS += -L$$PROJECT_DIR/libs/
+  LIBS += -L$$PROJECT_DIR/Local/lib
   # Libraries used in the project (and dynamically linked)
   LIBS += -lpugixml
 }
@@ -91,15 +91,15 @@ HEADERS += \
 # Header, binary, and documentation files and install directories
 # ---------------------------------------------------------------------------- #
 
-INSTALL_DIR = $$PROJECT_DIR/libs
+INSTALL_DIR = $$PROJECT_DIR/Local/lib
 
 # Directory where to put the documentation files for this project
-EXPORTED_DOC_DIR = $$PROJECT_DIR/docs
+EXPORTED_DOC_DIR = $$PROJECT_DIR/Local/share/doc/maxrf
 # List of documentation files
 EXPORTED_DOC_FILES = doc/*
 
 # Directory where to put public API headers for this project
-EXPORTED_API_DIR = $$PROJECT_DIR/include/MAXRF
+EXPORTED_API_DIR = $$PROJECT_DIR/Local/include/MAXRF
 # List of public API headers
 EXPORTED_API_HEADERS += src/file_management.hpp
 

@@ -43,16 +43,16 @@ DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
 # External libraries configuration and search paths
 # ---------------------------------------------------------------------------- #
 #Embed the dependent binaries directories in the executable
-QMAKE_LFLAGS += -Wl,-rpath,"$$PROJECT_DIR/libs"
+QMAKE_LFLAGS += -Wl,-rpath,"$$PROJECT_DIR/Local/lib"
 
 # API headers search path for shared and static libraries
-INCLUDEPATH += $$PROJECT_DIR/include $$PWD
+INCLUDEPATH += $$PROJECT_DIR/Local/include $$PWD
 # Search path for dynamically linked libraries
-DEPENDPATH += $$PROJECT_DIR/libs
+DEPENDPATH += $$PROJECT_DIR/Local/lib
 
 unix:!macx {
   #Shared and static libraries search directory
-  LIBS += -L$$PROJECT_DIR/libs/
+  LIBS += -L$$PROJECT_DIR/Local/lib
   # Libraries used in the project (and dynamically linked)
   LIBS += -lpugixml
 }
