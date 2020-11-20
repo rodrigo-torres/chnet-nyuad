@@ -33,6 +33,7 @@
 
 
 #include "MAXRF/ipc_methods.h"
+#include "pugi/pugixml.hpp"
 #include "pixmaps.h"
 
 class QwtCounter;

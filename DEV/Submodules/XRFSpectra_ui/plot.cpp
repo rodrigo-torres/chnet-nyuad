@@ -147,29 +147,80 @@ void Plot::Open() {
   if (!fileName.isEmpty()) {
     autoReplot();
     setAutoReplot(true);
-    for (int k = 0; k < 16385; k++) { channels[k] = k; counts[k] = 0; k++; }
-    if (*shared_memory_cmd+70 == 0) for (int h = 0; h < 16385; h++) {
-      *(shared_memory+100+h) = 0;
-      *(shared_memory+20000+h) = 0;
-      *(shared_memory+40000+h) = 0;
-    }
+    for (int k = 0; k < 16385; k++) {
+      channels[k] = k; counts[k] = 0; k++; }
 
-    QFile fileOpened(fileName);
-    if (!fileOpened.open(QIODevice::ReadOnly | QIODevice::Text)) {
+
+    //    if (*shared_memory_cmd+70 == 0) for (int h = 0; h < 16385; h++) {
+    //      *(shared_memory+100+h) = 0;
+    //      *(shared_memory+20000+h) = 0;
+    //      *(shared_memory+40000+h) = 0;
+    //    }
+    std::ifstream file_opened { fileName.toStdString() };
+
+    //    QFile fileOpened(fileName);
+    if (!file_opened.is_open()) {
       emit statusChanged("[!] File cannot be opened");
       return;
     }
+
+    //    if (!fileOpened.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    //      emit statusChanged("[!] File cannot be opened");
+    //      return;
+    //    }
     else {
-      int iLinedet1=0;
-      while (!fileOpened.atEnd()) { // Parses the values and writes them to shared memory
-        QString line = fileOpened.readLine();
-        QStringList list1 = line.split('\t');
-        *(shared_memory+100+iLinedet1) = list1[0].toInt();
-        *(shared_memory+20000+iLinedet1) = list1[1].toInt();
-        *(shared_memory+40000+iLinedet1) = list1[2].toInt();
-        iLinedet1++;
+      pugi::xml_document doc {};
+      auto parse_result = doc.load(file_opened);
+
+      if (parse_result.status != pugi::xml_parse_status::status_ok) {
+        emit statusChanged("[!] File is corrupt");
+        return;
       }
-      fileOpened.close();
+
+      auto node = doc.child("XRFAnalysis").child("Analysis_Data");
+      if (node.type() == pugi::xml_node_type::node_null) {
+        emit statusChanged("[!] This file has no data!");
+        return;
+      }
+      auto data = node.child_value();
+      if (data == nullptr) {
+        emit statusChanged("[!] This file has no data!");
+        return;
+      }
+      std::string formatted { data };
+      std::strstream sdata { };
+      sdata << formatted;
+
+      int  counts {};
+      char separator {};
+      std::vector<int> vec;
+      vec.reserve(16384);
+
+      sdata >> separator; // First \n character
+      while (sdata >> counts >> separator) {
+        vec.push_back(counts);
+
+      }
+
+      for (auto it = vec.begin(); it != vec.begin() + 16384; ++it) {
+        shared_memory[100] = *it;
+      }
+
+      //      int iLinedet1=0;
+      //      while (!fileOpened.atEnd()) { // Parses the values and writes them to shared memory
+      //        QString line = fileOpened.readLine();
+      //        QStringList list1 = line.split('\t');
+      //        *(shared_memory+100+iLinedet1) = list1[0].toInt();
+      //        *(shared_memory+20000+iLinedet1) = list1[1].toInt();
+      //        *(shared_memory+40000+iLinedet1) = list1[2].toInt();
+      //        iLinedet1++;
+
+
+      //        // 0\t0\t0
+      //        // 0 1 0
+      //        // 2 0 1
+      //      }
+      //
     }
   }
 

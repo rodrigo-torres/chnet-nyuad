@@ -21,6 +21,8 @@
 #include <qwt_counter.h>
 #include <qwt_plot.h>
 
+#include <strstream>
+
 class QwtPlotCurve;
 class QwtPlotMarker;
 class MainWindow;

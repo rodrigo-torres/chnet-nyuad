@@ -69,7 +69,7 @@ unix:!macx {
   LIBS += -L$$PROJECT_DIR/Local/lib
   LIBS += -L/usr/local/qwt-6.1.4/lib
   # Libraries used in the project (and dynamically linked)
-  LIBS += -lmaxrfipc -lqwt -lqcustomplot
+  LIBS += -lmaxrfipc -lqwt -lqcustomplot -lpugixml
 }
 
 # ---------------------------------------------------------------------------- #
