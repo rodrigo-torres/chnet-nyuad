@@ -19,248 +19,250 @@
 #include <cstring>
 #include <iostream>
 #include <fstream>
+
+#include <list>
 #include <map>
 #include <memory>
 #include <sstream>
 
 #include "maxrf_libraries_config.h"
 #include "pugi/pugixml.hpp"
- 
- namespace maxrf {
 
- class MAXRFDataFile;
+namespace maxrf {
 
- enum class MAXRF_LIBRARIES_SHARED_EXPORT DataFormat : int
- {
-   kInvalid     =  0,
-   kLegacy,
-   kEDF,
-   kHDF5,
-   kMultiDetectorMaskedDump,
-   kXMLFile,
-   kHypercube,
-   kHypercubeFiltered,
- };
+class MAXRFDataFile;
 
- enum class MAXRF_LIBRARIES_SHARED_EXPORT HeaderTokens : int
- {
-   kDAQStartTimestamp,
-   kStartXCoordinate,
-   kStartYCoordinate,
-   kEndXCoordinate,
-   kEndYCoordinate,
-   kMotorStepX,
-   kMotorStepY,
-   kMotorVelocity,
-   kImageWidth,
-   kImageHeight,
-   kImagePixels
- };
-
- enum class MAXRF_LIBRARIES_SHARED_EXPORT WriteMode : int {
-   kDAQInvalid  = 0x0,
-   kDAQPoint    = 0x1,
-   kDAQScan     = 0x2
+enum class MAXRF_LIBRARIES_SHARED_EXPORT DataFormat : int
+{
+  kInvalid     =  0,
+  kLegacy,
+  kEDF,
+  kHDF5,
+  kMultiDetectorMaskedDump,
+  kXMLFile,
+  kHypercube,
+  kHypercubeFiltered,
 };
 
- // 24 bytes per pixel -> 24 MB for a 1 mega-pixel image
- struct MAXRF_LIBRARIES_SHARED_EXPORT LUTEntry
- {
-   LUTEntry() :
-     datum_pos{std::numeric_limits<std::fstream::pos_type>::max()},
-     integrals {0, 0, 0, 0} {}
-   std::streampos datum_pos;
-   std::array<int, 4> integrals;
- };
+enum class MAXRF_LIBRARIES_SHARED_EXPORT HeaderTokens : int
+{
+  kDAQStartTimestamp,
+  kStartXCoordinate,
+  kStartYCoordinate,
+  kEndXCoordinate,
+  kEndYCoordinate,
+  kMotorStepX,
+  kMotorStepY,
+  kMotorVelocity,
+  kImageWidth,
+  kImageHeight,
+  kImagePixels
+};
 
- ///
- /// \brief An interface to navigate a 2D matrix laid out as a 1D vector
- ///
- /// The function provides safer data access to a 2D coordinate on a matrix whose
- /// underlying implementation is a 1D vector, while reducing the overhead of
- /// a std::vector of std::vector
- ///
- class MAXRF_LIBRARIES_SHARED_EXPORT LookupTable
- {
- public:
-   using value_type  = LUTEntry;
-   using vector_type = std::vector<value_type>;
-   using size_type   = vector_type::size_type;
+enum class MAXRF_LIBRARIES_SHARED_EXPORT WriteMode : int {
+  kDAQInvalid  = 0x0,
+  kDAQPoint    = 0x1,
+  kDAQScan     = 0x2
+};
 
-   using value_reference         = value_type &;
-   using vector_reference        = vector_type &;
-   using value_const_reference   = value_type const &;
-   using vector_const_reference  = vector_type const &;
+// 24 bytes per pixel -> 24 MB for a 1 mega-pixel image
+struct MAXRF_LIBRARIES_SHARED_EXPORT LUTEntry
+{
+  LUTEntry() :
+    datum_pos{std::numeric_limits<std::fstream::pos_type>::max()},
+    integrals {0, 0, 0, 0} {}
+  std::streampos datum_pos;
+  std::array<int, 4> integrals;
+};
 
-   LookupTable() {}
-   LookupTable(vector_type && __vec, size_type __x, size_type __y)
-   {
-     v_ = std::move(__vec);
-     x_len_ = __x;
-     y_len_ = __y;
-     _init_size_check(x_len_ * y_len_);
-   }
+///
+/// \brief An interface to navigate a 2D matrix laid out as a 1D vector
+///
+/// The function provides safer data access to a 2D coordinate on a matrix whose
+/// underlying implementation is a 1D vector, while reducing the overhead of
+/// a std::vector of std::vector
+///
+class MAXRF_LIBRARIES_SHARED_EXPORT LookupTable
+{
+public:
+  using value_type  = LUTEntry;
+  using vector_type = std::vector<value_type>;
+  using size_type   = vector_type::size_type;
 
-   // We provide a simple API consisting of 3 methods:
-   // The first, a means to initialize the instance with an existing vector
-   auto initialize(vector_type && __vec, size_type __x, size_type __y) -> void
-   {
-     v_ = std::move(__vec);
-     x_len_ = __x;
-     y_len_ = __y;
-     _init_size_check(x_len_ * y_len_);
-   }
+  using value_reference         = value_type &;
+  using vector_reference        = vector_type &;
+  using value_const_reference   = value_type const &;
+  using vector_const_reference  = vector_type const &;
 
-   inline auto at(size_type __x, size_type __y) -> value_type  {
-     return v_.at(__y * x_len_ + __x);
-   }
-   inline auto at(size_type __x, size_type __y) const -> value_type  {
-     return v_.at(__y * x_len_ + __x);
-   }
-   // The second, a method to access an index in the vector through a 2D coordinate
-   inline auto at(size_type __index) -> value_type  {
-     return v_.at(__index);
-   }
-   inline auto at(size_type __index) const -> value_type  {
-     return v_.at(__index);
-   }
+  LookupTable() {}
+  LookupTable(vector_type && __vec, size_type __x, size_type __y)
+  {
+    v_ = std::move(__vec);
+    x_len_ = __x;
+    y_len_ = __y;
+    _init_size_check(x_len_ * y_len_);
+  }
 
-   // The third to get access to the underlying vector
-   inline auto vector() noexcept -> vector_reference  {
-     return v_;
-   }
-   inline auto vector() const noexcept -> vector_const_reference  {
-     return v_;
-   }
- protected:
-   auto _init_size_check(size_type __elems) const -> void
-   {
-     if (__elems != v_.size())
-     {
-       throw std::range_error("PixelsNavigator::_init_size_check: __elems");
-     }
-   }
+  // We provide a simple API consisting of 3 methods:
+  // The first, a means to initialize the instance with an existing vector
+  auto initialize(vector_type && __vec, size_type __x, size_type __y) -> void
+  {
+    v_ = std::move(__vec);
+    x_len_ = __x;
+    y_len_ = __y;
+    _init_size_check(x_len_ * y_len_);
+  }
 
- private:
-   vector_type v_;
-   size_type x_len_;
-   size_type y_len_;
- };
+  inline auto at(size_type __x, size_type __y) -> value_type  {
+    return v_.at(__y * x_len_ + __x);
+  }
+  inline auto at(size_type __x, size_type __y) const -> value_type  {
+    return v_.at(__y * x_len_ + __x);
+  }
+  // The second, a method to access an index in the vector through a 2D coordinate
+  inline auto at(size_type __index) -> value_type  {
+    return v_.at(__index);
+  }
+  inline auto at(size_type __index) const -> value_type  {
+    return v_.at(__index);
+  }
 
- struct PixelData
- {
-   uint32_t coord_x;
-   uint32_t coord_y;
-   std::vector<uint16_t> histogram;
- };
+  // The third to get access to the underlying vector
+  inline auto vector() noexcept -> vector_reference  {
+    return v_;
+  }
+  inline auto vector() const noexcept -> vector_const_reference  {
+    return v_;
+  }
+protected:
+  auto _init_size_check(size_type __elems) const -> void
+  {
+    if (__elems != v_.size())
+    {
+      throw std::range_error("PixelsNavigator::_init_size_check: __elems");
+    }
+  }
 
- ///
- /// \brief The FileWriter class takes spectral data from consecutive pixels of
- /// an XRF scan line and outputs it to a file in the correct order and with the
- /// correct format
- ///
- /// The ordering of the pixels on an MAXRF scan depends on the number of the
- /// scan line. Pixels on even lines increase to the right, while pixels on
- /// odd lines increase to the left.
- ///
- /// The FileWriter class uses two buffers to accomplish is task: a pixel buffer,
- /// and a scan line buffer. The scan line buffer is merely a list of pixel
- /// buffers arranged in the correct order. The pixel with column coordinate 0
- /// will be at the index 0 of the scan line buffer, and so on.
- ///
- /// The pixel buffer has the following format:
- /// Begins with 4 bytes for the pixel x coord, then 4 bytes for the y coord
- /// Then all data following can have a layout of either:
- ///  - 2 bytes (not equal to 0xFFFFU) for the event counts
- ///  - 2 bytes command flag (0xFFFFU) followed by 2 bytes coding the number
- ///    of consecutive zeroes in the histogram
- /// Finally a 4 byte flag marks the end of pixel (0xFFFF FFFFU)
- ///
- /// The FileWriter class takes the pixel spectral data and codes it in the pixel
- /// buffer with the format described above. Then, the FileWriter class writes
- /// all the pixel data to the file only when all the pixel buffers in a given
- /// line have been written.
- ///
- /// Data can be written to the file in binary or ASCII mode. In case of the
- /// former, the data will have the format described above. In case of the latter
- /// the format will be the following;
- ///
- /// - All numbers are written in their ASCII uppercase hexadecimal representation
- /// - pixel column coordinate followed by a comma
- /// - pixel row coordinate followed by a comma, or in case there is no spectral
- ///   data in the pixel, followed by a std::endl
- /// - bin event counts (which can be zero)
- /// - should there be more than two consecutive zeroes in the data histogram,
- /// they are written as:
- ///   - number of consecutive zeroes, followed by an 'R', followed by a comma
- /// - the end of the pixel is marked by replacing the trailing comma with a
- ///   std::endl
- ///
- class MAXRF_LIBRARIES_SHARED_EXPORT FileWriter
- {
+private:
+  vector_type v_;
+  size_type x_len_;
+  size_type y_len_;
+};
 
- public:
-   using Histogram   = std::vector<uint16_t>;
-   using PixelBuffer = std::vector<uchar>;
+struct PixelData
+{
+  uint32_t coord_x;
+  uint32_t coord_y;
+  std::vector<uint16_t> histogram;
+};
 
-   ///
-   /// \brief FileWriter constructor takes ownership of a file descriptor
-   /// (managed by a file stream class instance) and setups the scan line
-   /// buffer to the specified with
-   /// \param f
-   /// \param width
-   ///
-   FileWriter(std::fstream && f, uint32_t width) {
-     file_ = std::move(f);
-     scan_line_width_ = width;
+///
+/// \brief The FileWriter class takes spectral data from consecutive pixels of
+/// an XRF scan line and outputs it to a file in the correct order and with the
+/// correct format
+///
+/// The ordering of the pixels on an MAXRF scan depends on the number of the
+/// scan line. Pixels on even lines increase to the right, while pixels on
+/// odd lines increase to the left.
+///
+/// The FileWriter class uses two buffers to accomplish is task: a pixel buffer,
+/// and a scan line buffer. The scan line buffer is merely a list of pixel
+/// buffers arranged in the correct order. The pixel with column coordinate 0
+/// will be at the index 0 of the scan line buffer, and so on.
+///
+/// The pixel buffer has the following format:
+/// Begins with 4 bytes for the pixel x coord, then 4 bytes for the y coord
+/// Then all data following can have a layout of either:
+///  - 2 bytes (not equal to 0xFFFFU) for the event counts
+///  - 2 bytes command flag (0xFFFFU) followed by 2 bytes coding the number
+///    of consecutive zeroes in the histogram
+/// Finally a 4 byte flag marks the end of pixel (0xFFFF FFFFU)
+///
+/// The FileWriter class takes the pixel spectral data and codes it in the pixel
+/// buffer with the format described above. Then, the FileWriter class writes
+/// all the pixel data to the file only when all the pixel buffers in a given
+/// line have been written.
+///
+/// Data can be written to the file in binary or ASCII mode. In case of the
+/// former, the data will have the format described above. In case of the latter
+/// the format will be the following;
+///
+/// - All numbers are written in their ASCII uppercase hexadecimal representation
+/// - pixel column coordinate followed by a comma
+/// - pixel row coordinate followed by a comma, or in case there is no spectral
+///   data in the pixel, followed by a std::endl
+/// - bin event counts (which can be zero)
+/// - should there be more than two consecutive zeroes in the data histogram,
+/// they are written as:
+///   - number of consecutive zeroes, followed by an 'R', followed by a comma
+/// - the end of the pixel is marked by replacing the trailing comma with a
+///   std::endl
+///
+class MAXRF_LIBRARIES_SHARED_EXPORT FileWriter
+{
 
-     SetUpBuffers(width);
-   }
+public:
+  using Histogram   = std::vector<uint16_t>;
+  using PixelBuffer = std::vector<uchar>;
+
+  ///
+  /// \brief FileWriter constructor takes ownership of a file descriptor
+  /// (managed by a file stream class instance) and setups the scan line
+  /// buffer to the specified with
+  /// \param f
+  /// \param width
+  ///
+  FileWriter(std::fstream && f, uint32_t width) {
+    file_ = std::move(f);
+    scan_line_width_ = width;
+
+    SetUpBuffers(width);
+  }
 
 
- //  void AddOutputFile(std::shared_ptr<HypercubeFile> file) {
- //    file_ = file;
- //  }
-   void SetUpBuffers(uint scan_line_width);
+  //  void AddOutputFile(std::shared_ptr<HypercubeFile> file) {
+  //    file_ = file;
+  //  }
+  void SetUpBuffers(uint scan_line_width);
 
-   void WriteDataToFiles(PixelData & data);
+  void WriteDataToFiles(PixelData & data);
 
-   auto ReacquireFileOwnership() {
-     return std::move(file_);
-   }
+  auto ReacquireFileOwnership() {
+    return std::move(file_);
+  }
 
- private:
- //  std::shared_ptr<HypercubeFile> file_ {nullptr};
-   std::fstream file_ ;
-   std::vector<PixelBuffer> buffer {};
-   uint32_t scan_line_width_;
+private:
+  //  std::shared_ptr<HypercubeFile> file_ {nullptr};
+  std::fstream file_ ;
+  std::vector<PixelBuffer> buffer {};
+  uint32_t scan_line_width_;
 
-   struct FileStats {
-     uint32_t pixels_in_buffer;  ///< No. of pixels in buffer but not written
-     uint32_t pixels_written;    ///< No. of pixels written
-     Histogram  sum_spectrum;    ///< Detector sum spectrum of scan
-   } stats {};
- };
+  struct FileStats {
+    uint32_t pixels_in_buffer;  ///< No. of pixels in buffer but not written
+    uint32_t pixels_written;    ///< No. of pixels written
+    Histogram  sum_spectrum;    ///< Detector sum spectrum of scan
+  } stats {};
+};
 
- class MAXRF_LIBRARIES_SHARED_EXPORT DataFileHander
- {
+class MAXRF_LIBRARIES_SHARED_EXPORT DataFileHander
+{
 
- public:
-   // No copy / move constructors nor assignment operators
-   DataFileHander(DataFileHander const &) = delete;
-   DataFileHander(DataFileHander &&) = delete;
-   DataFileHander & operator= (DataFileHander const &) = delete;
-   DataFileHander & operator= (DataFileHander &&) = delete;
+public:
+  // No copy / move constructors nor assignment operators
+  DataFileHander(DataFileHander const &) = delete;
+  DataFileHander(DataFileHander &&) = delete;
+  DataFileHander & operator= (DataFileHander const &) = delete;
+  DataFileHander & operator= (DataFileHander &&) = delete;
 
-   /// FORMAT IDENTIFICATION
-   static auto GetFile(std::string filepath) -> std::shared_ptr<MAXRFDataFile>;
-   static auto GetFileForDAQ(std::string filepath) -> std::shared_ptr<MAXRFDataFile>;
-   /// MULTIDETECTOR SUMMATION METHODS
- private:
-   DataFileHander();
+  /// FORMAT IDENTIFICATION
+  static auto GetFile(std::string filepath) -> std::shared_ptr<MAXRFDataFile>;
+  static auto GetFileForDAQ(std::string filepath) -> std::shared_ptr<MAXRFDataFile>;
+  /// MULTIDETECTOR SUMMATION METHODS
+private:
+  DataFileHander();
 
-   static std::map<std::string, DataFormat> formats_;
- };
+  static std::map<std::string, DataFormat> formats_;
+};
 
 class MAXRF_LIBRARIES_SHARED_EXPORT MAXRFDataFile
 {
@@ -381,18 +383,38 @@ public:
   /// LOOK-UP TABLE COMPUTATION
   auto ComputeLookupTable() -> std::shared_ptr<LookupTable>;
 
+  // Not reentrant! Not suitable for concurrent use
   inline auto GoToPixel(size_t x, size_t y) -> void {
-    file_.seekg(lut->at(x, y).datum_pos);
+    static auto kInvalidPos {std::fstream::pos_type {std::fstream::off_type {-1}}};
+    static std::fstream::pos_type pos {};
+
+    pos = lut->at(x, y).datum_pos;
+    if (pos == kInvalidPos) {
+      throw std::runtime_error("Hypercubefile reports: Missing pixel data!");
+    }
+    file_.seekg(pos);
   }
   inline auto GoToPixel(size_t index) -> void {
-    file_.seekg(lut->at(index).datum_pos);
+    static auto kInvalidPos {std::fstream::pos_type {std::fstream::off_type {-1}}};
+    static std::fstream::pos_type pos {};
+
+    pos = lut->at(index).datum_pos;
+    if (pos == kInvalidPos) {
+      throw std::runtime_error("Hypercubefile reports: Missing pixel data!");
+    }
+    file_.seekg(pos);
   }
   inline auto GoToPixel(std::fstream::pos_type pos) -> void {
+    static auto kInvalidPos {std::fstream::pos_type {std::fstream::off_type {-1}}};
+
+    if (pos == kInvalidPos) {
+      throw std::runtime_error("Hypercubefile reports: Missing pixel data!");
+    }
     file_.seekg(pos);
   }
 
   template <class T>
-  inline auto ParsePixel(T & parse_instructions) -> void
+  auto ParsePixel(T & parse_instructions) -> void
   {
     static bool end_of_line{false};
     static char character;         // We read character by character... sometimes

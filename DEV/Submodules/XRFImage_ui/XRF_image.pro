@@ -94,7 +94,7 @@ RESOURCES += \
 # Header, binary, and documentation files and install directories
 # ---------------------------------------------------------------------------- #
 
-INSTALL_DIR = $$PROJECT_DIR/bin
+INSTALL_DIR = $$PROJECT_DIR/Local/bin
 
 # Directory where to put the documentation files for this project
 EXPORTED_DOC_DIR = $$PROJECT_DIR/docs
@@ -102,7 +102,7 @@ EXPORTED_DOC_DIR = $$PROJECT_DIR/docs
 EXPORTED_DOC_FILES = doc/*
 
 # Directory where to put public API headers for this project
-EXPORTED_API_DIR = $$PROJECT_DIR/include/MAXRF
+EXPORTED_API_DIR = $$PROJECT_DIR/Local/include/MAXRF
 # List of public API headers
 EXPORTED_API_HEADERS += include/MAXRF/*
 

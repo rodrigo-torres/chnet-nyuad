@@ -21,47 +21,37 @@
 #include "daq_daemon.h"
 #include "MAXRF/ipc_methods.h"
 
-extern "C" [[noreturn]] void SafeTermination([[maybe_unused]] int sig) {
-  //  process_lock.ReleaseSocket();
-
-  //  daq.ForceStopDAQ();
-  //  while (daq.IsSafeToExit() != true) {
-  //    std::this_thread::sleep_for(std::chrono::milliseconds {10});
-  //  }
-
-  std::cout << "Cleanup success!" << std::endl;
-  std::_Exit(EXIT_FAILURE);
-}
-
-int HardcodedValues();
-int StartFromSocket();
 
 static maxrf::ipc::SHMHandle shm {};
 
+//extern "C" [[noreturn]] void SafeTermination([[maybe_unused]] int sig) {
+//  //  process_lock.ReleaseSocket();
+
+//  //  daq.ForceStopDAQ();
+//  //  while (daq.IsSafeToExit() != true) {
+//  //    std::this_thread::sleep_for(std::chrono::milliseconds {10});
+//  //  }
+
+//  std::cout << "Cleanup success!" << std::endl;
+//  std::_Exit(EXIT_FAILURE);
+//}
+
+#ifdef DAQ_DAEMON_DEBUG
+int HardcodedValues();
+#else
+int StartFromSocket();
+#endif
 
 int main()
 {
-  //  ResourceCleaner safety {SafeTermination};
-//  auto size = sizeof(std::vector<std::byte>);
-//  printf("%ld\n", size);
-//  try {
-//    shm.Init();
-//  } catch (std::runtime_error & e) {
-//    std::cout << e.what() << std::endl;
-//    std::this_thread::sleep_for(std::chrono::milliseconds {500});
-//    std::exit(EXIT_FAILURE);
-//  }
-//  int counter {0};
-//  do {
-//    StartFromSocket();
-//    shm.WriteVariable(&maxrf::ipc::SHMStructure::daq_daemon_active, false);
-//    ++counter;
-//  } while (counter < 5);
-
-//  return 0;
-// return HardcodedValues();
+#ifdef DAQ_DAEMON_DEBUG
+  return HardcodedValues();
+#else
   return StartFromSocket();
+#endif
 }
+
+#ifndef DAQ_DAEMON_DEBUG
 
 int StartFromSocket() {
   using namespace maxrf::daq;
@@ -74,16 +64,16 @@ int StartFromSocket() {
   shm.WriteVariable(&maxrf::ipc::SHMStructure::daq_daemon_active, true);
 
 
-//  auto start = std::chrono::steady_clock::now();
-//  while (shm.GetVariable(&SHMStructure::daq_daemon_enable) == false) {
-//    std::this_thread::sleep_for(10ms);
-//    if (std::chrono::steady_clock::now() - start > 1s) {
-//      // Process waiting for DAQ enable from parent process timed out
-//      std::cout << "Waiting for DAQ enable flag timed out" << std::endl;
-//      std::this_thread::sleep_for(2s);
-//      std::exit(EXIT_FAILURE);
-//    }
-//  }
+  auto start = std::chrono::steady_clock::now();
+  while (shm.GetVariable(&SHMStructure::daq_daemon_enable) == false) {
+    std::this_thread::sleep_for(10ms);
+    if (std::chrono::steady_clock::now() - start > 1s) {
+      // Process waiting for DAQ enable from parent process timed out
+      std::cout << "Waiting for DAQ enable flag timed out" << std::endl;
+      std::this_thread::sleep_for(2s);
+      std::exit(EXIT_FAILURE);
+    }
+  }
 
 
   DAQInitParameters params {};
@@ -156,6 +146,8 @@ int StartFromSocket() {
   return 0;
 }
 
+#else
+
 int HardcodedValues() {
   using namespace std::literals;
   using namespace maxrf::daq;
@@ -169,21 +161,23 @@ int HardcodedValues() {
   params.mode_parameters.mode     = DAQMode::kDAQScan;
   params.mode_parameters.x_motor_step = 1000;
   params.mode_parameters.y_motor_step = 1000;
-  params.mode_parameters.motor_velocity = 5000;
-  params.mode_parameters.x_start_coordinate = 0;
-  params.mode_parameters.x_end_coordinate = 10000;
-  params.mode_parameters.y_start_coordinate = 0;
-  params.mode_parameters.y_end_coordinate   = 5000;
-  params.mode_parameters.timeout  = 0.2;
+  params.mode_parameters.motor_velocity = 1000;
+  params.mode_parameters.x_start_coordinate = 60000;
+  params.mode_parameters.x_end_coordinate = 65000;
+  params.mode_parameters.y_start_coordinate = 60000;
+  params.mode_parameters.y_end_coordinate   = 65000;
+  params.mode_parameters.timeout  = 1;
 
-//  int counter {0};
-//  do {
-    DAQSession daq{};
-//    params.base_filename = "test"s + std::to_string(counter);
-      if (daq.SetupDAQSession(params)) {
-      daq.StartDAQSession();
-    }
-//    ++counter;
-//  } while (counter < 30);
+  //  int counter {0};
+  //  do {
+  DAQSession daq{};
+  //    params.base_filename = "test"s + std::to_string(counter);
+  if (daq.SetupDAQSession(params)) {
+    daq.StartDAQSession();
+  }
+  //    ++counter;
+  //  } while (counter < 30);
   return 0;
 }
+
+#endif

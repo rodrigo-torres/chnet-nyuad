@@ -41,11 +41,23 @@ protected:
   }
 
 public:
-  static inline auto PixelToXCoord(uint pixel) {
-    return pixel % width;
-  }
-  static inline auto PixelToYCoord(uint pixel) {
-    return pixel / width;
+  //  static inline auto PixelToXCoord(uint pixel) {
+  //    return pixel % width;
+  //  }
+  //  static inline auto PixelToYCoord(uint pixel) {
+  //    return pixel / width;
+  //  }
+
+  static inline std::pair<uint, uint> PixelToCoords(uint pixel) {
+    bool const odd_line  = (pixel / width) % 2;
+
+    if (odd_line) {
+      return { (width - 1) - ( pixel % width), pixel / width };
+    }
+    else {
+      return {pixel % width, pixel / width };
+      //      return { width - (pixel % width), pixel / width };
+    }
   }
 
   static inline auto Width() noexcept {
@@ -82,7 +94,7 @@ bool DAQSession::SetupDAQSession(DAQInitParameters const & config) {
 
     uint pipes_id {0};
     for (auto & board : config.boards_config) {
-//      auto ptr = caen_handle_->GetBoardHandle(board);
+      //      auto ptr = caen_handle_->GetBoardHandle(board);
       pipes_.push_back(DAQPipe {caen_handle_->GetBoardHandle(board), writer_});
       pipes_.back().SetID(pipes_id);
       ++pipes_id;
@@ -91,7 +103,7 @@ bool DAQSession::SetupDAQSession(DAQInitParameters const & config) {
   } catch (std::exception & e) {
     std::cout << e.what() << std::endl;
   }
-//  daq_duration = std::chrono::duration<double>(config.mode_parameters.timeout);
+  //  daq_duration = std::chrono::duration<double>(config.mode_parameters.timeout);
   session_params_ = config.mode_parameters;
 
   return status;
@@ -101,15 +113,14 @@ void DAQSession::StartDAQSession() {
 
   switch (session_params_.mode) {
   case DAQMode::kDAQScan :
+#ifndef DAQ_DAEMON_DEBUG
     std::cout << "Initing semaphores... " << std::endl;
     sem_probe_.Init("/daq_probe");
     sem_reply_.Init("/daq_reply");
     std::cout << "Semaphores inited... " << std::endl;
     sem_reply_.Post();
     sem_probe_.Wait();
-
-//    sem_probe = sem_open("/daq_probe", 0);
-//    sem_reply = sem_open("/daq_reply", 0);
+#endif
     [[fallthrough]];
   case DAQMode::kDAQPoint :
     daq_enable.store(true);
@@ -144,12 +155,12 @@ void DAQSession::EnterDAQLoop() {
         std::this_thread::sleep_for(daq_duration / 10);
         continue;
       }
-          micros /= samples;
-          std::cout << "Collecting data took (us): " << micros.count() << std::endl;
-          micros = microseconds {0};
-          samples = 0;
+      micros /= samples;
+      std::cout << "Collecting data took (us): " << micros.count() << std::endl;
+      micros = microseconds {0};
+      samples = 0;
       //    auto t1 = steady_clock::now();
-          pipes_.front().SendDataDownPipe();
+      pipes_.front().SendDataDownPipe();
       //    auto t2 = steady_clock::now();
       //    std::cout << "Exchange took (us): "
       //              <<  duration_cast<microseconds>(t2  - t1).count() << std::endl;
@@ -157,17 +168,19 @@ void DAQSession::EnterDAQLoop() {
 
       if (pixel == ScanDimensions::Pixels()) {
         pipes_.front().ClosePipe();
+#ifndef DAQ_DAEMON_DEBUG
         sem_reply_.Post();  // One last post to let know app we've finished
+#endif
         break;
       }
 
       if ( (pixel % ScanDimensions::Width()) == 0) {
         // Synchronize with the motors at the end of each scan line
         pipes_.front().ClosePipe();
+#ifndef DAQ_DAEMON_DEBUG
         sem_reply_.Post();
         sem_probe_.Wait();
-        //      sem_post(sem_probe);
-        //      sem_wait(sem_reply);
+#endif
         pipes_.front().OpenPipe();
       }
       start_timestamp = steady_clock::now();
@@ -192,14 +205,6 @@ void DAQSession::CleanupEverything() {
   session_params_.mode = DAQMode::kDAQInvalid;
   pipes_.clear();
 
-  // Handle semaphores
-//  if (sem_reply) {
-//    sem_close(sem_reply);
-//  }
-//  if (sem_probe) {
-//    sem_close(sem_probe);
-//  }
-
   caen_handle_.reset(nullptr);
 }
 
@@ -209,11 +214,12 @@ void DAQPipe::SendDataDownPipe() {
   }
 
   uint32_t channel_id {0};
+  auto coords = ScanDimensions::PixelToCoords(pixel);
   for (auto & channel : producer_->GetHandles()) {
     auto packet = consumer_->GetEmptyDataPacket();
     packet.channel_id = pipe_id + channel_id;
-    packet.pixel.coord_x = ScanDimensions::PixelToXCoord(pixel);
-    packet.pixel.coord_y = ScanDimensions::PixelToYCoord(pixel);
+    packet.pixel.coord_x = coords.first;
+    packet.pixel.coord_y = coords.second;
     packet.pixel.histogram.swap(channel.histogram);
     ++pixel;
 
@@ -264,15 +270,15 @@ void FileWriter::Initialize(DAQInitParameters const & config) {
 
       file->EditToken("Calibration_Param_0", "0.00");
       file->EditToken("Calibration_Param_1", "0.0113");
-      file->EditToken("Calibration_Param_2", "0.00");    
+      file->EditToken("Calibration_Param_2", "0.00");
       file->EditToken("Width", std::to_string(ScanDimensions::Width()));
       file->EditToken("Height", std::to_string(ScanDimensions::Height()));
       file->EditToken("Pixels", std::to_string(ScanDimensions::Pixels()));
     }
   }
 
- mode_ = static_cast<WriteMode>(static_cast<int>(config.mode_parameters.mode));
-// file->SetWriteMode(mode, ScanDimensions::Width());
+  mode_ = static_cast<WriteMode>(static_cast<int>(config.mode_parameters.mode));
+  // file->SetWriteMode(mode, ScanDimensions::Width());
 
 
   constexpr int kEmptyBuffersSize = 10;
@@ -305,9 +311,9 @@ void FileWriter::WriteTask() {
 
   while (daq_enable || !pending_jobs.empty()) {
     if (pending_jobs.try_pop(current_job)) {
-//      using namespace std::chrono;
-//      auto t1 = high_resolution_clock::now();
-//      WriteDataToFiles(current_job);
+      //      using namespace std::chrono;
+      //      auto t1 = high_resolution_clock::now();
+      //      WriteDataToFiles(current_job);
 
       files_.at(current_job.channel_id)->WritePixel(current_job.pixel);
       // We have already zeroed the packet buffer
@@ -316,10 +322,10 @@ void FileWriter::WriteTask() {
       current_job.channel_id = std::numeric_limits<int32_t>::max();
 
       empty_packets_pool.push(std::move(current_job));
-//      auto t2 = high_resolution_clock::now();
-//      std::cout << "Writing to file took (ms): "
-//                << duration_cast<microseconds>(t2 - t1).count() << std::endl;
-//      For writing spectra is on the order of  a few tenths of microseconds
+      //      auto t2 = high_resolution_clock::now();
+      //      std::cout << "Writing to file took (ms): "
+      //                << duration_cast<microseconds>(t2 - t1).count() << std::endl;
+      //      For writing spectra is on the order of  a few tenths of microseconds
       // Except! for when the tasks flushes out the line buffer
       // In which case it seems to take ~40-100 microseconds per pixel
     }

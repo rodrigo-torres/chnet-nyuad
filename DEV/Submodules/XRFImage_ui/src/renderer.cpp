@@ -67,13 +67,13 @@ Histogram Renderer::ComputeROISpectrum(std::array<QPoint, 4> corners) const
   std::pair<int, int> y_maxima;
   // Find one of the two points with the largest y coordinate
   auto it = std::minmax_element(corners.begin(), corners.end(),
-                                 [](const auto & lhs, const auto & rhs)
-                                     { return lhs.x() < rhs.x(); });
+                                [](const auto & lhs, const auto & rhs)
+  { return lhs.x() < rhs.x(); });
   x_maxima = {it.first->x(), it.second->x()};
 
   it = std::minmax_element(corners.begin(), corners.end(),
-                                 [](const auto & lhs, const auto & rhs)
-                                     { return lhs.y() < rhs.y(); });
+                           [](const auto & lhs, const auto & rhs)
+  { return lhs.y() < rhs.y(); });
   y_maxima = {it.first->y(), it.second->y()};
 
   double const progress_step = 100. / state_.pixels;
@@ -85,8 +85,13 @@ Histogram Renderer::ComputeROISpectrum(std::array<QPoint, 4> corners) const
   roi_operator.spectrum.fill(0);
   for (auto j = y_maxima.first; j < y_maxima.second + 1; ++j) {
     for (auto i = x_maxima.first; i < x_maxima.second + 1; ++i) {
-      state_.file->GoToPixel(i + j * state_.width);
-      state_.file->ParsePixel(roi_operator);
+      try {
+        state_.file->GoToPixel(i + j * state_.width);
+        state_.file->ParsePixel(roi_operator);
+      }  catch (std::runtime_error & e) {
+        std::cout << e.what() << std::endl;
+        continue;
+      }
 
       progress = progress_step * i;
       emit UpdateProgressBar(static_cast<int>(progress));
@@ -138,15 +143,24 @@ void Renderer::UpdatePixelIntegrals()
 
   std::size_t pixel {0};
   for (auto & integral : buffer_) {
-    state_.file->GoToPixel(pixel);
+    try {
+      state_.file->GoToPixel(pixel);
+      state_.file->ParsePixel(filtered_operator);
 
-    state_.file->ParsePixel(filtered_operator);
+      if (filtered_operator.result > render_.max_integral) {
+        render_.max_integral = filtered_operator.result;
+      }
+      integral = filtered_operator.result;
+      filtered_operator.result = 0;
 
-    if (filtered_operator.result > render_.max_integral) {
-      render_.max_integral = filtered_operator.result;
+    }  catch (std::runtime_error & e) {
+      std::cout << e.what() << std::endl;
+      integral = 0;
+      filtered_operator.result = 0;
+      continue;
     }
-    integral = filtered_operator.result;
-    filtered_operator.result = 0;
+
+
 
     progress += progress_step;
     emit UpdateProgressBar(static_cast<int>(progress));
@@ -182,8 +196,8 @@ auto Renderer::RenderXRFImage() -> std::shared_ptr<Render const>
 
   // We resize the index data vector to the total number of pixels
   render_.indexed_data.resize(render_.dimensions.first *
-                                     render_.dimensions.second,
-                                     std::byte {0});
+                              render_.dimensions.second,
+                              std::byte {0});
 
   if (render_.max_integral == 0) {
     // The image is empty and we return it as it is
@@ -213,8 +227,8 @@ void Renderer::LoadHypercube(std::string filename)
 {
 
   State state;
-//  message_  = "[!] This file is not an XML file with Hypercube data";
-//  valid_ = false;
+  //  message_  = "[!] This file is not an XML file with Hypercube data";
+  //  valid_ = false;
 
   auto ptr = maxrf::DataFileHander::GetFile(filename);
 
@@ -246,5 +260,5 @@ void Renderer::LoadHypercube(std::string filename)
 
   // The state is valid so we assign it as the current state
   state_ = std::move(state);
-//  valid_ = true;
+  //  valid_ = true;
 }

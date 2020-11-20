@@ -1,0 +1,1 @@
+1. A script to run a make install on all subcomponents of the software

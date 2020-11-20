@@ -31,6 +31,8 @@
 #include "./daq_types.h"
 #include "mca.h"
 
+//#define DAQ_DAEMON_DEBUG
+
 namespace maxrf::daq {
 
 class DAQPipe;

@@ -96,8 +96,8 @@ auto DataFileHander::GetFileForDAQ(std::string path) -> std::shared_ptr<MAXRFDat
   std::error_code err;
   if (!std::filesystem::exists(std::filesystem::path {path}, err)) {
     if (err.default_error_condition() == err) {
-    // We create the file
-    std::ofstream {path};
+      // We create the file
+      std::ofstream {path};
     }
   }
   std::cout << std::filesystem::current_path() << std::endl;
@@ -122,9 +122,9 @@ auto  MAXRFDataFile::GetFormat() const noexcept ->  DataFormat {
 bool HypercubeFile::MakeDefaultHeader() {
 
   header_node_.reset();
-//  auto node = doc.append_child(pugi::node_declaration);
-//  node.append_attribute("version").set_value("1.0");
-//  node.append_attribute("encoding").set_value("UTF-8");
+  //  auto node = doc.append_child(pugi::node_declaration);
+  //  node.append_attribute("version").set_value("1.0");
+  //  node.append_attribute("encoding").set_value("UTF-8");
 
   auto root = header_node_.append_child("Analysis_Header");
   root.append_child("Format").append_child(pugi::node_pcdata).set_value("Hypercube");
@@ -427,22 +427,97 @@ auto HypercubeFile::ExtractHeader() -> std::string
 
 auto HypercubeFile::ComputeLookupTable() -> std::shared_ptr<LookupTable>
 {
-  std::vector<LUTEntry> lut_data;
+  // Edit log, 11 november 2020. There's no check for the pixel position
+  // in this rendering algorithm. Checks have been added to guarantee that
+  // not only there are as many data entries in the file as there are
+  // pixels, but also that these entries occure in the right order
 
+  auto const width  = std::stoul(GetTokenValue(HeaderTokens::kImageWidth));
+  auto const height = std::stoul(GetTokenValue(HeaderTokens::kImageHeight));
+
+  std::vector<LUTEntry> lut_data;
+  lut_data.reserve(width * height);
+
+  std::list<LUTEntry> out_of_order;
+
+  uint32_t coord_0 {}, coord_1 {}, current_0 { 0 }, current_1 { 0 };
+  char separator {};
+
+  // Navigate to the first pixel
   file_.seekg(first_datum_pos_);
+
+  file_ >> std::hex >> std::noskipws;
+
+  auto pix_pos = file_.tellg();
   while (file_.peek() != '<')
   {
-    lut_data.emplace_back().datum_pos = file_.tellg();
-    file_.ignore(std::numeric_limits<short>::max(), '\n');
+    pix_pos = file_.tellg();
+    file_ >> coord_0 >> separator;
+    file_ >> coord_1 >> separator;
+
+    // Check correct pixel order and range
+    if (!(coord_0 < width) || !(coord_1 < height)) {
+      throw std::range_error("LUT reports: Pixel out of range!");
+    }
+
+    // Corrective measures for pixels out of order
+    if (coord_0 != current_0 || coord_1 != current_1) {
+
+      lut_data.emplace_back().datum_pos =
+          std::fstream::pos_type {std::fstream::off_type {-1}};
+      // Try to find the pixel out of order
+      //      auto it = out_of_order.begin();
+      //      for ( ; it != out_of_order.end(); ++it) {
+      //        if (it->integrals[0] == current_0 && it->integrals[1] == current_1) {
+      //          lut_data.emplace_back().datum_pos = it->datum_pos;
+      //          break;
+      //        }
+      //      }
+      //      if (it != out_of_order.end()) {
+      //        out_of_order.erase(it);
+      //      }
+
+      //      // If the pixel was not found, add an indication of an INVALID entry
+      //      // to the pixel LUT, and add the entry to the list of pixels out of
+      //      // order
+      //      lut_data.emplace_back().datum_pos =
+      //          std::fstream::pos_type {std::fstream::off_type {-1}};
+
+      //      auto ent = out_of_order.emplace_back();
+      //      ent.datum_pos = pix_pos;
+      //      ent.integrals[0] = coord_0;
+      //      ent.integrals[1] = coord_1;
+    }
+    else {
+      // The pixel is in the correct order
+      lut_data.emplace_back().datum_pos = pix_pos;
+      // Go to next pixel entry in the file
+      if (separator != '\n') {
+        file_.ignore(std::numeric_limits<short>::max(), '\n');
+      }
+
+      if (++current_0 == width) {
+        current_0 = 0;
+        ++current_1;
+      }
+    }
   }
 
-  size_t const width  = std::stoul(GetTokenValue(HeaderTokens::kImageWidth));
-  size_t const height = std::stoul(GetTokenValue(HeaderTokens::kImageHeight));
+  // In the end, we try to manually put all pixels out of order in the correct
+  // order
+  //  for (auto it : out_of_order) {
+  //    try {
+  //      lut_data.at(it.integrals[1] * width + it.integrals[0]).datum_pos =
+  //          it.datum_pos;
+  //    }  catch (...) {
+  //      throw std::runtime_error("LUT report: Pixel ordering correction error!");
+  //    }
+  //  }
 
   try {
     lut = std::make_shared<LookupTable>(std::move(lut_data), width, height);
     return lut;
- //   return LookupTable{std::move(lut_data), width, height};
+    //   return LookupTable{std::move(lut_data), width, height};
   } catch (...) {
     std::rethrow_exception(std::current_exception());
   }

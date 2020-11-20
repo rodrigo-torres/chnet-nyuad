@@ -150,8 +150,10 @@ void DAQBoardsWidget::MakeWidget() {
 
     params.channels.clear();
 
-    for (uint8_t channel = 0; channel < channels_config->count(); ++channel) {
-      auto ptr = static_cast<DAQPHAWidget *>(channels_config->widget(channel));
+    // TODO user controls to add and remove channels
+
+    for (uint8_t channel = 0; channel < 1; ++channel) {
+      auto ptr = static_cast<DAQPHAWidget *>(channels_config->widget(0));
       params.channels.insert({channel, ptr->GetParamsStruct()});
     }
 //    return params;
@@ -408,8 +410,8 @@ void DAQParamWidget::MakeWidget() {
       config.mode_parameters.mode     = DAQMode::kDAQInvalid;
       config.mode_parameters.timeout  = 0;
     }
-    config.output_path = ".";
-    config.base_filename = "test";
+    config.output_path = out_dir_edit->text().toStdString().c_str();
+    config.base_filename = filename_edit->text().toStdString().c_str();
 
     auto & scan_params = config.mode_parameters;
     scan_params.x_start_coordinate =
