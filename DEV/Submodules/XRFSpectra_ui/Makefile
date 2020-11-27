@@ -852,12 +852,12 @@ build/moc_plot.o: build/moc_plot.cpp
 ####### Install
 
 install_target: first FORCE
-	@test -d $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Localbin || mkdir -p $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Localbin
-	-$(QINSTALL_PROGRAM) bin/$(QMAKE_TARGET) $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Localbin/$(QMAKE_TARGET)
+	@test -d $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Local/bin || mkdir -p $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Local/bin
+	-$(QINSTALL_PROGRAM) bin/$(QMAKE_TARGET) $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Local/bin/$(QMAKE_TARGET)
 
 uninstall_target: FORCE
-	-$(DEL_FILE) $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Localbin/$(QMAKE_TARGET)
-	-$(DEL_DIR) $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Localbin/ 
+	-$(DEL_FILE) $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Local/bin/$(QMAKE_TARGET)
+	-$(DEL_DIR) $(INSTALL_ROOT)/home/frao/Documents/Workspaces/xrfmultidet/chnet-nyuad/DEV/Local/bin/ 
 
 
 install: install_target  FORCE

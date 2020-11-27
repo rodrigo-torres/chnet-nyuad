@@ -196,15 +196,25 @@ void Plot::Open() {
       std::vector<int> vec;
       vec.reserve(16384);
 
+      sdata >> std::noskipws;
       sdata >> separator; // First \n character
+      // If the ignore white space flag is not set, the strstream skips
+      // any leading white space including \n
       while (sdata >> counts >> separator) {
         vec.push_back(counts);
 
       }
 
-      for (auto it = vec.begin(); it != vec.begin() + 16384; ++it) {
-        shared_memory[100] = *it;
+      uint16_t offset { 0};
+      auto it = vec.begin();
+      while (it != vec.end() && offset < 16384) {
+        shared_memory[100 + offset] = *(it + offset);
+        ++offset;
       }
+
+//      for (auto it = vec.begin(); it != vec.begin() + 16384; ++it) {
+//        shared_memory[100] = *it;
+//      }
 
       //      int iLinedet1=0;
       //      while (!fileOpened.atEnd()) { // Parses the values and writes them to shared memory

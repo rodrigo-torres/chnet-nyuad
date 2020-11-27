@@ -199,15 +199,12 @@ bool HypercubeFile::WriteFooter() {
   if (writer) {
     file_ = writer->ReacquireFileOwnership();
     writer.reset();
-    write_mode = WriteMode::kDAQInvalid;
-    file_ << "</Analysis_Data>\n";
-    // Perhaps write a footer
-    file_ << "</XRFAnalysis>\n";
-    return true;
   }
-  else {
-    return false;
-  }
+  file_ << "</Analysis_Data>\n";
+  // Perhaps write a footer
+  file_ << "</XRFAnalysis>\n";
+  write_mode = WriteMode::kDAQInvalid;
+  return true;
 }
 
 /// HEADER MANIPULATION API

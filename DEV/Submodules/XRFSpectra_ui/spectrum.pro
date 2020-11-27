@@ -88,7 +88,7 @@ RESOURCES += Resource.qrc
 # Header, binary, and documentation files and install directories
 # ---------------------------------------------------------------------------- #
 
-INSTALL_DIR = $$PROJECT_DIR/Localbin
+INSTALL_DIR = $$PROJECT_DIR/Local/bin
 
 # Directory where to put the documentation files for this project
 EXPORTED_DOC_DIR = $$PROJECT_DIR/Local/share/doc/maxrf
