@@ -110,25 +110,18 @@ bool DAQSession::SetupDAQSession(DAQInitParameters const & config) {
 }
 
 void DAQSession::StartDAQSession() {
-
-  switch (session_params_.mode) {
-  case DAQMode::kDAQScan :
-#ifndef DAQ_DAEMON_DEBUG
-    std::cout << "Initing semaphores... " << std::endl;
-    sem_probe_.Init("/daq_probe");
-    sem_reply_.Init("/daq_reply");
-    std::cout << "Semaphores inited... " << std::endl;
-    sem_reply_.Post();
-    sem_probe_.Wait();
-#endif
-    [[fallthrough]];
-  case DAQMode::kDAQPoint :
-    daq_enable.store(true);
-    EnterDAQLoop();
-    break;
-  case DAQMode::kDAQInvalid :
-    break;
+  if (session_params_.mode == kDaqInvalid) {
+    return;
   }
+  
+  sem_probe_.Init("/daq_probe");
+  sem_reply_.Init("/daq_reply");
+  std::cout << "Semaphores inited... " << std::endl;
+  sem_reply_.Post();
+  sem_probe_.Wait();
+  
+  daq_enable.store(true);
+  EnterDAQLoop();
 }
 
 void DAQSession::EnterDAQLoop() {
@@ -194,6 +187,8 @@ void DAQSession::EnterDAQLoop() {
       pipes_.front().SendDataDownPipe();
     }
     else {
+      sem_reply_.Post();  // Signal end of scan
+      sem_probe_.Wait();
       break;
     }
   }

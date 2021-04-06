@@ -302,6 +302,11 @@ void tty_agent::servo() {
   }
 }
 
+
+// BUG. The ScanManager by default moves the motor to position 100,100 independent
+// of the type of DAQ session (i.e. it moves the motors to HOME position for a point DAQ).
+// TODO Polymorphism of the ScanManager by adding one parameter to the constructor
+// NOTE. A quick fix of this BUG has been implemented through an IF statement
 ScanManager::ScanManager(MotorHandle x, MotorHandle y, tty_agent * handle) :
   stage_x_ {std::move(x)}, stage_y_ {std::move(y)} {
 
@@ -317,13 +322,7 @@ ScanManager::ScanManager(MotorHandle x, MotorHandle y, tty_agent * handle) :
   // We acknowledge the scan request
   shm.WriteVariable(&SHMStructure::daq_request_scan_from_motors, false);
   shm.WriteVariable(&SHMStructure::daq_scan_request_acknowledged, true);
-
-  // Adjust the scan limits to compensate for acceleration
-  // Motor acceleration is  specifieda s 200mm/s^2
-  auto accel_dist = 0.5 * (1 / 200.) * std::pow(params.motor_velocity, 2);
-  params.x_start_coordinate -= accel_dist;
-  params.x_end_coordinate   += accel_dist;
-
+  
   // Gently stop the motors, check they are  fully immobile, then send
   // them to the scan start position.
   stage_x_->SendCommand(MotorCommands::kGentleStop);
@@ -332,6 +331,20 @@ ScanManager::ScanManager(MotorHandle x, MotorHandle y, tty_agent * handle) :
     stage_x_->check_ont();
     stage_y_->check_ont();
   } while (!stage_x_->IsOnTarget() || !stage_y_->IsOnTarget());
+
+  
+  if (params.mode == DAQ::kDAQPoint) {
+    // For a point DAQ, don't move the motors to HOME
+    sem_reply.Wait(); // Wait for the daemon to be ready
+    sem_probe.Post(); // Confirm the MAIN program is ready
+    return;
+  }
+
+  // Adjust the scan limits to compensate for acceleration
+  // Motor acceleration is  specifieda s 200mm/s^2
+  auto accel_dist = 0.5 * (1 / 200.) * std::pow(params.motor_velocity, 2);
+  params.x_start_coordinate -= accel_dist;
+  params.x_end_coordinate   += accel_dist;
 
   stage_x_->SendCommand(MotorCommands::kSetSpeed, 10.);
   stage_y_->SendCommand(MotorCommands::kSetSpeed, 10.);
@@ -374,6 +387,15 @@ void ScanManager::UpdateEvent() {
 
   // The TriggerPositionUpdate method of the StageMotor class updates the
   // value of the internal on_target_ field
+  
+  // Fix for DAQPoint
+  if (params.mode == DAQ::kDAQPoint) {
+    if (sem_reply.TryWait()) { // Probe if the DAQ is done
+      sem_probe.Post(); // Confirm the MAIN program is ready
+      scan_done_ = true;    
+    }
+    return;
+  }
 
   if (stage_x_->IsOnTarget()) {
     // Synchronize with the DAQ daemon and start the new line
