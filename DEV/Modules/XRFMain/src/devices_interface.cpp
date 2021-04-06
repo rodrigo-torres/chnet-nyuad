@@ -421,7 +421,11 @@ void ScanManager::UpdateEvent() {
       sem_probe.Post();
     }
     else {
-      // The scan is done
+      // The scan has finished.
+      // 1. Reset the stage velocity to its default value (1mm/s)
+      stage_x_->SendCommand(MotorCommands::kSetSpeed, 1.);
+      stage_y_->SendCommand(MotorCommands::kSetSpeed, 1.);
+      // 2. Signal the state
       scan_done_ = true;
       // TODO some methods to garbage collect the scan semaphores
     }
